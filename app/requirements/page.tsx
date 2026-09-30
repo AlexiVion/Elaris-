@@ -1,12 +1,13 @@
-import { PageHeader } from "@/components/elaris/PageHeader";
-import { Placeholder } from "@/components/elaris/Placeholder";
+import { EvidenceListView } from "@/components/elaris/EvidenceListView";
 import { copy } from "@/lib/copy/en";
 
-export default function RequirementsPage() {
+export default function RequirementsPage({ searchParams }: { searchParams: { deployment?: string; status?: string; criticality?: string } }) {
   return (
-    <>
-      <PageHeader title={copy.nav.requirements} />
-      <Placeholder note="This screen is built in a later phase." />
-    </>
+    <EvidenceListView
+      category="REQUIREMENT"
+      title={copy.nav.requirements}
+      basePath="/requirements"
+      filters={{ deploymentCode: searchParams.deployment, status: searchParams.status, criticality: searchParams.criticality }}
+    />
   );
 }

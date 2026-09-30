@@ -155,6 +155,12 @@ export const kindLabel: Record<string, string> = {
   OTHER: "Other",
 };
 
+export const criticalityLike: Record<string, string> = {
+  HIGH: "High",
+  MEDIUM: "Medium",
+  LOW: "Low",
+};
+
 export const suggestedActionLabel: Record<string, string> = {
   RE_RUN: "Re-run",
   REVIEW: "Review",

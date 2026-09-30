@@ -50,7 +50,7 @@ export default async function DeploymentOverviewPage({
   const detail = await getDeploymentDetail(params.code);
   if (!detail) notFound();
 
-  const { dep, readiness, coverage, snapshot, recentChanges, incidents } = detail;
+  const { dep, readiness, coverage, snapshot, recentChanges, incidents, audit } = detail;
   const tab = searchParams.tab === "history" ? "history" : "overview";
   const robots = dep.deploymentRobots.map((dr) => dr.robot);
   const primaryRobot = robots[0];
@@ -68,6 +68,9 @@ export default async function DeploymentOverviewPage({
         title={dep.name}
         actions={
           <>
+            <Button variant="outline" asChild>
+              <Link href={`/deployments/${dep.code}/changes/new`}><GitBranch className="size-4" /> New change</Link>
+            </Button>
             <Button variant="outline" asChild>
               <Link href={`/reports?deployment=${dep.code}`}><Share2 className="size-4" /> Share View</Link>
             </Button>
@@ -293,6 +296,23 @@ export default async function DeploymentOverviewPage({
                 ))}
               </tbody>
             </table>
+          </SectionCard>
+
+          <SectionCard title="Audit log" icon={Fingerprint}>
+            {audit.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">No audit events yet.</p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {audit.map((a) => (
+                  <li key={a.id} className="flex items-center gap-3 py-2.5 text-sm">
+                    <span className="w-40 shrink-0 whitespace-nowrap text-xs text-muted-foreground">{formatDateTime(a.at)}</span>
+                    <span className="font-medium">{a.action.replace(/_/g, " ").toLowerCase()}</span>
+                    <span className="text-muted-foreground">{a.entityType} {a.entityId}</span>
+                    <span className="ml-auto text-xs text-muted-foreground">{a.actor.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </SectionCard>
         </div>
       )}

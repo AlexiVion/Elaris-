@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   GitBranch, Box, Bot, Clock, Calendar, FileText, ShieldAlert, Users, CheckSquare,
-  Check, CircleCheck, FileOutput, UserPlus,
+  Check, FileOutput,
 } from "lucide-react";
 import { PageHeader } from "@/components/elaris/PageHeader";
 import { SectionCard } from "@/components/elaris/SectionCard";
@@ -15,6 +15,10 @@ import {
   suggestedActionLabel, slotLabel, roleLabel,
 } from "@/lib/copy/labels";
 import { getChangeDetail } from "@/lib/db/changes";
+import { getActor } from "@/lib/actions/context";
+import { prisma } from "@/lib/db/prisma";
+import { ApproveChangeButton } from "@/components/elaris/ApproveChangeButton";
+import { ImpactActions } from "@/components/elaris/ImpactActions";
 import { formatDate } from "@/lib/format";
 import { SLOTS, type Slot } from "@/lib/domain/enums";
 
@@ -27,7 +31,18 @@ export default async function ChangeImpactPage({ params }: { params: { code: str
   const { change, diff, items, counts, affectedApprovals, primarySlot } = detail;
   const changed = new Set<Slot>(diff.map((d) => d.slot));
 
-  // Preview of the §6.4 approval gate (the action itself lands in Phase 4).
+  const [actor, persons, evidenceRows] = await Promise.all([
+    getActor(),
+    prisma.person.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    prisma.evidenceItem.findMany({
+      where: { deploymentId: change.deploymentId, archivedAt: null },
+      select: { id: true, code: true, title: true },
+      orderBy: { code: "asc" },
+    }),
+  ]);
+  const evidenceOptions = evidenceRows.map((e) => ({ id: e.id, label: `${e.code} — ${e.title}` }));
+
+  // §6.4 approval gate: blocked while any HIGH item is still open.
   const highOpen = items.some(
     (i) => i.severity === "HIGH" && (i.status === "PENDING" || i.status === "IN_REVIEW")
   );
@@ -49,15 +64,17 @@ export default async function ChangeImpactPage({ params }: { params: { code: str
         }
         title="Change Impact"
         actions={
-          <>
-            <Button disabled={highOpen} title={highOpen ? "Resolve all high-impact items before approving (§6.4)" : undefined}>
-              <CircleCheck className="size-4" /> Approve Change
-            </Button>
-            <Button variant="outline"><UserPlus className="size-4" /> Assign Review</Button>
+          <div className="flex items-start gap-2">
+            <ApproveChangeButton
+              changeCode={change.code}
+              highOpen={highOpen}
+              isSafetyLead={actor.role === "SAFETY_LEAD"}
+              alreadyApproved={change.status === "APPROVED"}
+            />
             <Button variant="outline" asChild>
               <Link href={`/reports?change=${change.code}`}><FileOutput className="size-4" /> Export Impact Report</Link>
             </Button>
-          </>
+          </div>
         }
       />
 
@@ -109,8 +126,8 @@ export default async function ChangeImpactPage({ params }: { params: { code: str
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  {[copy.common.item, copy.common.category, copy.common.reason, copy.common.suggestedAction, copy.common.impact, copy.common.status].map((h) => (
-                    <th key={h} className="px-2 py-2 text-left text-xs font-medium text-muted-foreground">{h}</th>
+                  {[copy.common.item, copy.common.category, copy.common.reason, copy.common.suggestedAction, copy.common.impact, copy.common.status, ""].map((h, i) => (
+                    <th key={h || i} className="px-2 py-2 text-left text-xs font-medium text-muted-foreground">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -128,6 +145,15 @@ export default async function ChangeImpactPage({ params }: { params: { code: str
                     <td className="px-2 py-3">{suggestedActionLabel[it.suggestedAction] ?? it.suggestedAction}</td>
                     <td className="px-2 py-3"><EnumPill value={it.severity} map={severityPill} /></td>
                     <td className="px-2 py-3"><EnumPill value={it.status} map={impactStatusPill} /></td>
+                    <td className="px-2 py-3">
+                      <ImpactActions
+                        itemId={it.id}
+                        suggestedAction={it.suggestedAction}
+                        status={it.status}
+                        persons={persons}
+                        evidenceOptions={evidenceOptions}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>

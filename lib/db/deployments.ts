@@ -91,8 +91,24 @@ export async function getDeploymentDetail(code: string) {
   const testCount = dep.evidenceItems.filter((e) => e.kind === "TEST").length;
   const approvalCount = dep.approvals.filter((a) => a.status !== "REVOKED").length;
 
+  // Audit trail for this deployment's entities (spec §6.8).
+  const relatedCodes = [
+    dep.code,
+    ...dep.changes.map((c) => c.code),
+    ...dep.baselines.map((b) => b.code),
+    ...dep.evidenceItems.map((e) => e.code),
+    ...dep.incidents.map((i) => i.code),
+  ];
+  const audit = await prisma.auditEvent.findMany({
+    where: { entityId: { in: relatedCodes } },
+    include: { actor: true },
+    orderBy: { at: "desc" },
+    take: 30,
+  });
+
   return {
     dep,
+    audit,
     readiness,
     coverage,
     snapshot,

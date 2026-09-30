@@ -126,6 +126,16 @@ technical approval. **Potential Impact counters: 3 evidence · 3 requirements ·
 first, then approvals/checks by title). The Phase-2 `tests/engine/golden.test.ts`
 asserts this table exactly.
 
+### Write model (Phase 4)
+Server Actions apply §6.3 literally: on confirm, affected **VALID** evidence →
+REVIEW_REQUIRED (items already non-valid keep their state). Affected approvals are
+surfaced as RE_APPROVE impact items referencing the existing approvals (no
+duplicate rows — avoids readiness double-counting); the re-approval is fulfilled
+when the SAFETY_LEAD approves the change, which freezes a NEW baseline (old kept
+in History) and updates `activeBaselineId`. Resolving an evidence impact item
+returns it to VALID, so readiness/coverage recompute (acceptance §10). The
+golden CHG-0005 stays a preloaded fixture over a healthy baseline (below).
+
 ### Seed coherence decision
 `prisma/seed.ts` seeds DEP-0017 at the §9.3 states and preloads CHG-0005 as
 `REVIEW_REQUIRED` with the nine ImpactItems already persisted (open), WITHOUT
@@ -154,6 +164,13 @@ auth, no multi-tenant).
       approvals affected), Changes list. All values computed from the seed
       (DEP-0017 readiness 64%, coverage 4/5=80%). Query layer in lib/db maps
       Prisma → engine inputs; UI components in components/elaris.
-- [ ] Phase 4 — Writes (create change, resolve/waive/assign, approve, CRUD, audit)
+- [x] **Phase 4 — Writes:** Server Actions (Zod → engine → DB → audit) in
+      lib/actions: create change w/ preview, review/assign/resolve/waive impact
+      items, approve change (SAFETY_LEAD only, blocked on HIGH open → new
+      baseline, old kept), evidence/requirement CRUD (browser SHA-256, no
+      upload), incident logging (auto-links active baseline+snapshot). Audit log
+      in the deployment History tab. Client islands: ApproveChangeButton,
+      ImpactActions, NewChangeForm, EvidenceFormDialog, IncidentFormDialog.
+      7 integration tests exercise the real actions against a throwaway seeded DB.
 - [ ] Phase 5 — Robots, lists, reports (print + JSON), Share View
 - [ ] Phase 6 — Polish, empty states, global search, a11y, Playwright, README
