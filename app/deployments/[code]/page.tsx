@@ -72,10 +72,10 @@ export default async function DeploymentOverviewPage({
               <Link href={`/deployments/${dep.code}/changes/new`}><GitBranch className="size-4" /> New change</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href={`/reports?deployment=${dep.code}`}><Share2 className="size-4" /> Share View</Link>
+              <Link href={`/reports/readiness/${dep.code}`}><Share2 className="size-4" /> Share View</Link>
             </Button>
             <Button asChild>
-              <Link href={`/reports?deployment=${dep.code}`}><FileOutput className="size-4" /> Generate Report</Link>
+              <Link href={`/reports/readiness/${dep.code}`}><FileOutput className="size-4" /> Generate Report</Link>
             </Button>
           </>
         }

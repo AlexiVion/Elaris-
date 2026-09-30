@@ -172,5 +172,13 @@ auth, no multi-tenant).
       in the deployment History tab. Client islands: ApproveChangeButton,
       ImpactActions, NewChangeForm, EvidenceFormDialog, IncidentFormDialog.
       7 integration tests exercise the real actions against a throwaway seeded DB.
-- [ ] Phase 5 — Robots, lists, reports (print + JSON), Share View
+- [x] **Phase 5 — Robots, reports, Share View:** Robots list + profile
+      (identity, active config, snapshot history w/ diff, deployments, linked
+      evidence, incidents — no battery/online). Three reports (System Passport,
+      Deployment Readiness Pack, Change Impact Report) as printable A4 pages
+      (ReportView) + JSON export (/api/reports/*) + footer disclaimer. Share View:
+      read-only /share/[token], token stored hashed, audience label, expiry,
+      revocation (ShareDialog + lib/actions/share). The app shell is hidden on
+      /share via ShellGate. 4 share integration tests (create→resolve→revoke,
+      expiry, hashed token).
 - [ ] Phase 6 — Polish, empty states, global search, a11y, Playwright, README

@@ -72,7 +72,7 @@ export default async function ChangeImpactPage({ params }: { params: { code: str
               alreadyApproved={change.status === "APPROVED"}
             />
             <Button variant="outline" asChild>
-              <Link href={`/reports?change=${change.code}`}><FileOutput className="size-4" /> Export Impact Report</Link>
+              <Link href={`/reports/impact/${change.code}`}><FileOutput className="size-4" /> Export Impact Report</Link>
             </Button>
           </div>
         }
