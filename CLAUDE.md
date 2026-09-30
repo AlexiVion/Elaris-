@@ -147,7 +147,13 @@ auth, no multi-tenant).
       topbar + "Viewing as" + demo banner), schema.prisma, seed, CLAUDE.md.
 - [x] **Phase 2 — Engines:** diff, rules, impact, readiness, coverage, round as
       pure functions + 52 Vitest tests incl. the golden test (3/3/2/1).
-- [ ] Phase 3 — Read screens (Home, Deployment Overview, Change Impact)
+- [x] **Phase 3 — Read screens:** Home (KPIs + 6 widgets), Deployments list +
+      Overview (KPI strip, readiness 6-cat, config snapshot, coverage, req &
+      approvals, recent changes, incidents, History tab), Change Impact
+      (before/after, 3/3/2/1 counters, affected items, recommended actions,
+      approvals affected), Changes list. All values computed from the seed
+      (DEP-0017 readiness 64%, coverage 4/5=80%). Query layer in lib/db maps
+      Prisma → engine inputs; UI components in components/elaris.
 - [ ] Phase 4 — Writes (create change, resolve/waive/assign, approve, CRUD, audit)
 - [ ] Phase 5 — Robots, lists, reports (print + JSON), Share View
 - [ ] Phase 6 — Polish, empty states, global search, a11y, Playwright, README
