@@ -26,13 +26,16 @@ export function ShellGate({
 
   return (
     <div className="flex min-h-screen">
+      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:text-primary-foreground">
+        Skip to content
+      </a>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar persons={persons} viewerId={viewerId} attentionCount={attentionCount} />
         <div className="border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-center text-xs font-medium text-amber-800 md:px-6">
           {copy.demoBanner}
         </div>
-        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
+        <main id="main" className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
       </div>
     </div>
   );

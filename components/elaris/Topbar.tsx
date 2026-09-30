@@ -39,15 +39,16 @@ export function Topbar({
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-4 border-b border-border bg-card px-4 md:px-6">
-      <div className="relative hidden max-w-xl flex-1 sm:block">
+      <form action="/search" method="get" role="search" className="relative hidden max-w-xl flex-1 sm:block">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <input
           type="search"
+          name="q"
           placeholder={copy.topbar.searchPlaceholder}
           aria-label={copy.topbar.searchPlaceholder}
           className="h-9 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
-      </div>
+      </form>
 
       <div className="ml-auto flex items-center gap-3">
         <div className="hidden items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm font-medium md:flex">

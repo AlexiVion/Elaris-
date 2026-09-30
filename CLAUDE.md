@@ -181,4 +181,10 @@ auth, no multi-tenant).
       revocation (ShareDialog + lib/actions/share). The app shell is hidden on
       /share via ShellGate. 4 share integration tests (create→resolve→revoke,
       expiry, hashed token).
-- [ ] Phase 6 — Polish, empty states, global search, a11y, Playwright, README
+- [x] **Phase 6 — Polish:** functional global search (/search + topbar form,
+      robots/deployments/evidence/changes by code/title), empty states,
+      accessibility (skip-to-content, focus-visible, aria, exact-text pills),
+      4 Playwright smoke tests (Home, Overview 64% + no forbidden vocab, Change
+      Impact golden, search), and a README with the demo walkthrough (flows A–E).
+
+**MVP complete.** 63 unit/integration tests + 4 e2e, all green.
