@@ -61,11 +61,16 @@ tests/e2e/          Playwright smoke tests
 ### The core logic (spec §6) — `lib/engine/`
 Deterministic, pure, rule-based, **fully tested, never LLM**:
 - `hash.ts` — SHA-256 of canonical config items. Same items → same hash.
-- `diff.ts` — Before→After `DiffEntry[]` (ADDED/REMOVED/CHANGED). *(Phase 2)*
-- `rules.ts` — kind→action table + (kind, slot) reason templates. *(Phase 2)*
-- `impact.ts` — the impact engine → `ImpactResult[]` + counts. *(Phase 2)*
-- `readiness.ts` — 6 categories + %. *(Phase 2)*
-- `coverage.ts` — evidence coverage. *(Phase 2)*
+- `diff.ts` — Before→After `DiffEntry[]` (ADDED/REMOVED/CHANGED), slot-ordered.
+- `rules.ts` — kind→action table + (kind, slot) reason templates + cyber/
+  shared-area predicates.
+- `impact.ts` — the impact engine → ordered `ImpactResult[]` + `ImpactCounts`.
+- `readiness.ts` — 6 categories + whole-deployment %.
+- `coverage.ts` — evidence coverage. `round.ts` — standard percentage rounding.
+
+Tests: `tests/engine/*.test.ts` (52 tests) with the shared golden fixture in
+`tests/engine/fixtures.ts`. `golden.test.ts` asserts the §9.3 table exactly
+(nine items, order, reasons, counters 3/3/2/1).
 
 The engine takes plain domain types (`lib/domain/types.ts`), never Prisma
 models, so it can be unit-tested with fixtures and no database.
@@ -140,7 +145,8 @@ auth, no multi-tenant).
 ## Phase status
 - [x] **Phase 1 — Base:** scaffold, Tailwind + design tokens, shell (sidebar +
       topbar + "Viewing as" + demo banner), schema.prisma, seed, CLAUDE.md.
-- [ ] Phase 2 — Engines (hash done; diff/rules/impact/readiness/coverage + tests)
+- [x] **Phase 2 — Engines:** diff, rules, impact, readiness, coverage, round as
+      pure functions + 52 Vitest tests incl. the golden test (3/3/2/1).
 - [ ] Phase 3 — Read screens (Home, Deployment Overview, Change Impact)
 - [ ] Phase 4 — Writes (create change, resolve/waive/assign, approve, CRUD, audit)
 - [ ] Phase 5 — Robots, lists, reports (print + JSON), Share View
