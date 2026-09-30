@@ -1,0 +1,322 @@
+// Elaris — Deployment & Change Evidence (MVP)
+// SQLite for local single-tenant demo. Designed to migrate to Postgres with
+// NO schema changes: we deliberately avoid Prisma `enum` and `Json` types
+// (unsupported / non-portable on SQLite). Enums are stored as String and
+// validated by the TS unions + Zod schemas in lib/domain. Structured data
+// (diff, snapshots, timelines, audit before/after) is stored as serialized
+// JSON String and parsed with typed Zod schemas in lib/domain.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id      String   @id @default(cuid())
+  code    String   @unique
+  name    String   @unique
+  persons Person[]
+}
+
+model Person {
+  id               String       @id @default(cuid())
+  name             String
+  email            String       @unique
+  role             String // Role: ENGINEER | SAFETY_LEAD | CUSTOMER_ENGINEER | VIEWER
+  organizationName String
+  organization     Organization @relation(fields: [organizationName], references: [name])
+
+  snapshotsCreated  ConfigurationSnapshot[] @relation("SnapshotCreatedBy")
+  baselinesFrozen   Baseline[]              @relation("BaselineFrozenBy")
+  evidenceOwned     EvidenceItem[]          @relation("EvidenceOwner")
+  approvalsGiven    Approval[]              @relation("Approver")
+  changesAuthored   Change[]                @relation("ChangeAuthor")
+  changesApproved   Change[]                @relation("ChangeApprovedBy")
+  impactsAssigned   ImpactItem[]            @relation("ImpactAssignee")
+  impactsResolved   ImpactItem[]            @relation("ImpactResolvedBy")
+  shareLinksCreated ShareLink[]             @relation("ShareCreatedBy")
+  auditEvents       AuditEvent[]            @relation("AuditActor")
+}
+
+model Customer {
+  id      String  @id @default(cuid())
+  code    String  @unique
+  name    String
+  country String
+
+  sites       Site[]
+  deployments Deployment[]
+}
+
+model Site {
+  id              String @id @default(cuid())
+  customerId      String
+  name            String
+  city            String
+  country         String
+  environmentType String // INDOOR_INDUSTRIAL | GAS_FACILITY | WAREHOUSE | PUBLIC_SPACE | LAB
+
+  customer    Customer     @relation(fields: [customerId], references: [id])
+  deployments Deployment[]
+}
+
+model Robot {
+  id           String @id @default(cuid())
+  code         String @unique // "G1 #017"
+  model        String // "Unitree G1"
+  serialNumber String
+  status       String // ACTIVE | INACTIVE
+
+  snapshots        ConfigurationSnapshot[]
+  deploymentRobots DeploymentRobot[]
+  changes          Change[]
+  incidents        Incident[]
+}
+
+model ConfigurationSnapshot {
+  id               String   @id @default(cuid())
+  code             String   @unique // "C004"
+  robotId          String
+  parentSnapshotId String?
+  hash             String
+  note             String?
+  createdById      String
+  createdAt        DateTime @default(now())
+
+  robot          Robot                   @relation(fields: [robotId], references: [id])
+  parentSnapshot ConfigurationSnapshot?  @relation("SnapshotParent", fields: [parentSnapshotId], references: [id])
+  childSnapshots ConfigurationSnapshot[] @relation("SnapshotParent")
+  createdBy      Person                  @relation("SnapshotCreatedBy", fields: [createdById], references: [id])
+  items          ConfigItem[]
+  baselines      Baseline[]
+  changesBefore  Change[]                @relation("ChangeBefore")
+  changesAfter   Change[]                @relation("ChangeAfter")
+}
+
+model ConfigItem {
+  id         String  @id @default(cuid())
+  snapshotId String
+  slot       String // Slot enum (lib/domain)
+  value      String
+  vendor     String?
+  version    String?
+
+  snapshot ConfigurationSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@index([snapshotId])
+}
+
+model Task {
+  id          String  @id @default(cuid())
+  name        String
+  description String
+  parameters  String // JSON string
+
+  deployments Deployment[]
+}
+
+model Deployment {
+  id               String  @id @default(cuid())
+  code             String  @unique // "DEP-0017"
+  name             String
+  customerId       String
+  siteId           String
+  taskId           String
+  lifecycle        String // TEST | PILOT | LIMITED | PRODUCTION
+  operationalState String // PLANNED | LIVE | PAUSED | ENDED
+  operatingMode    String // SUPERVISED | AUTONOMOUS_ZONED | TELEOPERATED
+  humanExposure    String // NONE | SEPARATED | SHARED_AREA
+  description      String
+  activeBaselineId String?
+
+  customer         Customer          @relation(fields: [customerId], references: [id])
+  site             Site              @relation(fields: [siteId], references: [id])
+  task             Task              @relation(fields: [taskId], references: [id])
+  activeBaseline   Baseline?         @relation("ActiveBaseline", fields: [activeBaselineId], references: [id])
+  deploymentRobots DeploymentRobot[]
+  baselines        Baseline[]        @relation("DeploymentBaselines")
+  evidenceItems    EvidenceItem[]
+  approvals        Approval[]
+  changes          Change[]
+  incidents        Incident[]
+}
+
+// Explicit many-to-many (Postgres-clean).
+model DeploymentRobot {
+  deploymentId String
+  robotId      String
+
+  deployment Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+  robot      Robot      @relation(fields: [robotId], references: [id], onDelete: Cascade)
+
+  @@id([deploymentId, robotId])
+}
+
+model Baseline {
+  id                  String   @id @default(cuid())
+  code                String   @unique // "B-0017-01"
+  deploymentId        String
+  snapshotId          String
+  taskSnapshot        String // frozen JSON
+  environmentSnapshot String // frozen JSON
+  evidenceState       String // frozen JSON: ids + statuses
+  approvalState       String // frozen JSON
+  hash                String
+  frozenById          String
+  frozenAt            DateTime @default(now())
+
+  deployment       Deployment            @relation("DeploymentBaselines", fields: [deploymentId], references: [id])
+  snapshot         ConfigurationSnapshot @relation(fields: [snapshotId], references: [id])
+  frozenBy         Person                @relation("BaselineFrozenBy", fields: [frozenById], references: [id])
+  activeForDeploys Deployment[]          @relation("ActiveBaseline")
+
+  @@index([deploymentId])
+}
+
+model EvidenceItem {
+  id                String    @id @default(cuid())
+  code              String    @unique // "INT-042"
+  title             String
+  category          String // EVIDENCE | REQUIREMENT
+  kind              String // TEST | CALIBRATION | RISK_ASSESSMENT | ...
+  readinessCategory String // SYSTEM_IDENTITY | CONFIGURATION | SAFETY_EVIDENCE | ...
+  source            String // INTERNAL | CUSTOMER | REGULATION | INSURER
+  deploymentId      String
+  scopeSlots        String // JSON array of Slot
+  criticality       String // HIGH | MEDIUM | LOW
+  status            String // VALID | REVIEW_REQUIRED | IN_REVIEW | PENDING | MISSING | NOT_STARTED
+  required          Boolean
+  applicable        Boolean
+  ownerPersonId     String
+  uri               String?
+  fileSha256        String?
+  dueDate           DateTime?
+  updatedAt         DateTime  @updatedAt
+  archivedAt        DateTime?
+
+  deployment  Deployment   @relation(fields: [deploymentId], references: [id])
+  owner       Person       @relation("EvidenceOwner", fields: [ownerPersonId], references: [id])
+  impactItems ImpactItem[] @relation("ImpactNewEvidence")
+
+  @@index([deploymentId])
+}
+
+model Approval {
+  id                String    @id @default(cuid())
+  title             String
+  deploymentId      String
+  readinessCategory String
+  approverPersonId  String
+  role              String // SAFETY_LEAD | CUSTOMER_ENGINEER | ...
+  scopeSlots        String // JSON array of Slot
+  status            String // APPROVED | PENDING | REQUIRED | NOT_STARTED | REVOKED
+  decidedAt         DateTime?
+  baselineId        String?
+  justification     String?
+
+  deployment Deployment @relation(fields: [deploymentId], references: [id])
+  approver   Person     @relation("Approver", fields: [approverPersonId], references: [id])
+
+  @@index([deploymentId])
+}
+
+model Change {
+  id               String    @id @default(cuid())
+  code             String    @unique // "CHG-0005"
+  deploymentId     String
+  robotId          String
+  beforeSnapshotId String
+  afterSnapshotId  String
+  diff             String // JSON DiffEntry[]
+  authorId         String
+  status           String // DRAFT | REVIEW_REQUIRED | APPROVED | REJECTED
+  approvedById     String?
+  approvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  deployment     Deployment            @relation(fields: [deploymentId], references: [id])
+  robot          Robot                 @relation(fields: [robotId], references: [id])
+  beforeSnapshot ConfigurationSnapshot @relation("ChangeBefore", fields: [beforeSnapshotId], references: [id])
+  afterSnapshot  ConfigurationSnapshot @relation("ChangeAfter", fields: [afterSnapshotId], references: [id])
+  author         Person                @relation("ChangeAuthor", fields: [authorId], references: [id])
+  approvedBy     Person?               @relation("ChangeApprovedBy", fields: [approvedById], references: [id])
+  impactItems    ImpactItem[]
+
+  @@index([deploymentId])
+}
+
+model ImpactItem {
+  id             String    @id @default(cuid())
+  changeId       String
+  targetType     String // EVIDENCE | REQUIREMENT | APPROVAL | CHECK
+  targetId       String?
+  title          String
+  reason         String
+  suggestedAction String // RE_RUN | REVIEW | UPDATE | CONFIRM | RE_APPROVE
+  severity       String // HIGH | MEDIUM | LOW
+  status         String // PENDING | IN_REVIEW | RESOLVED | WAIVED
+  assigneeId     String?
+  resolutionNote String?
+  resolvedById   String?
+  resolvedAt     DateTime?
+  newEvidenceId  String?
+
+  change      Change        @relation(fields: [changeId], references: [id], onDelete: Cascade)
+  assignee    Person?       @relation("ImpactAssignee", fields: [assigneeId], references: [id])
+  resolvedBy  Person?       @relation("ImpactResolvedBy", fields: [resolvedById], references: [id])
+  newEvidence EvidenceItem? @relation("ImpactNewEvidence", fields: [newEvidenceId], references: [id])
+
+  @@index([changeId])
+}
+
+model Incident {
+  id                String   @id @default(cuid())
+  code              String   @unique // "INC-2026-001"
+  occurredAt        DateTime
+  deploymentId      String
+  robotId           String
+  description       String
+  severity          String // HIGH | MEDIUM | LOW
+  status            String // OPEN | INVESTIGATING | CLOSED
+  baselineIdAtTime  String?
+  snapshotIdAtTime  String?
+  timeline          String // JSON manual timeline
+
+  deployment Deployment @relation(fields: [deploymentId], references: [id])
+  robot      Robot      @relation(fields: [robotId], references: [id])
+
+  @@index([deploymentId])
+}
+
+model ShareLink {
+  id            String    @id @default(cuid())
+  tokenHash     String    @unique
+  view          String // SYSTEM_PASSPORT | READINESS_PACK | CHANGE_IMPACT
+  targetId      String
+  audienceLabel String
+  createdById   String
+  expiresAt     DateTime
+  revokedAt     DateTime?
+
+  createdBy Person @relation("ShareCreatedBy", fields: [createdById], references: [id])
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  at         DateTime @default(now())
+  actorId    String
+  action     String
+  entityType String
+  entityId   String
+  before     String // JSON snapshot before
+  after      String // JSON snapshot after
+
+  actor Person @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([at])
+}

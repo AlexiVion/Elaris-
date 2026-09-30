@@ -1,0 +1,33 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# next
+/.next/
+/out/
+next-env.d.ts
+
+# production
+/build
+
+# prisma / sqlite
+/prisma/*.db
+/prisma/*.db-journal
+/prisma/dev.db*
+
+# testing
+/coverage
+/test-results
+/playwright-report
+/playwright/.cache
+
+# misc
+.DS_Store
+*.pem
+.vercel
+*.tsbuildinfo
+
+# env — keep .env for the local demo (contains only a sqlite file path).
+# Secrets never belong here for this MVP.
+.env.local
