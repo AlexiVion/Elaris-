@@ -9,7 +9,7 @@ import { hashSnapshot } from "@/lib/engine/hash";
 import { diffSnapshots } from "@/lib/engine/diff";
 import { computeImpact } from "@/lib/engine/impact";
 import { toEvidenceInput, toApprovalInput, type EvidenceRow, type ApprovalRow } from "@/lib/db/metrics";
-import { serializeJson } from "@/lib/domain/json";
+import { parseJson, serializeJson } from "@/lib/domain/json";
 import {
   changeEditsSchema, resolveImpactSchema, waiveImpactSchema, assignImpactSchema,
   reviewImpactSchema, approveChangeSchema,
@@ -206,8 +206,22 @@ export async function resolveImpact(raw: unknown): Promise<ActionResult> {
     }
   }
 
+  let approvalForReReview: { approverPersonId: string; approver: { name: string } } | null = null;
+  if (item.targetType === "APPROVAL") {
+    if (!item.targetId) return { ok: false, error: "Affected approval reference is missing." };
+    approvalForReReview = await prisma.approval.findUnique({
+      where: { id: item.targetId },
+      include: { approver: true },
+    });
+    if (!approvalForReReview) return { ok: false, error: "Affected approval not found." };
+    if (approvalForReReview.approverPersonId !== actor.id) {
+      return { ok: false, error: `Only ${approvalForReReview.approver.name} can record this re-approval.` };
+    }
+  }
+
   const note = parsed.data.note ||
-    (parsed.data.testDate ? `New test on ${parsed.data.testDate}: ${parsed.data.testResult ?? ""}`.trim() : "");
+    (parsed.data.testDate ? `New test on ${parsed.data.testDate}: ${parsed.data.testResult ?? ""}`.trim() : "") ||
+    (item.targetType === "APPROVAL" ? `Re-approved by ${actor.name}` : "");
 
   await prisma.$transaction(async (tx) => {
     await tx.impactItem.update({
@@ -233,6 +247,9 @@ export async function waiveImpact(raw: unknown): Promise<ActionResult> {
   const actor = await getActor();
   const item = await loadImpactItem(parsed.data.itemId);
   if (!item) return { ok: false, error: "Item not found" };
+  if (item.targetType === "APPROVAL") {
+    return { ok: false, error: "Affected approvals cannot be waived; the named approver must review them." };
+  }
 
   await prisma.$transaction(async (tx) => {
     await tx.impactItem.update({
@@ -254,13 +271,17 @@ export async function approveChange(raw: unknown): Promise<ActionResult<{ baseli
 
   const change = await prisma.change.findUnique({
     where: { code: parsed.data.changeCode },
-    include: { impactItems: true, afterSnapshot: { include: { items: true } }, deployment: true },
+    include: { impactItems: true, afterSnapshot: { include: { items: true } }, deployment: { include: { task: true, site: true, customer: true } } },
   });
   if (!change) return { ok: false, error: "Change not found" };
   if (change.status === "APPROVED") return { ok: false, error: "Change already approved." };
 
-  const highOpen = change.impactItems.some((i) => i.severity === "HIGH" && (i.status === "PENDING" || i.status === "IN_REVIEW"));
-  if (highOpen) return { ok: false, error: "Resolve or waive all high-impact items before approving." };
+  const isOpen = (status: string) => status === "PENDING" || status === "IN_REVIEW";
+  const highOpen = change.impactItems.some((i) => i.severity === "HIGH" && isOpen(i.status));
+  const approvalOpen = change.impactItems.some((i) => i.targetType === "APPROVAL" && isOpen(i.status));
+  if (highOpen || approvalOpen) {
+    return { ok: false, error: "Resolve all high-impact items and all affected re-approvals before approving the change." };
+  }
 
   const baselineCode = await nextBaselineCode(change.deployment.code);
   const afterItems: ConfigItemInput[] = change.afterSnapshot.items.map((i) => ({ slot: i.slot as ConfigItemInput["slot"], value: i.value, vendor: null, version: null }));
@@ -272,21 +293,62 @@ export async function approveChange(raw: unknown): Promise<ActionResult<{ baseli
     const baseline = await tx.baseline.create({
       data: {
         code: baselineCode, deploymentId: change.deploymentId, snapshotId: change.afterSnapshotId,
-        taskSnapshot: serializeJson({ deploymentId: change.deploymentId }),
-        environmentSnapshot: serializeJson({}),
-        evidenceState: serializeJson(evidence.map((e) => ({ code: e.code, status: e.status }))),
-        approvalState: serializeJson(approvals.map((a) => ({ title: a.title, status: a.status }))),
+        taskSnapshot: serializeJson({
+          id: change.deployment.task.id,
+          name: change.deployment.task.name,
+          description: change.deployment.task.description,
+          parameters: parseJson(change.deployment.task.parameters, {}),
+        }),
+        environmentSnapshot: serializeJson({
+          customer: {
+            id: change.deployment.customer.id,
+            code: change.deployment.customer.code,
+            name: change.deployment.customer.name,
+            country: change.deployment.customer.country,
+          },
+          site: {
+            id: change.deployment.site.id,
+            name: change.deployment.site.name,
+            city: change.deployment.site.city,
+            country: change.deployment.site.country,
+            environmentType: change.deployment.site.environmentType,
+          },
+          lifecycle: change.deployment.lifecycle,
+          operatingMode: change.deployment.operatingMode,
+          humanExposure: change.deployment.humanExposure,
+        }),
+        evidenceState: serializeJson(evidence.map((e) => ({
+          id: e.id,
+          code: e.code,
+          title: e.title,
+          category: e.category,
+          kind: e.kind,
+          readinessCategory: e.readinessCategory,
+          status: e.status,
+          required: e.required,
+          applicable: e.applicable,
+          ownerPersonId: e.ownerPersonId,
+          uri: e.uri,
+          fileSha256: e.fileSha256,
+          dueDate: e.dueDate?.toISOString() ?? null,
+          updatedAt: e.updatedAt.toISOString(),
+        }))),
+        approvalState: serializeJson(approvals.map((a) => ({
+          id: a.id,
+          title: a.title,
+          readinessCategory: a.readinessCategory,
+          approverPersonId: a.approverPersonId,
+          role: a.role,
+          status: a.status,
+          decidedAt: a.decidedAt?.toISOString() ?? null,
+          baselineId: a.baselineId,
+          justification: a.justification,
+        }))),
         hash: hashSnapshot(afterItems), frozenById: actor.id,
       },
     });
     await tx.deployment.update({ where: { id: change.deploymentId }, data: { activeBaselineId: baseline.id } });
     await tx.change.update({ where: { id: change.id }, data: { status: "APPROVED", approvedById: actor.id, approvedAt: new Date() } });
-
-    // Re-approval impact items are fulfilled by this approval.
-    await tx.impactItem.updateMany({
-      where: { changeId: change.id, targetType: "APPROVAL", status: { in: ["PENDING", "IN_REVIEW"] } },
-      data: { status: "RESOLVED", resolvedById: actor.id, resolvedAt: new Date() },
-    });
 
     await writeAudit(tx, { actorId: actor.id, action: "CHANGE_APPROVED", entityType: "Change", entityId: change.code, after: { baseline: baselineCode, by: actor.name } });
     await writeAudit(tx, { actorId: actor.id, action: "BASELINE_FROZEN", entityType: "Baseline", entityId: baselineCode });

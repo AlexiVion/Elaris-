@@ -17,19 +17,20 @@ import {
 import { cn } from "@/lib/utils";
 import { copy } from "@/lib/copy/en";
 
-const NAV = [
-  { href: "/", label: copy.nav.home, icon: Home, exact: true },
-  { href: "/robots", label: copy.nav.robots, icon: Bot },
-  { href: "/deployments", label: copy.nav.deployments, icon: Layers },
-  { href: "/evidence", label: copy.nav.evidence, icon: FileText },
-  { href: "/requirements", label: copy.nav.requirements, icon: CheckSquare },
-  { href: "/changes", label: copy.nav.changes, icon: GitBranch },
-  { href: "/incidents", label: copy.nav.incidents, icon: AlertTriangle },
-  { href: "/reports", label: copy.nav.reports, icon: BarChart3 },
-];
-
-export function Sidebar() {
+export function Sidebar({ basePath = "" }: { basePath?: string }) {
   const pathname = usePathname();
+  const path = (value: string) => value === "/" ? (basePath || "/") : basePath + value;
+
+  const nav = [
+    { href: path("/"), label: copy.nav.home, icon: Home, exact: true },
+    { href: path("/robots"), label: copy.nav.robots, icon: Bot },
+    { href: path("/deployments"), label: copy.nav.deployments, icon: Layers },
+    { href: path("/evidence"), label: copy.nav.evidence, icon: FileText },
+    { href: path("/requirements"), label: copy.nav.requirements, icon: CheckSquare },
+    { href: path("/changes"), label: copy.nav.changes, icon: GitBranch },
+    { href: path("/incidents"), label: copy.nav.incidents, icon: AlertTriangle },
+    { href: path("/reports"), label: copy.nav.reports, icon: BarChart3 },
+  ];
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
@@ -45,7 +46,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-1 px-3">
-        {NAV.map((item) => {
+        {nav.map((item) => {
           const active = isActive(item.href, item.exact);
           const Icon = item.icon;
           return (
@@ -66,19 +67,9 @@ export function Sidebar() {
           );
         })}
 
-        {/* Assistant — out of MVP scope, disabled with "Coming soon" (spec §2). */}
-        <div
-          aria-disabled="true"
-          className="flex items-center justify-between rounded-md px-3 py-2 text-sm text-sidebar-foreground/40"
-          title={copy.nav.assistantComingSoon}
-        >
-          <span className="flex items-center gap-3">
-            <Sparkles className="size-4" />
-            {copy.nav.assistant}
-          </span>
-          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide">
-            {copy.nav.assistantComingSoon}
-          </span>
+        <div aria-disabled="true" className="flex items-center justify-between rounded-md px-3 py-2 text-sm text-sidebar-foreground/40" title={copy.nav.assistantComingSoon}>
+          <span className="flex items-center gap-3"><Sparkles className="size-4" />{copy.nav.assistant}</span>
+          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide">{copy.nav.assistantComingSoon}</span>
         </div>
       </nav>
     </aside>

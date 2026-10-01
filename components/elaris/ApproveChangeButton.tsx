@@ -7,17 +7,18 @@ import { Button } from "@/components/ui/button";
 import { approveChange } from "@/lib/actions/changes";
 
 /**
- * Approve Change (spec §6.4). The button explains WHY it is disabled: HIGH items
- * still open, or the viewer is not a Safety Lead. The server re-enforces both.
+ * Approve Change (spec §6.4). The button explains WHY it is disabled: HIGH
+ * items or affected re-approvals are still open, or the viewer is not a Safety
+ * Lead. The server re-enforces the same gate.
  */
 export function ApproveChangeButton({
   changeCode,
-  highOpen,
+  blockingOpen,
   isSafetyLead,
   alreadyApproved,
 }: {
   changeCode: string;
-  highOpen: boolean;
+  blockingOpen: boolean;
   isSafetyLead: boolean;
   alreadyApproved: boolean;
 }) {
@@ -29,8 +30,8 @@ export function ApproveChangeButton({
     ? "This change is already approved."
     : !isSafetyLead
       ? "Only a Safety Lead can approve. Switch persona in “Viewing as”."
-      : highOpen
-        ? "Resolve or waive all high-impact items before approving."
+      : blockingOpen
+        ? "Resolve all high-impact items and affected re-approvals before approving."
         : null;
 
   const disabled = pending || blockedReason !== null;

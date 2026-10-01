@@ -1,5 +1,7 @@
 # CLAUDE.md — Elaris (Deployment & Change Evidence)
 
+> **Read [`AGENTS.md`](AGENTS.md) first.** `AGENTS.md` is the repository-wide operating contract and takes precedence for collaboration, source-of-truth and platform architecture. This file contains product-specific implementation detail for Deployment Control.
+
 Guidance for working in this repo. Keep this file updated as phases land.
 
 Elaris connects a Physical AI system's real configuration with the evidence and
@@ -128,11 +130,13 @@ asserts this table exactly.
 
 ### Write model (Phase 4)
 Server Actions apply §6.3 literally: on confirm, affected **VALID** evidence →
-REVIEW_REQUIRED (items already non-valid keep their state). Affected approvals are
-surfaced as RE_APPROVE impact items referencing the existing approvals (no
-duplicate rows — avoids readiness double-counting); the re-approval is fulfilled
-when the SAFETY_LEAD approves the change, which freezes a NEW baseline (old kept
-in History) and updates `activeBaselineId`. Resolving an evidence impact item
+REVIEW_REQUIRED (items already non-valid keep their state). Affected approvals are surfaced as RE_APPROVE impact items referencing the
+existing immutable approval decision (no duplicate rows, avoiding readiness
+double-counting). Each re-approval impact can only be resolved by the named
+approver on that approval. A Safety Lead cannot satisfy a Customer Engineer's
+approval. Final change approval is blocked while any affected approval impact
+remains open. Once all blocking review work is complete, Safety Lead approval
+freezes a NEW baseline (old kept in History) and updates `activeBaselineId`. Resolving an evidence impact item
 returns it to VALID, so readiness/coverage recompute (acceptance §10). The
 golden CHG-0005 stays a preloaded fixture over a healthy baseline (below).
 

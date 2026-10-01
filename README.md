@@ -1,4 +1,8 @@
-# Elaris — Deployment & Change Evidence (MVP)
+# Elaris
+
+> **Contributors and AI agents:** read [`AGENTS.md`](AGENTS.md) first. It is the canonical operating contract for architecture, source-of-truth rules and collaboration.
+
+## Current reference product — Deployment & Change Evidence
 
 Elaris connects a Physical AI system's **real configuration** with the
 **evidence and approvals** that authorize its deployment, and keeps that
@@ -19,7 +23,7 @@ runs with demo data, operated by one person.
 
 ## Prerequisites
 
-- **Node.js LTS** (tested on v22)
+- **Node.js 22 LTS** (the project CI runs on Node 22; use `nvm use 22` on Windows if needed)
 - **pnpm** (via corepack): `corepack enable && corepack prepare pnpm@9 --activate`
 - No external services — everything runs locally on SQLite.
 
@@ -47,7 +51,8 @@ real login.
   `/changes/CHG-0005`. For each item use **Manage** to put in review, resolve
   (a re-run needs a linked evidence item or a test date + result), waive (needs
   a written justification) or assign. As **Sarah Chen (Safety Lead)**, once no
-  high-impact item is open, **Approve Change** → a new baseline is frozen and the
+  high-impact item is open **and every affected approval has been re-reviewed by
+  its named approver**, **Approve Change** → a new baseline is frozen and the
   previous one stays in **History**.
 - **C · Reports.** **Reports** → open a System Passport / Deployment Readiness
   Pack / Change Impact Report → **Print / PDF** (A4) and **Export JSON**.
@@ -88,11 +93,64 @@ design images are visual reference only.
 - Nothing is deleted: every mutation appends an **AuditEvent** (see a
   deployment's **History** tab); records are archived, not removed.
 
-See **`CLAUDE.md`** for the full architecture, where the core logic lives, the
-vocabulary rules and the golden scenario.
+See **`AGENTS.md`** first for the repository-wide operating contract. `CLAUDE.md` contains additional Deployment Control implementation detail.
 
 ## Out of scope (MVP)
 
 Assistant (shown disabled, "Coming soon"), a full Insurance Readiness module,
 on-robot snapshot agent / Git-Drive-fleet connectors, telemetry, multi-tenant,
 real auth, billing, risk score. Extension points are left in place.
+
+
+## Humandroid pilot
+
+The current product validation focus is the **Humandroid Pilot** for Elaris Deployment Control.
+
+Canonical working docs:
+
+- [Elaris overview](docs/company/elaris-overview.md)
+- [Physical AI industry map](docs/industry/physical-ai-industry-map.md)
+- [Deployment Control product](docs/product/deployment-control.md)
+- [Humandroid Pilot Spec](docs/pilots/humandroid/pilot-spec.md)
+- [Humandroid Data Request](docs/pilots/humandroid/data-request.md)
+- [Humandroid Operating Workflow](docs/pilots/humandroid/operating-workflow.md)
+- [Humandroid Minimum Data Model](docs/pilots/humandroid/minimum-data-model.md)
+- [Humandroid Success Criteria](docs/pilots/humandroid/success-criteria.md)
+- [Humandroid Demo & Delivery Plan](docs/pilots/humandroid/demo-delivery-plan.md)
+- [Humandroid Demo Data Audit](docs/pilots/humandroid/demo-data-audit.md)
+- [Humandroid Evidence Map Semantics](docs/pilots/humandroid/evidence-map-semantics.md)
+- [Humandroid 7-Minute Demo Script](docs/pilots/humandroid/demo-script.md)
+- [Current system audit](docs/architecture/system-design.md)
+
+The rule for this branch is simple: **do not add features just because they are technically possible.**
+A feature enters the Humandroid MVP only when it maps to a real pilot workflow or validated need.
+
+
+## Platform → Product architecture
+
+Elaris is now platform-first.
+
+```text
+/
+└── Elaris Platform Home
+    ├── /platform/deployment-control
+    ├── /platform/operational-readiness
+    ├── /platform/safety-change-control
+    ├── /platform/evidence-review
+    ├── /platform/placement-workspace
+    ├── /platform/underwriting-workspace
+    └── /platform/incident-reconstruction
+```
+
+**Deployment Control** remains the LIVE reference product for the Robotics
+Integrator / Deployer archetype.
+
+Each product is a full-screen application with its own navigation and workflow.
+The Platform Home does not wrap product screens.
+
+Products reuse the same shared Elaris technical substrate while actor-specific
+workflow objects can remain presentation-only until field validation.
+
+See:
+- `docs/architecture/platform-product-architecture.md`
+- `docs/platform/horizontal-v0.md` for the historical horizontal-v0 design.

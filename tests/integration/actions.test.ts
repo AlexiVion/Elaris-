@@ -28,6 +28,7 @@ let actions: Actions;
 let prisma: Prisma;
 let sarahId: string;
 let juanId: string;
+let jamesId: string;
 
 const as = (id: string) => ((globalThis as Record<string, unknown>).__ELARIS_TEST_VIEWER = id);
 
@@ -36,8 +37,10 @@ beforeAll(async () => {
   actions = await import("@/lib/actions/changes");
   const sarah = await prisma.person.findFirst({ where: { role: "SAFETY_LEAD" } });
   const juan = await prisma.person.findFirst({ where: { role: "ENGINEER" } });
+  const james = await prisma.person.findFirst({ where: { role: "CUSTOMER_ENGINEER" } });
   sarahId = sarah!.id;
   juanId = juan!.id;
+  jamesId = james!.id;
 });
 
 describe("approval gating & waiver (spec §6.4)", () => {
@@ -67,6 +70,26 @@ describe("approval gating & waiver (spec §6.4)", () => {
     const item = await prisma.impactItem.findFirst({ where: { change: { code: "CHG-0005" }, suggestedAction: "RE_RUN", severity: "HIGH" } });
     const r = await actions.resolveImpact({ itemId: item!.id, note: "just a note" });
     expect(r.ok).toBe(false);
+  });
+
+  it("a Safety Lead cannot satisfy a Customer Engineer re-approval", async () => {
+    as(sarahId);
+    const item = await prisma.impactItem.findFirst({
+      where: { change: { code: "CHG-0005" }, targetType: "APPROVAL", severity: "MEDIUM" },
+    });
+    const r = await actions.resolveImpact({ itemId: item!.id, note: "Reviewed by Safety" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toMatch(/Only .* can record this re-approval/i);
+  });
+
+  it("affected approvals cannot be waived", async () => {
+    as(sarahId);
+    const item = await prisma.impactItem.findFirst({
+      where: { change: { code: "CHG-0005" }, targetType: "APPROVAL" },
+    });
+    const r = await actions.waiveImpact({ itemId: item!.id, justification: "skip" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toMatch(/cannot be waived/i);
   });
 });
 
@@ -113,6 +136,21 @@ describe("full resolve + approve flow → new baseline (spec §6.4, §10)", () =
       expect(r.ok).toBe(true);
     }
 
+    const blocked = await actions.approveChange({ changeCode: "CHG-0005" });
+    expect(blocked.ok).toBe(false);
+    if (!blocked.ok) expect(blocked.error).toMatch(/re-approvals/i);
+
+    const customerApprovalImpact = await prisma.impactItem.findFirst({
+      where: { change: { code: "CHG-0005" }, targetType: "APPROVAL", severity: "MEDIUM" },
+    });
+    as(jamesId);
+    const reapproved = await actions.resolveImpact({
+      itemId: customerApprovalImpact!.id,
+      note: "Customer engineering reviewed the hand change",
+    });
+    expect(reapproved.ok).toBe(true);
+
+    as(sarahId);
     const r = await actions.approveChange({ changeCode: "CHG-0005" });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
@@ -121,6 +159,31 @@ describe("full resolve + approve flow → new baseline (spec §6.4, §10)", () =
     const dep = await prisma.deployment.findUnique({ where: { code: "DEP-0017" }, include: { baselines: true } });
     const active = await prisma.baseline.findUnique({ where: { id: dep!.activeBaselineId! } });
     expect(active!.code).toBe("B-0017-02");
+
+    // A baseline freezes the full deployment context needed to reconstruct
+    // what was approved, rather than placeholder deployment IDs / empty JSON.
+    const taskState = JSON.parse(active!.taskSnapshot) as { name: string; parameters: Record<string, unknown> };
+    expect(taskState.name).toBe("Valve manipulation");
+    expect(taskState.parameters).toMatchObject({ torqueLimitNm: 12 });
+
+    const environmentState = JSON.parse(active!.environmentSnapshot) as {
+      customer: { name: string };
+      site: { name: string; environmentType: string };
+      operatingMode: string;
+      humanExposure: string;
+    };
+    expect(environmentState.customer.name).toBe("Northgas Energy");
+    expect(environmentState.site.name).toBe("North gas facility");
+    expect(environmentState.site.environmentType).toBe("GAS_FACILITY");
+    expect(environmentState.operatingMode).toBe("SUPERVISED");
+    expect(environmentState.humanExposure).toBe("SHARED_AREA");
+
+    const evidenceState = JSON.parse(active!.evidenceState) as Array<{ code: string; status: string; ownerPersonId: string }>;
+    expect(evidenceState.some((e) => e.code === "INT-042" && e.status === "VALID" && !!e.ownerPersonId)).toBe(true);
+
+    const approvalState = JSON.parse(active!.approvalState) as Array<{ title: string; role: string; status: string }>;
+    expect(approvalState.some((a) => a.title === "Safety approval" && a.role === "SAFETY_LEAD")).toBe(true);
+
     // The previous baseline is still in history (spec §10).
     expect(dep!.baselines.some((b) => b.code === "B-0017-01")).toBe(true);
 

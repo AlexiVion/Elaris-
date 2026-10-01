@@ -60,6 +60,7 @@ export default async function DeploymentOverviewPage({
 
   const requirements = dep.evidenceItems.filter((e) => e.category === "REQUIREMENT" && e.archivedAt === null);
   const approvals = dep.approvals.filter((a) => a.status !== "REVOKED");
+  const pendingChange = recentChanges.find((c) => c.status === "DRAFT" || c.status === "REVIEW_REQUIRED");
 
   return (
     <>
@@ -85,6 +86,38 @@ export default async function DeploymentOverviewPage({
         <EnumPill value={dep.operationalState} map={operationalStatePill} />
         <span className="text-sm text-muted-foreground">{dep.code}</span>
       </div>
+
+      {dep.activeBaseline && (
+        <Card className="mb-5 border-primary/20 bg-primary/[0.03] px-4 py-3">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            <div>
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Active baseline</span>
+              <div className="font-semibold">{dep.activeBaseline.code} · {dep.activeBaseline.snapshot.code}</div>
+            </div>
+            <div className="min-w-0">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Configuration hash</span>
+              <div className="truncate font-mono text-xs">{dep.activeBaseline.hash.slice(0, 16)}…</div>
+            </div>
+            <div className="ml-auto">
+              {pendingChange ? (
+                <>
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Pending change</span>
+                  <div>
+                    <Link href={`/changes/${pendingChange.code}`} className="font-semibold text-primary hover:underline">
+                      {pendingChange.code} · review required
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Configuration state</span>
+                  <div className="font-semibold">Baseline current</div>
+                </>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Tabs */}
       <div className="mb-6 flex gap-1 border-b border-border">

@@ -237,7 +237,14 @@ function ImpactBody({ r }: { r: Impact }) {
                   <td className={`${td} font-medium`}>{a.title}</td>
                   <td className={td}>{a.person}</td>
                   <td className={`${td} text-muted-foreground`}>{roleLabel[a.role] ?? a.role}</td>
-                  <td className={td}><EnumPill value={a.status} map={approvalStatusPill} /></td>
+                  <td className={td}>
+                    <span className="mr-2 text-xs text-muted-foreground">Original</span>
+                    <EnumPill value={a.originalStatus} map={approvalStatusPill} />
+                  </td>
+                  <td className={td}>
+                    <span className="mr-2 text-xs text-muted-foreground">Re-approval</span>
+                    <EnumPill value={a.reviewStatus} map={impactStatusPill} />
+                  </td>
                 </tr>
               ))}
             </tbody>

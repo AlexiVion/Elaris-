@@ -235,7 +235,7 @@ Entrada: diff + evidencia y requisitos aplicables del deployment + aprobaciones 
 
 Plantillas de razón por `(kind, slot)`, en `rules.ts`. Ejemplos: `(TEST, HANDS)` → "Hand interface changed"; `(RISK_ASSESSMENT, HANDS)` → "New hand requires safety assessment update"; `(TECHNICAL_DOSSIER, HANDS)` → "Hardware change affects technical specification"; `(INSURANCE_APPENDIX, HANDS)` → "Hardware change may affect insurance terms"; `(CALIBRATION, HANDS)` → "New hand requires calibration record"; `(OPERATING_LIMIT, HANDS)` → "Grasp characteristics may affect operating limits". Sin plantilla: "\<Slot\> changed: \<before\> → \<after\>".
 
-Al confirmar un cambio: se crea el snapshot nuevo, el Change queda `REVIEW_REQUIRED`, cada EvidenceItem afectado pasa a `REVIEW_REQUIRED` y cada aprobación afectada genera una nueva en `REQUIRED`.
+Al confirmar un cambio: se crea el snapshot nuevo, el Change queda `REVIEW_REQUIRED` y cada EvidenceItem afectado pasa a `REVIEW_REQUIRED`. Cada aprobación afectada genera un ImpactItem `RE_APPROVE` que referencia la decisión original. La decisión original no se reescribe: el re-review sólo puede resolverlo la persona nombrada en esa aprobación. El Change no puede aprobarse mientras exista un ImpactItem de aprobación abierto.
 
 ### 6.4 Aprobación de un cambio
 
