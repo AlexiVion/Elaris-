@@ -90,3 +90,19 @@ For each actor archetype:
 5. show the prototype;
 6. record where the proposed view is wrong;
 7. only then create actor-specific write workflows or schema extensions.
+
+
+## Wave A visual applications
+
+The next horizontal increment upgrades four actor hypotheses from generic lenses into app-like visual prototypes:
+
+- Operational Readiness
+- Safety Change Control
+- Evidence Review
+- Incident Reconstruction
+
+Each uses dedicated navigation and actor-specific screens while continuing to read the same shared Elaris demo substrate.
+
+No new Prisma models or write APIs are introduced. Actor-specific objects such as Acceptance Gate, Hazard, Assessment and Finding remain clearly labeled presentation hypotheses until field validation.
+
+See `docs/platform/wave-a-visual-prototype-spec.md`.
