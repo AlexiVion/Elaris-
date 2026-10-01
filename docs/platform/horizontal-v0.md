@@ -1,5 +1,7 @@
 # Elaris Platform — Horizontal v0
 
+> **Historical architecture note.** This document records the original Horizontal v0 experiment. The current canonical route/product architecture is defined in [`docs/architecture/platform-product-architecture.md`](../architecture/platform-product-architecture.md): `/` is Elaris Platform Home and every product is a full-screen application under `/platform/<product-slug>`. Where this document conflicts with that architecture, the newer architecture document wins.
+
 ## Purpose
 
 Demonstrate one architectural claim without changing the existing Humandroid / Deployment Control product:
