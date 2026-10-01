@@ -122,7 +122,7 @@ export default async function PlatformProductPage({ params }: { params: { slug: 
 
 function Back() {
   return (
-    <Link href="/platform" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-950">
+    <Link href="/" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-950">
       <ArrowLeft className="size-4" />
       Back to products
     </Link>
@@ -138,7 +138,7 @@ function SharedDeployment({ data }: { data: Awaited<ReturnType<typeof getHorizon
           <h2 className="mt-1 text-xl font-semibold">{data.name}</h2>
           <div className="mt-1 text-sm text-slate-500">{data.code} · {data.robot}</div>
         </div>
-        <Link href={`/deployments/${data.code}`} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 hover:underline">
+        <Link href={`/platform/deployment-control/deployments/${data.code}`} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 hover:underline">
           Open source record
           <ArrowRight className="size-4" />
         </Link>
