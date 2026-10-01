@@ -126,26 +126,31 @@ The rule for this branch is simple: **do not add features just because they are 
 A feature enters the Humandroid MVP only when it maps to a real pilot workflow or validated need.
 
 
-## Horizontal platform
+## Platform → Product architecture
 
-The existing Deployment Control app remains the reference product for the
-**Robotics Integrator / Deployer** archetype.
+Elaris is now platform-first.
 
-Open the horizontal platform shell at:
-
+```text
+/
+└── Elaris Platform Home
+    ├── /platform/deployment-control
+    ├── /platform/operational-readiness
+    ├── /platform/safety-change-control
+    ├── /platform/evidence-review
+    ├── /platform/placement-workspace
+    ├── /platform/underwriting-workspace
+    └── /platform/incident-reconstruction
 ```
-http://localhost:3000/platform
-```
 
-Horizontal v0 currently exposes:
+**Deployment Control** remains the LIVE reference product for the Robotics
+Integrator / Deployer archetype.
 
-- Deployment Control — LIVE reference product
-- Operational Readiness — Enterprise Buyer / Operator prototype
-- Safety Change Control — Safety / EHS prototype
-- Broker Workspace — Insurance Broker prototype
-- Underwriting Workspace — Insurer / MGA prototype
-- Incident Reconstruction — Claims / Forensics prototype
+Each product is a full-screen application with its own navigation and workflow.
+The Platform Home does not wrap product screens.
 
-These products reuse the same demo deployment data but present different
-decision views. The prototypes do not introduce new validated workflows or
-formal claims. See `docs/platform/horizontal-v0.md`.
+Products reuse the same shared Elaris technical substrate while actor-specific
+workflow objects can remain presentation-only until field validation.
+
+See:
+- `docs/architecture/platform-product-architecture.md`
+- `docs/platform/horizontal-v0.md` for the historical horizontal-v0 design.
