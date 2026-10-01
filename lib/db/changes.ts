@@ -54,7 +54,8 @@ export async function getChangeDetail(code: string) {
         personName: ap?.approver.name ?? "—",
         role: ap?.role ?? "",
         reason: i.reason,
-        status: ap?.status ?? "REQUIRED",
+        originalStatus: ap?.status ?? "REQUIRED",
+        reviewStatus: i.status,
         severity: i.severity,
       };
     });

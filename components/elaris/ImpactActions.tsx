@@ -12,12 +12,14 @@ interface EvidenceOpt { id: string; label: string }
 
 export function ImpactActions({
   itemId,
+  targetType,
   suggestedAction,
   status,
   persons,
   evidenceOptions,
 }: {
   itemId: string;
+  targetType: string;
   suggestedAction: string;
   status: string;
   persons: PersonOpt[];
@@ -37,6 +39,7 @@ export function ImpactActions({
 
   const done = status === "RESOLVED" || status === "WAIVED";
   const requiresTestOrEvidence = suggestedAction === "RE_RUN";
+  const isApproval = targetType === "APPROVAL";
 
   function run(fn: () => Promise<{ ok: boolean; error?: string }>) {
     setError(null);
@@ -59,7 +62,12 @@ export function ImpactActions({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">Manage</Button>
       </DialogTrigger>
-      <DialogContent title="Manage impact item" description="Put in review, assign, resolve or waive this item.">
+      <DialogContent
+        title={isApproval ? "Manage affected approval" : "Manage impact item"}
+        description={isApproval
+          ? "The named approver must record the re-approval. It cannot be waived by the change approver."
+          : "Put in review, assign, resolve or waive this item."}
+      >
         <div className="space-y-5">
           {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
@@ -114,27 +122,33 @@ export function ImpactActions({
                 </>
               )}
               <div>
-                <Label htmlFor="note">Resolution note</Label>
-                <Textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="What was done" />
+                <Label htmlFor="note">{isApproval ? "Re-approval note" : "Resolution note"}</Label>
+                <Textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} placeholder={isApproval ? "What the named approver reviewed" : "What was done"} />
               </div>
               <Button
                 disabled={pending}
                 onClick={() => run(() => resolveImpact({ itemId, note, newEvidenceId: newEvidenceId || undefined, testDate: testDate || undefined, testResult: testResult || undefined }))}
               >
-                Resolve item
+                {isApproval ? "Record re-approval" : "Resolve item"}
               </Button>
             </div>
           </div>
 
           {/* Waive */}
-          <div className="rounded-md border border-border p-3">
-            <div className="mb-2 text-sm font-medium">Waive</div>
-            <p className="mb-2 text-xs text-muted-foreground">A waiver requires a written justification, recorded in the audit log (spec §6.4).</p>
-            <Textarea value={justification} onChange={(e) => setJustification(e.target.value)} placeholder="Justification (required)" />
-            <Button variant="destructive" className="mt-2" disabled={pending || justification.trim().length < 3} onClick={() => run(() => waiveImpact({ itemId, justification }))}>
-              Waive item
-            </Button>
-          </div>
+          {isApproval ? (
+            <div className="rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+              Affected approvals cannot be waived here. The named approver must review and record the re-approval.
+            </div>
+          ) : (
+            <div className="rounded-md border border-border p-3">
+              <div className="mb-2 text-sm font-medium">Waive</div>
+              <p className="mb-2 text-xs text-muted-foreground">A waiver requires a written justification, recorded in the audit log (spec §6.4).</p>
+              <Textarea value={justification} onChange={(e) => setJustification(e.target.value)} placeholder="Justification (required)" />
+              <Button variant="destructive" className="mt-2" disabled={pending || justification.trim().length < 3} onClick={() => run(() => waiveImpact({ itemId, justification }))}>
+                Waive item
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

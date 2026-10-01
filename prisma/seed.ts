@@ -32,6 +32,45 @@ function items(map: Partial<Record<Slot, string>>): ConfigItemInput[] {
 
 const d = (iso: string) => new Date(iso);
 
+async function freezeSeedBaselineState(baselineId: string, deploymentId: string) {
+  const [evidence, approvals] = await Promise.all([
+    prisma.evidenceItem.findMany({ where: { deploymentId, archivedAt: null }, orderBy: { code: "asc" } }),
+    prisma.approval.findMany({ where: { deploymentId, status: { not: "REVOKED" } }, orderBy: { title: "asc" } }),
+  ]);
+  await prisma.baseline.update({
+    where: { id: baselineId },
+    data: {
+      evidenceState: serializeJson(evidence.map((e) => ({
+        id: e.id,
+        code: e.code,
+        title: e.title,
+        category: e.category,
+        kind: e.kind,
+        readinessCategory: e.readinessCategory,
+        status: e.status,
+        required: e.required,
+        applicable: e.applicable,
+        ownerPersonId: e.ownerPersonId,
+        uri: e.uri,
+        fileSha256: e.fileSha256,
+        dueDate: e.dueDate?.toISOString() ?? null,
+        updatedAt: e.updatedAt.toISOString(),
+      }))),
+      approvalState: serializeJson(approvals.map((a) => ({
+        id: a.id,
+        title: a.title,
+        readinessCategory: a.readinessCategory,
+        approverPersonId: a.approverPersonId,
+        role: a.role,
+        status: a.status,
+        decidedAt: a.decidedAt?.toISOString() ?? null,
+        baselineId: a.baselineId,
+        justification: a.justification,
+      }))),
+    },
+  });
+}
+
 async function main() {
   // ---------------------------------------------------------------- reset
   // migrate reset already drops data; be defensive if run via db:seed alone.
@@ -194,7 +233,12 @@ async function main() {
   const bl017_00 = await prisma.baseline.create({
     data: {
       code: "B-0017-00", deploymentId: dep17.id, snapshotId: c003.id,
-      taskSnapshot: serializeJson({ name: valveTask.name }), environmentSnapshot: serializeJson({ site: northSite.name, environmentType: northSite.environmentType }),
+      taskSnapshot: serializeJson({ name: valveTask.name, description: valveTask.description, parameters: JSON.parse(valveTask.parameters) }),
+      environmentSnapshot: serializeJson({
+        customer: { code: northgas.code, name: northgas.name, country: northgas.country },
+        site: { name: northSite.name, city: northSite.city, country: northSite.country, environmentType: northSite.environmentType },
+        lifecycle: "PILOT", operatingMode: "SUPERVISED", humanExposure: "SHARED_AREA",
+      }),
       evidenceState: serializeJson([]), approvalState: serializeJson([]),
       hash: hashSnapshot(c003Items), frozenById: sarah.id, frozenAt: d("2026-07-12T16:00:00Z"),
     },
@@ -202,7 +246,12 @@ async function main() {
   const bl017_01 = await prisma.baseline.create({
     data: {
       code: "B-0017-01", deploymentId: dep17.id, snapshotId: c004.id,
-      taskSnapshot: serializeJson({ name: valveTask.name }), environmentSnapshot: serializeJson({ site: northSite.name, environmentType: northSite.environmentType }),
+      taskSnapshot: serializeJson({ name: valveTask.name, description: valveTask.description, parameters: JSON.parse(valveTask.parameters) }),
+      environmentSnapshot: serializeJson({
+        customer: { code: northgas.code, name: northgas.name, country: northgas.country },
+        site: { name: northSite.name, city: northSite.city, country: northSite.country, environmentType: northSite.environmentType },
+        lifecycle: "PILOT", operatingMode: "SUPERVISED", humanExposure: "SHARED_AREA",
+      }),
       evidenceState: serializeJson([]), approvalState: serializeJson([]),
       hash: hashSnapshot(c004Items), frozenById: sarah.id, frozenAt: d("2026-08-06T16:00:00Z"),
     },
@@ -252,6 +301,11 @@ async function main() {
   await prisma.approval.create({
     data: { title: "Customer technical approval", deploymentId: dep17.id, readinessCategory: "CUSTOMER_REQUIREMENTS", approverPersonId: james.id, role: "CUSTOMER_ENGINEER", scopeSlots: serializeSlots(["TASK_PARAMETERS", "SAFETY_ZONE"]), status: "PENDING" },
   });
+
+  // The active demo baseline must be reconstructable from frozen state. The
+  // older B-0017-00 fixture intentionally lacks historical evidence data that
+  // was never modeled; do not fabricate it.
+  await freezeSeedBaselineState(bl017_01.id, dep17.id);
 
   // ---- Prior approved change CHG-0003 (firmware 1.4.1 → 1.4.2) ----
   await prisma.change.create({
@@ -311,7 +365,16 @@ async function main() {
     },
   });
   const bl21 = await prisma.baseline.create({
-    data: { code: "B-0021-01", deploymentId: dep21.id, snapshotId: c100.id, taskSnapshot: serializeJson({ name: assemblyTask.name }), environmentSnapshot: serializeJson({ site: autoSite.name }), evidenceState: serializeJson([]), approvalState: serializeJson([]), hash: hashSnapshot(c100Items), frozenById: sarah.id, frozenAt: d("2026-08-21T12:00:00Z") },
+    data: {
+      code: "B-0021-01", deploymentId: dep21.id, snapshotId: c100.id,
+      taskSnapshot: serializeJson({ name: assemblyTask.name, description: assemblyTask.description, parameters: JSON.parse(assemblyTask.parameters) }),
+      environmentSnapshot: serializeJson({
+        customer: { code: autoline.code, name: autoline.name, country: autoline.country },
+        site: { name: autoSite.name, city: autoSite.city, country: autoSite.country, environmentType: autoSite.environmentType },
+        lifecycle: "LIMITED", operatingMode: "AUTONOMOUS_ZONED", humanExposure: "SEPARATED",
+      }),
+      evidenceState: serializeJson([]), approvalState: serializeJson([]), hash: hashSnapshot(c100Items), frozenById: sarah.id, frozenAt: d("2026-08-21T12:00:00Z"),
+    },
   });
   await prisma.deployment.update({ where: { id: dep21.id }, data: { activeBaselineId: bl21.id } });
   const ev21: Ev[] = [
@@ -324,6 +387,7 @@ async function main() {
     await prisma.evidenceItem.create({ data: { code: e.code, title: e.title, category: e.category, kind: e.kind, readinessCategory: e.readiness, source: e.source, deploymentId: dep21.id, scopeSlots: serializeSlots(e.scope), criticality: e.crit, status: e.status, required: e.required, applicable: true, ownerPersonId: owners[e.owner]!, uri: e.uri ?? null } });
   }
   await prisma.approval.create({ data: { title: "Safety approval", deploymentId: dep21.id, readinessCategory: "SAFETY_EVIDENCE", approverPersonId: sarah.id, role: "SAFETY_LEAD", scopeSlots: serializeSlots(["HANDS", "SKILL"]), status: "APPROVED", decidedAt: d("2026-08-21T11:00:00Z"), baselineId: bl21.id } });
+  await freezeSeedBaselineState(bl21.id, dep21.id);
 
   // ------------------------------------------ deployment DEP-0009 (Humandroid lab)
   const dep09 = await prisma.deployment.create({
@@ -335,7 +399,16 @@ async function main() {
     },
   });
   const bl09 = await prisma.baseline.create({
-    data: { code: "B-0009-01", deploymentId: dep09.id, snapshotId: c200.id, taskSnapshot: serializeJson({ name: warehouseTask.name }), environmentSnapshot: serializeJson({ site: labSite.name }), evidenceState: serializeJson([]), approvalState: serializeJson([]), hash: hashSnapshot(c200Items), frozenById: sarah.id, frozenAt: d("2026-09-02T12:00:00Z") },
+    data: {
+      code: "B-0009-01", deploymentId: dep09.id, snapshotId: c200.id,
+      taskSnapshot: serializeJson({ name: warehouseTask.name, description: warehouseTask.description, parameters: JSON.parse(warehouseTask.parameters) }),
+      environmentSnapshot: serializeJson({
+        customer: { code: lab.code, name: lab.name, country: lab.country },
+        site: { name: labSite.name, city: labSite.city, country: labSite.country, environmentType: labSite.environmentType },
+        lifecycle: "TEST", operatingMode: "TELEOPERATED", humanExposure: "NONE",
+      }),
+      evidenceState: serializeJson([]), approvalState: serializeJson([]), hash: hashSnapshot(c200Items), frozenById: sarah.id, frozenAt: d("2026-09-02T12:00:00Z"),
+    },
   });
   await prisma.deployment.update({ where: { id: dep09.id }, data: { activeBaselineId: bl09.id } });
   const ev09: Ev[] = [
@@ -346,6 +419,7 @@ async function main() {
   for (const e of ev09) {
     await prisma.evidenceItem.create({ data: { code: e.code, title: e.title, category: e.category, kind: e.kind, readinessCategory: e.readiness, source: e.source, deploymentId: dep09.id, scopeSlots: serializeSlots(e.scope), criticality: e.crit, status: e.status, required: e.required, applicable: true, ownerPersonId: owners[e.owner]!, uri: e.uri ?? null } });
   }
+  await freezeSeedBaselineState(bl09.id, dep09.id);
 
   // ------------------------------------------------------------ incidents
   await prisma.incident.create({

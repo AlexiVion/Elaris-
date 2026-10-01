@@ -47,7 +47,8 @@ real login.
   `/changes/CHG-0005`. For each item use **Manage** to put in review, resolve
   (a re-run needs a linked evidence item or a test date + result), waive (needs
   a written justification) or assign. As **Sarah Chen (Safety Lead)**, once no
-  high-impact item is open, **Approve Change** → a new baseline is frozen and the
+  high-impact item is open **and every affected approval has been re-reviewed by
+  its named approver**, **Approve Change** → a new baseline is frozen and the
   previous one stays in **History**.
 - **C · Reports.** **Reports** → open a System Passport / Deployment Readiness
   Pack / Change Impact Report → **Print / PDF** (A4) and **Export JSON**.
@@ -96,3 +97,27 @@ vocabulary rules and the golden scenario.
 Assistant (shown disabled, "Coming soon"), a full Insurance Readiness module,
 on-robot snapshot agent / Git-Drive-fleet connectors, telemetry, multi-tenant,
 real auth, billing, risk score. Extension points are left in place.
+
+
+## Humandroid pilot
+
+The current product validation focus is the **Humandroid Pilot** for Elaris Deployment Control.
+
+Canonical working docs:
+
+- [Elaris overview](docs/company/elaris-overview.md)
+- [Physical AI industry map](docs/industry/physical-ai-industry-map.md)
+- [Deployment Control product](docs/product/deployment-control.md)
+- [Humandroid Pilot Spec](docs/pilots/humandroid/pilot-spec.md)
+- [Humandroid Data Request](docs/pilots/humandroid/data-request.md)
+- [Humandroid Operating Workflow](docs/pilots/humandroid/operating-workflow.md)
+- [Humandroid Minimum Data Model](docs/pilots/humandroid/minimum-data-model.md)
+- [Humandroid Success Criteria](docs/pilots/humandroid/success-criteria.md)
+- [Humandroid Demo & Delivery Plan](docs/pilots/humandroid/demo-delivery-plan.md)
+- [Humandroid Demo Data Audit](docs/pilots/humandroid/demo-data-audit.md)
+- [Humandroid Evidence Map Semantics](docs/pilots/humandroid/evidence-map-semantics.md)
+- [Humandroid 7-Minute Demo Script](docs/pilots/humandroid/demo-script.md)
+- [Current system audit](docs/architecture/system-design.md)
+
+The rule for this branch is simple: **do not add features just because they are technically possible.**
+A feature enters the Humandroid MVP only when it maps to a real pilot workflow or validated need.

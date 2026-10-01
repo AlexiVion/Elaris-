@@ -113,7 +113,14 @@ export async function getImpactReport(code: string) {
     })),
     approvals: change.impactItems.filter((i) => i.targetType === "APPROVAL").map((i) => {
       const ap = i.targetId ? apById.get(i.targetId) : undefined;
-      return { title: ap?.title ?? i.title, person: ap?.approver.name ?? "—", role: ap?.role ?? "", reason: i.reason, status: ap?.status ?? "REQUIRED" };
+      return {
+        title: ap?.title ?? i.title,
+        person: ap?.approver.name ?? "—",
+        role: ap?.role ?? "",
+        reason: i.reason,
+        originalStatus: ap?.status ?? "REQUIRED",
+        reviewStatus: i.status,
+      };
     }),
     footer: REPORT_FOOTER,
   };

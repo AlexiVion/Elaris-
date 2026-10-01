@@ -42,9 +42,11 @@ export default async function ChangeImpactPage({ params }: { params: { code: str
   ]);
   const evidenceOptions = evidenceRows.map((e) => ({ id: e.id, label: `${e.code} — ${e.title}` }));
 
-  // §6.4 approval gate: blocked while any HIGH item is still open.
-  const highOpen = items.some(
-    (i) => i.severity === "HIGH" && (i.status === "PENDING" || i.status === "IN_REVIEW")
+  // §6.4 approval gate: blocked while any HIGH item OR any affected approval
+  // still needs review. A Safety Lead cannot satisfy another person's approval.
+  const blockingOpen = items.some(
+    (i) => (i.status === "PENDING" || i.status === "IN_REVIEW") &&
+      (i.severity === "HIGH" || i.targetType === "APPROVAL")
   );
 
   const beforeItems = sortItems(change.beforeSnapshot.items);
@@ -67,7 +69,7 @@ export default async function ChangeImpactPage({ params }: { params: { code: str
           <div className="flex items-start gap-2">
             <ApproveChangeButton
               changeCode={change.code}
-              highOpen={highOpen}
+              blockingOpen={blockingOpen}
               isSafetyLead={actor.role === "SAFETY_LEAD"}
               alreadyApproved={change.status === "APPROVED"}
             />
@@ -101,6 +103,11 @@ export default async function ChangeImpactPage({ params }: { params: { code: str
           </div>
         </div>
       </Card>
+
+      <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-3 text-sm text-blue-950">
+        <span className="font-semibold">Review boundary:</span> Potential impact is a review signal, not automatic invalidation.
+        Evidence, requirements and named approvals stay human decisions.
+      </div>
 
       {/* Before / After + Potential Impact */}
       <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -148,6 +155,7 @@ export default async function ChangeImpactPage({ params }: { params: { code: str
                     <td className="px-2 py-3">
                       <ImpactActions
                         itemId={it.id}
+                        targetType={it.targetType}
                         suggestedAction={it.suggestedAction}
                         status={it.status}
                         persons={persons}
@@ -186,7 +194,7 @@ export default async function ChangeImpactPage({ params }: { params: { code: str
         <table className="w-full text-sm">
           <thead>
             <tr>
-              {[copy.common.approval, copy.common.person, copy.common.role, copy.common.reason, copy.common.status].map((h) => (
+              {[copy.common.approval, copy.common.person, copy.common.role, copy.common.reason, "Original", "Re-approval"].map((h) => (
                 <th key={h} className="px-2 py-2 text-left text-xs font-medium text-muted-foreground">{h}</th>
               ))}
             </tr>
@@ -198,7 +206,8 @@ export default async function ChangeImpactPage({ params }: { params: { code: str
                 <td className="px-2 py-3">{a.personName}</td>
                 <td className="px-2 py-3 text-muted-foreground">{roleLabel[a.role] ?? a.role}</td>
                 <td className="px-2 py-3 text-muted-foreground">{a.reason}</td>
-                <td className="px-2 py-3"><EnumPill value={a.status} map={approvalStatusPill} /></td>
+                <td className="px-2 py-3"><EnumPill value={a.originalStatus} map={approvalStatusPill} /></td>
+                <td className="px-2 py-3"><EnumPill value={a.reviewStatus} map={impactStatusPill} /></td>
               </tr>
             ))}
           </tbody>
