@@ -9,13 +9,13 @@ export default async function PlacementSharePage() {
   const d = data.deployment;
 
   const sections = [
-    ["Insured / submission context", "INCLUDED"],
-    ["Selected deployments", "INCLUDED"],
-    ["Exact configuration / baseline", "INCLUDED"],
-    ["Technical evidence index", "INCLUDED"],
-    ["Open information gaps", "INCLUDED"],
-    ["Market Q&A", "BROKER REVIEW"],
-    ["Pricing / terms recommendation", "NOT PROVIDED"],
+    { label: "Insured / submission context", status: "INCLUDED" },
+    { label: "Selected deployments", status: "INCLUDED" },
+    { label: "Exact configuration / baseline", status: "INCLUDED" },
+    { label: "Technical evidence index", status: "INCLUDED" },
+    { label: "Open information gaps", status: "INCLUDED" },
+    { label: "Market Q&A", status: "BROKER REVIEW" },
+    { label: "Pricing / terms recommendation", status: "NOT PROVIDED" },
   ];
 
   return (
@@ -36,10 +36,10 @@ export default async function PlacementSharePage() {
           </div>
 
           <div className="mt-4 space-y-1">
-            {sections.map(([label, status]) => (
-              <div key={label} className="flex items-center justify-between gap-4 border-b border-slate-100 py-3 last:border-0">
-                <span className="text-sm text-slate-600">{label}</span>
-                <StatusPill value={status} />
+            {sections.map((section) => (
+              <div key={section.label} className="flex items-center justify-between gap-4 border-b border-slate-100 py-3 last:border-0">
+                <span className="text-sm text-slate-600">{section.label}</span>
+                <StatusPill value={section.status} />
               </div>
             ))}
           </div>
