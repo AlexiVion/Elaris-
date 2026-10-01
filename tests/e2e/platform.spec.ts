@@ -1,20 +1,19 @@
 import { test, expect } from "@playwright/test";
 
-test("platform home exposes the product portfolio without replacing Deployment Control", async ({ page }) => {
-  await page.goto("/platform");
+test("platform home is the first level and Deployment Control opens as a full product", async ({ page }) => {
+  await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: /Una infraestructura compartida/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Deployment Control", exact: true })).toBeVisible();
-  await expect(page.getByText("Operational Readiness", { exact: true })).toBeVisible();
-  await expect(page.getByText("Safety Change Control", { exact: true })).toBeVisible();
-  await expect(page.getByText("Evidence Review", { exact: true })).toBeVisible();
+  await expect(page.getByText("Elaris Platform", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Shared infrastructure/ })).toBeVisible();
+  await expect(page.getByText("Deployment Control", { exact: true })).toBeVisible();
   await expect(page.getByText("Placement Workspace", { exact: true })).toBeVisible();
   await expect(page.getByText("Underwriting Workspace", { exact: true })).toBeVisible();
-  await expect(page.getByText("Incident Reconstruction", { exact: true })).toBeVisible();
 
-  await page.getByRole("link", { name: /Deployment Control/ }).last().click();
-  await expect(page).toHaveURL(/\/platform\/deployment-control/);
-  await expect(page.getByText("Frozen reference boundary")).toBeVisible();
+  await page.getByRole("link", { name: /Deployment Control/ }).click();
+  await expect(page).toHaveURL(/\/platform\/deployment-control$/);
+  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
+  await expect(page.getByText("Active Deployments")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Deployments", exact: true })).toBeVisible();
 });
 
 test("Operational Readiness behaves like a complete buyer workspace", async ({ page }) => {
@@ -163,11 +162,16 @@ test("Underwriting generic prototype still reuses the same DEP-0017 source recor
   await expect(page.getByRole("link", { name: "Open source record" })).toHaveAttribute("href", "/deployments/DEP-0017");
 });
 
-test("Deployment Control exposes a platform switcher without changing its product routes", async ({ page }) => {
-  await page.goto("/deployments/DEP-0017");
+test("Deployment Control stays full-screen at second depth and returns to platform home", async ({ page }) => {
+  await page.goto("/platform/deployment-control/deployments/DEP-0017");
+  await expect(page.getByRole("heading", { name: "Valve Inspection Pilot" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Deployments", exact: true })).toBeVisible();
+
   const switcher = page.getByRole("link", { name: "Platform", exact: true });
   await expect(switcher).toBeVisible();
   await switcher.click();
-  await expect(page).toHaveURL(/\/platform$/);
-  await expect(page.getByRole("heading", { name: /Una infraestructura compartida/ })).toBeVisible();
+
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByText("Elaris Platform", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Shared infrastructure/ })).toBeVisible();
 });
