@@ -1,5 +1,7 @@
 # CLAUDE.md — Elaris (Deployment & Change Evidence)
 
+> **Read [`AGENTS.md`](AGENTS.md) first.** `AGENTS.md` is the repository-wide operating contract and takes precedence for collaboration, source-of-truth and platform architecture. This file contains product-specific implementation detail for Deployment Control.
+
 Guidance for working in this repo. Keep this file updated as phases land.
 
 Elaris connects a Physical AI system's real configuration with the evidence and
