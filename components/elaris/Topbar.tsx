@@ -1,6 +1,7 @@
 "use client";
 
-import { Search, Bell } from "lucide-react";
+import Link from "next/link";
+import { Search, Bell, Grid3X3 } from "lucide-react";
 import { copy } from "@/lib/copy/en";
 import { roleLabel } from "@/lib/copy/labels";
 
@@ -51,6 +52,15 @@ export function Topbar({
       </form>
 
       <div className="ml-auto flex items-center gap-3">
+        <Link
+          href="/platform"
+          className="hidden items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted md:flex"
+          title="Back to Elaris Platform"
+        >
+          <Grid3X3 className="size-4 text-muted-foreground" />
+          Platform
+        </Link>
+
         <div className="hidden items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm font-medium md:flex">
           {copy.topbar.organization}
         </div>

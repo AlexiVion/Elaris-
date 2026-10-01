@@ -19,7 +19,7 @@ runs with demo data, operated by one person.
 
 ## Prerequisites
 
-- **Node.js LTS** (tested on v22)
+- **Node.js 22 LTS** (the project CI runs on Node 22; use `nvm use 22` on Windows if needed)
 - **pnpm** (via corepack): `corepack enable && corepack prepare pnpm@9 --activate`
 - No external services — everything runs locally on SQLite.
 
@@ -121,3 +121,28 @@ Canonical working docs:
 
 The rule for this branch is simple: **do not add features just because they are technically possible.**
 A feature enters the Humandroid MVP only when it maps to a real pilot workflow or validated need.
+
+
+## Horizontal platform
+
+The existing Deployment Control app remains the reference product for the
+**Robotics Integrator / Deployer** archetype.
+
+Open the horizontal platform shell at:
+
+```
+http://localhost:3000/platform
+```
+
+Horizontal v0 currently exposes:
+
+- Deployment Control — LIVE reference product
+- Operational Readiness — Enterprise Buyer / Operator prototype
+- Safety Change Control — Safety / EHS prototype
+- Broker Workspace — Insurance Broker prototype
+- Underwriting Workspace — Insurer / MGA prototype
+- Incident Reconstruction — Claims / Forensics prototype
+
+These products reuse the same demo deployment data but present different
+decision views. The prototypes do not introduce new validated workflows or
+formal claims. See `docs/platform/horizontal-v0.md`.

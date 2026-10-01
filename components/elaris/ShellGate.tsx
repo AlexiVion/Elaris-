@@ -22,7 +22,7 @@ export function ShellGate({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  if (pathname.startsWith("/share")) return <>{children}</>;
+  if (pathname.startsWith("/share") || pathname.startsWith("/platform")) return <>{children}</>;
 
   return (
     <div className="flex min-h-screen">
