@@ -17,23 +17,47 @@ test("platform home exposes the product portfolio without replacing Deployment C
   await expect(page.getByText("Frozen reference boundary")).toBeVisible();
 });
 
-test("Operational Readiness behaves like an actor-specific app", async ({ page }) => {
+test("Operational Readiness behaves like a complete buyer workspace", async ({ page }) => {
   await page.goto("/platform/operational-readiness");
 
   await expect(page.getByRole("heading", { name: "Operational Readiness" })).toBeVisible();
-  await expect(page.getByText("Buyer work queue")).toBeVisible();
-  await expect(page.getByText("OPT-005 · Customer requirement")).toBeVisible();
+  await expect(page.getByText("Needs attention")).toBeVisible();
+  await expect(page.getByText("Deployment portfolio")).toBeVisible();
+  await expect(page.getByText("Acceptance snapshot")).toBeVisible();
 
-  await page.getByRole("link", { name: /Open deployment review/ }).click();
+  await page.getByRole("link", { name: "Deployments", exact: true }).click();
+  await expect(page).toHaveURL(/operational-readiness\/deployments$/);
+  await expect(page.getByRole("heading", { name: "Deployments" })).toBeVisible();
+  await expect(page.getByText("Assembly Line Pilot")).toBeVisible();
+  await expect(page.getByText("Warehouse Manipulation Demo")).toBeVisible();
+
+  await page.getByRole("link", { name: /Valve Inspection Pilot/ }).click();
   await expect(page).toHaveURL(/operational-readiness\/deployments\/DEP-0017/);
-  await expect(page.getByText("DEP-0017", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Exact configuration" })).toBeVisible();
+  await expect(page.getByText("Acceptance gates")).toBeVisible();
 
-  await page.getByRole("link", { name: /Open acceptance gates/ }).click();
+  await page.getByRole("link", { name: "Acceptance", exact: true }).click();
   await expect(page).toHaveURL(/operational-readiness\/acceptance/);
-  await expect(page.getByRole("heading", { name: "Acceptance Gates" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Deployment Acceptance" })).toBeVisible();
   await expect(page.getByText("Procurement / Customer")).toBeVisible();
   await expect(page.getByText("IT / Cyber")).toBeVisible();
+
+  await page.getByRole("button", { name: "Accept with conditions" }).click();
+  await page.getByRole("button", { name: "Record demo decision" }).click();
+  await expect(page.getByText(/Demo decision recorded.*Accept with conditions/)).toBeVisible();
+
+  await page.getByRole("link", { name: "Review Queue", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Review Queue" })).toBeVisible();
+  await expect(page.getByText("Operator training record").first()).toBeVisible();
+
+  await page.getByRole("link", { name: "Changes", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Changes Since Acceptance" })).toBeVisible();
+  await expect(page.getByText("BrainCo Revo2")).toBeVisible();
+
+  await page.getByRole("link", { name: "Reports", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Reports & Records" })).toBeVisible();
+  await expect(page.getByText("Deployment Due Diligence Pack")).toBeVisible();
+  await expect(page.getByText("Acceptance Record")).toBeVisible();
 });
 
 test("Safety Change Control presents CHG-0005 as a safety review, not a generic dashboard", async ({ page }) => {

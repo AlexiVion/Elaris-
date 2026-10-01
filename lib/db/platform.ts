@@ -4,9 +4,13 @@ import { parseJson, parseSlots } from "@/lib/domain/json";
 type IncidentTimelineEntry = { at: string; note: string };
 type ChangeDiffEntry = { slot: string; before: string | null; after: string | null; type: string };
 
+const OPEN_ITEM_STATUSES = ["MISSING", "NOT_STARTED", "PENDING", "IN_REVIEW", "REVIEW_REQUIRED"];
+const OPEN_APPROVAL_STATUSES = ["PENDING", "REQUIRED", "NOT_STARTED"];
+
 export async function getHorizontalPlatformData() {
   const [
     deployment,
+    portfolioDeployments,
     activeDeployments,
     activeRobots,
     openChanges,
@@ -44,6 +48,26 @@ export async function getHorizontalPlatformData() {
         incidents: { orderBy: { occurredAt: "desc" }, take: 3 },
       },
     }),
+    prisma.deployment.findMany({
+      include: {
+        customer: true,
+        site: true,
+        task: true,
+        activeBaseline: { include: { snapshot: true } },
+        deploymentRobots: { include: { robot: true } },
+        evidenceItems: {
+          where: { archivedAt: null },
+          include: { owner: true },
+          orderBy: { code: "asc" },
+        },
+        approvals: { include: { approver: true }, orderBy: { title: "asc" } },
+        changes: {
+          include: { impactItems: true, author: true },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+      orderBy: { code: "asc" },
+    }),
     prisma.deployment.count({ where: { operationalState: "LIVE" } }),
     prisma.robot.count({ where: { status: "ACTIVE" } }),
     prisma.change.count({ where: { status: "REVIEW_REQUIRED" } }),
@@ -66,7 +90,7 @@ export async function getHorizontalPlatformData() {
   const evidence = deployment.evidenceItems.filter((item) => item.category === "EVIDENCE");
   const requirements = deployment.evidenceItems.filter((item) => item.category === "REQUIREMENT");
   const pendingApprovals = deployment.approvals.filter((approval) =>
-    ["PENDING", "REQUIRED", "NOT_STARTED"].includes(approval.status)
+    OPEN_APPROVAL_STATUSES.includes(approval.status)
   );
   const activeRobot = deployment.deploymentRobots[0]?.robot ?? null;
   const latestChange = deployment.changes[0] ?? null;
@@ -92,6 +116,112 @@ export async function getHorizontalPlatformData() {
     updatedAt: item.updatedAt,
   });
 
+  const buyerPortfolio = portfolioDeployments.map((item) => {
+    const robot = item.deploymentRobots[0]?.robot ?? null;
+    const openRequirements = item.evidenceItems.filter((ev) =>
+      ev.category === "REQUIREMENT" && ev.required && OPEN_ITEM_STATUSES.includes(ev.status)
+    );
+    const missingRequired = item.evidenceItems.filter((ev) => ev.required && ev.status === "MISSING");
+    const pendingNamedApprovals = item.approvals.filter((approval) =>
+      OPEN_APPROVAL_STATUSES.includes(approval.status)
+    );
+    const materialChanges = item.changes.filter((change) => change.status === "REVIEW_REQUIRED");
+    const reviewItems = item.evidenceItems.filter((ev) =>
+      ["IN_REVIEW", "REVIEW_REQUIRED", "NOT_STARTED"].includes(ev.status)
+    );
+
+    const readinessStatus =
+      missingRequired.length > 0 || materialChanges.length > 0 || pendingNamedApprovals.length > 0
+        ? "REVIEW REQUIRED"
+        : reviewItems.length > 0
+          ? "IN REVIEW"
+          : "READY";
+
+    return {
+      code: item.code,
+      name: item.name,
+      customer: item.customer.name,
+      country: item.customer.country,
+      site: item.site.name,
+      city: item.site.city,
+      task: item.task.name,
+      lifecycle: item.lifecycle,
+      operationalState: item.operationalState,
+      operatingMode: item.operatingMode,
+      humanExposure: item.humanExposure,
+      robot: robot ? `${robot.code} · ${robot.model}` : "—",
+      baselineCode: item.activeBaseline?.code ?? "—",
+      snapshotCode: item.activeBaseline?.snapshot.code ?? "—",
+      readinessStatus,
+      openRequirements: openRequirements.length,
+      missingRequired: missingRequired.length,
+      pendingApprovals: pendingNamedApprovals.length,
+      openChanges: materialChanges.length,
+    };
+  });
+
+  const reviewQueue = portfolioDeployments
+    .flatMap((item) => {
+      const evidenceRows = item.evidenceItems
+        .filter((ev) => ev.required && OPEN_ITEM_STATUSES.includes(ev.status))
+        .map((ev) => ({
+          id: `evidence:${ev.code}`,
+          type: ev.category === "REQUIREMENT" ? "Requirement" : "Evidence",
+          code: ev.code,
+          title: ev.title,
+          deploymentCode: item.code,
+          deploymentName: item.name,
+          customer: item.customer.name,
+          owner: ev.owner.name,
+          status: ev.status,
+          priority: ev.criticality,
+          dueDate: ev.dueDate,
+          detail: ev.readinessCategory.replaceAll("_", " "),
+        }));
+
+      const approvalRows = item.approvals
+        .filter((approval) => OPEN_APPROVAL_STATUSES.includes(approval.status))
+        .map((approval) => ({
+          id: `approval:${item.code}:${approval.title}`,
+          type: "Approval",
+          code: "—",
+          title: approval.title,
+          deploymentCode: item.code,
+          deploymentName: item.name,
+          customer: item.customer.name,
+          owner: approval.approver.name,
+          status: approval.status,
+          priority: "HIGH",
+          dueDate: null as Date | null,
+          detail: approval.readinessCategory.replaceAll("_", " "),
+        }));
+
+      const changeRows = item.changes
+        .filter((change) => change.status === "REVIEW_REQUIRED")
+        .map((change) => ({
+          id: `change:${change.code}`,
+          type: "Change",
+          code: change.code,
+          title: "Material configuration change",
+          deploymentCode: item.code,
+          deploymentName: item.name,
+          customer: item.customer.name,
+          owner: change.author.name,
+          status: change.status,
+          priority: change.impactItems.some((impact) => impact.severity === "HIGH" && ["PENDING", "IN_REVIEW"].includes(impact.status))
+            ? "HIGH"
+            : "MEDIUM",
+          dueDate: null as Date | null,
+          detail: `${change.impactItems.filter((impact) => ["PENDING", "IN_REVIEW"].includes(impact.status)).length} impact items open`,
+        }));
+
+      return [...evidenceRows, ...approvalRows, ...changeRows];
+    })
+    .sort((a, b) => {
+      const priority = { HIGH: 0, MEDIUM: 1, LOW: 2 } as Record<string, number>;
+      return (priority[a.priority] ?? 9) - (priority[b.priority] ?? 9) || a.deploymentCode.localeCompare(b.deploymentCode);
+    });
+
   return {
     portfolio: {
       activeDeployments,
@@ -100,6 +230,8 @@ export async function getHorizontalPlatformData() {
       openIncidents,
       missingEvidence,
       reviewEvidence,
+      deployments: buyerPortfolio,
+      reviewQueue,
     },
     deployment: {
       code: deployment.code,
