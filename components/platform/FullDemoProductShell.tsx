@@ -75,10 +75,6 @@ export function FullDemoProductShell({
             );
           })}
         </nav>
-
-        <div className="border-t border-white/10 p-4">
-          <div className="text-xs text-sidebar-muted">{subtitle}</div>
-        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
