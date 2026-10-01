@@ -1,4 +1,8 @@
-# Elaris — Deployment & Change Evidence (MVP)
+# Elaris
+
+> **Contributors and AI agents:** read [`AGENTS.md`](AGENTS.md) first. It is the canonical operating contract for architecture, source-of-truth rules and collaboration.
+
+## Current reference product — Deployment & Change Evidence
 
 Elaris connects a Physical AI system's **real configuration** with the
 **evidence and approvals** that authorize its deployment, and keeps that
@@ -89,8 +93,7 @@ design images are visual reference only.
 - Nothing is deleted: every mutation appends an **AuditEvent** (see a
   deployment's **History** tab); records are archived, not removed.
 
-See **`CLAUDE.md`** for the full architecture, where the core logic lives, the
-vocabulary rules and the golden scenario.
+See **`AGENTS.md`** first for the repository-wide operating contract. `CLAUDE.md` contains additional Deployment Control implementation detail.
 
 ## Out of scope (MVP)
 
