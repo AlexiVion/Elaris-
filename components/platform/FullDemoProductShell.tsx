@@ -54,7 +54,7 @@ export function FullDemoProductShell({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="hidden w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex" aria-label={product + " navigation"}>
+      <aside className="hidden w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex" aria-label={product + " navigation"} title={subtitle}>
         <div className="flex items-center gap-3 px-6 py-6">
           <Hexagon className="size-8 text-primary" strokeWidth={1.5} />
           <div className="min-w-0">
