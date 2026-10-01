@@ -116,7 +116,7 @@ test("Placement Workspace behaves like a realistic broker discovery demo", async
   await page.goto("/platform/placement-workspace");
 
   await expect(page.getByRole("heading", { name: "Placement Workspace" })).toBeVisible();
-  await expect(page.getByText("Placement pipeline")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Placement pipeline" })).toBeVisible();
   await expect(page.getByText("SUB-0042").first()).toBeVisible();
   await expect(page.getByText("Valve Inspection Pilot")).toBeVisible();
 
