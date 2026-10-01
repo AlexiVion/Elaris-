@@ -112,36 +112,47 @@ test("Incident Reconstruction reconstructs baseline, timeline and evidence gaps"
   await expect(page.getByText("Photos / video")).toBeVisible();
 });
 
-test("Placement Workspace behaves like a realistic broker discovery demo", async ({ page }) => {
+test("Placement Workspace matches the full demo application standard", async ({ page }) => {
   await page.goto("/platform/placement-workspace");
 
   await expect(page.getByRole("heading", { name: "Placement Workspace" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Placement pipeline" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Attention Required" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Active Submissions" })).toBeVisible();
   await expect(page.getByText("SUB-0042").first()).toBeVisible();
-  await expect(page.getByText("Valve Inspection Pilot")).toBeVisible();
 
-  await page.getByRole("link", { name: "Submission", exact: true }).click();
-  await expect(page).toHaveURL(/placement-workspace\/submissions\/SUB-0042/);
+  await page.getByRole("link", { name: "Clients", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Clients" })).toBeVisible();
+  await expect(page.getByText("Humandroid", { exact: true }).first()).toBeVisible();
+
+  await page.getByRole("link", { name: "Submissions", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Submissions" })).toBeVisible();
+  await page.getByRole("link", { name: "SUB-0042" }).click();
   await expect(page.getByRole("heading", { name: "Humandroid Robotics Programme" })).toBeVisible();
-  await expect(page.getByText("Exact deployed configuration")).toBeVisible();
-  await expect(page.getByRole("link", { name: /Open shared source record/ })).toHaveAttribute("href", "/deployments/DEP-0017");
+  await expect(page.getByRole("heading", { name: "Exact Deployed Configuration" })).toBeVisible();
+  await expect(page.getByText("B-0017-01 · C004")).toBeVisible();
+
+  await page.getByRole("link", { name: "Information Requests", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Information Requests" })).toBeVisible();
+  await expect(page.getByText("Operator training record")).toBeVisible();
 
   await page.getByRole("link", { name: "Market Questions", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Market Questions" })).toBeVisible();
   await expect(page.getByText(/restricted-zone entry/).first()).toBeVisible();
   await page.getByRole("button", { name: "Mark ready for broker review" }).click();
-  await expect(page.getByText(/Nothing was sent to a carrier/)).toBeVisible();
+  await expect(page.getByText(/Nothing was sent externally/)).toBeVisible();
 
-  await page.getByRole("link", { name: "Renewal Changes", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "What changed since the last submission?" })).toBeVisible();
+  await page.getByRole("link", { name: "Renewals", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Renewals" })).toBeVisible();
+  await page.getByRole("link", { name: "REN-0042" }).click();
+  await expect(page.getByRole("heading", { name: "Humandroid · Renewal Review" })).toBeVisible();
   await expect(page.getByText("BrainCo Revo2")).toBeVisible();
   await expect(page.getByText("Inspire RH56DFX")).toBeVisible();
 
-  await page.getByRole("link", { name: "Share / Export", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Technical Market Pack" })).toBeVisible();
-  await expect(page.getByText("Humandroid · SUB-0042 · v2")).toBeVisible();
-  await page.getByRole("button", { name: "Prepare read-only market pack" }).click();
-  await expect(page.getByRole("button", { name: "Demo pack prepared" })).toBeVisible();
+  await page.getByRole("link", { name: "Reports", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Reports" })).toBeVisible();
+  await page.getByText("Technical Submission Pack").click();
+  await expect(page.getByRole("heading", { name: "Technical Submission Pack" })).toBeVisible();
+  await expect(page.getByText("Humandroid · SUB-0042 · v2 · illustrative broker output")).toBeVisible();
 });
 
 test("Underwriting generic prototype still reuses the same DEP-0017 source record", async ({ page }) => {
