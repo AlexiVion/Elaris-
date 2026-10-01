@@ -1,22 +1,26 @@
-import { ActorProductShell } from "@/components/platform/ActorProductShell";
+import { FullDemoProductShell } from "@/components/platform/FullDemoProductShell";
 
 const nav = [
-  { label: "Placement Pipeline", href: "/platform/placement-workspace", icon: "home" as const },
-  { label: "Submission", href: "/platform/placement-workspace/submissions/SUB-0042", icon: "records" as const },
-  { label: "Market Questions", href: "/platform/placement-workspace/questions", icon: "review" as const },
-  { label: "Renewal Changes", href: "/platform/placement-workspace/renewal", icon: "alert" as const },
-  { label: "Share / Export", href: "/platform/placement-workspace/share", icon: "evidence" as const },
+  { label: "Home", href: "/platform/placement-workspace", icon: "home" as const, exact: true },
+  { label: "Clients", href: "/platform/placement-workspace/clients", icon: "clients" as const },
+  { label: "Submissions", href: "/platform/placement-workspace/submissions", icon: "submissions" as const },
+  { label: "Information Requests", href: "/platform/placement-workspace/requests", icon: "requests" as const },
+  { label: "Market Questions", href: "/platform/placement-workspace/questions", icon: "questions" as const },
+  { label: "Renewals", href: "/platform/placement-workspace/renewals", icon: "renewals" as const },
+  { label: "Reports", href: "/platform/placement-workspace/reports", icon: "reports" as const },
 ];
 
 export default function PlacementWorkspaceLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ActorProductShell
+    <FullDemoProductShell
       product="Placement Workspace"
-      actor="Insurance Broker / PAS / Wholesale Broker"
-      accent="violet"
+      subtitle="Technical Insurance Placement"
+      organization="Vector Specialty Brokerage"
+      persona="Alex Morgan"
+      attentionCount={6}
       nav={nav}
     >
       {children}
-    </ActorProductShell>
+    </FullDemoProductShell>
   );
 }

@@ -1,180 +1,131 @@
 import Link from "next/link";
-import { ArrowRight, CircleAlert, FileStack, MessageSquareText, RefreshCcw } from "lucide-react";
+import { AlertTriangle, FileQuestion, MessageSquareText, RefreshCcw, Send, Users, GitBranch, FileText } from "lucide-react";
+import { PageHeader } from "@/components/elaris/PageHeader";
+import { KpiCard } from "@/components/elaris/KpiCard";
+import { SectionCard } from "@/components/elaris/SectionCard";
+import { StatusPill } from "@/components/elaris/StatusPill";
 import { getHorizontalPlatformData } from "@/lib/db/platform";
-import { MetricCard, Panel, ProductPageHeader, PrototypeNotice, StatusPill } from "@/components/platform/PrototypeUI";
+import { placementQuestions, placementRenewals, placementRequests, placementSubmissions } from "@/lib/demo/placement";
 
-export default async function PlacementWorkspacePage() {
+export default async function PlacementWorkspaceHome() {
   const data = await getHorizontalPlatformData();
   const d = data.deployment;
 
-  const pipeline = [
-    {
-      id: "SUB-0042",
-      insured: "Humandroid · illustrative placement",
-      subject: "Robotics deployment programme",
-      markets: "2 markets reviewing",
-      status: "QUESTIONS OPEN",
-      next: "Answer technical questions",
-      href: "/platform/placement-workspace/submissions/SUB-0042",
-    },
-    {
-      id: "SUB-0039",
-      insured: "Atlas Automation · synthetic",
-      subject: "Warehouse AMR fleet",
-      markets: "Draft",
-      status: "COLLECTING INFO",
-      next: "Client evidence request",
-      href: "#",
-    },
-    {
-      id: "SUB-0035",
-      insured: "Nova Handling · synthetic",
-      subject: "Manipulator renewal",
-      markets: "Renewal",
-      status: "RENEWAL DUE",
-      next: "Review changes",
-      href: "/platform/placement-workspace/renewal",
-    },
-  ];
-
   return (
     <>
-      <ProductPageHeader
-        eyebrow="Vector Specialty Brokerage · robotics desk · fictional workspace"
-        title="Placement Workspace"
-        description="Build a reusable technical submission from versioned deployment facts, resolve missing information and carrier questions, then carry material changes forward into renewal."
-        aside={<span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">DEMO WORKSPACE</span>}
-      />
+      <PageHeader title="Placement Workspace" />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Open submissions" value={3} note="Synthetic placement workflow" />
-        <MetricCard label="Client info requests" value={2} tone="attention" note="Technical items awaiting client input" />
-        <MetricCard label="Market questions" value={4} tone="attention" note="Across two fictional markets" />
-        <MetricCard label="Renewals due" value={1} tone="attention" note="Changes need reconciliation" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard label="Active clients" value={4} icon={Users} tone="blue" delta={null} />
+        <KpiCard label="Open submissions" value={placementSubmissions.length} icon={Send} tone="green" delta={null} />
+        <KpiCard label="Open market questions" value={placementQuestions.length} icon={MessageSquareText} tone="slate" delta={null} />
+        <KpiCard label="Renewals requiring work" value={placementRenewals.length} icon={RefreshCcw} tone="red" delta={null} />
       </div>
 
-      <div className="mt-6 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
-        <Panel
-          title="Placement pipeline"
-          description="Presentation-only broker workflow wrapped around real Elaris deployment truth."
-        >
-          <div className="space-y-1">
-            {pipeline.map((item) => (
-              <Link
-                key={item.id}
-                href={item.href}
-                className="grid gap-3 border-b border-slate-100 py-4 last:border-0 md:grid-cols-[1fr_150px_140px] md:items-center"
-              >
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-xs font-semibold text-violet-700">{item.id}</span>
-                    <span className="text-sm font-semibold text-slate-900">{item.insured}</span>
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <SectionCard title="Attention Required" icon={AlertTriangle} viewAllHref="/platform/placement-workspace/requests" viewAllCount={6}>
+          <ul className="divide-y divide-border">
+            <Attention href="/platform/placement-workspace/requests" icon={FileQuestion} title="2 client information items missing" sub="SUB-0042 · Humandroid" />
+            <Attention href="/platform/placement-workspace/questions" icon={MessageSquareText} title="Carrier technical question needs broker review" sub="MQ-221 · Atlas Specialty" />
+            <Attention href="/platform/placement-workspace/renewals/REN-0042" icon={GitBranch} title={d.latestChange?.code + " changed since prior submission"} sub="SUB-0042 · renewal reconciliation" />
+            <Attention href="/platform/placement-workspace/renewals/REN-0042" icon={AlertTriangle} title={d.latestIncident?.code + " incident requires disclosure review"} sub={d.name} />
+          </ul>
+        </SectionCard>
+
+        <SectionCard title="Active Submissions" icon={Send} viewAllHref="/platform/placement-workspace/submissions" viewAllCount={placementSubmissions.length}>
+          <ul className="space-y-3">
+            {placementSubmissions.map((s) => (
+              <li key={s.code}>
+                <Link href={s.code === "SUB-0042" ? "/platform/placement-workspace/submissions/SUB-0042" : "/platform/placement-workspace/submissions"} className="flex items-center gap-3 rounded-md p-1 hover:bg-muted">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">{s.client} · {s.subject}</div>
+                    <div className="truncate text-xs text-muted-foreground">{s.code} · {s.version} · {s.markets} markets</div>
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">{item.subject} · next: {item.next}</div>
-                </div>
-                <div className="text-xs text-slate-500">{item.markets}</div>
-                <StatusPill value={item.status} />
-              </Link>
+                  <PlacementStatus value={s.status} />
+                </Link>
+              </li>
             ))}
-          </div>
-        </Panel>
+          </ul>
+        </SectionCard>
 
-        <Panel title="Needs attention" description="What the broker would work on next in the demo scenario.">
-          <div className="space-y-4">
-            <Attention
-              icon={<MessageSquareText className="size-4" />}
-              title="Carrier technical question"
-              detail="Atlas Specialty asks how restricted-zone entry is controlled."
-              href="/platform/placement-workspace/questions"
-            />
-            <Attention
-              icon={<CircleAlert className="size-4" />}
-              title={String(d.missingCount) + " shared-data gaps"}
-              detail="Required deployment information is still missing from the reusable pack."
-              href="/platform/placement-workspace/submissions/SUB-0042"
-            />
-            <Attention
-              icon={<RefreshCcw className="size-4" />}
-              title={d.latestChange ? d.latestChange.code + " changed since prior submission" : "No material change"}
-              detail="Renewal should explain what changed without rebuilding the full technical narrative."
-              href="/platform/placement-workspace/renewal"
-            />
-          </div>
-        </Panel>
-      </div>
+        <SectionCard title="Missing Client Information" icon={FileQuestion} viewAllHref="/platform/placement-workspace/requests" viewAllCount={placementRequests.length}>
+          <Table headers={["Item", "Client", "Due", "Status"]}>
+            {placementRequests.map((r) => (
+              <tr key={r.code} className="border-t border-border">
+                <td className="px-3 py-2.5">
+                  <div className="font-medium">{r.item}</div>
+                  <div className="text-xs text-muted-foreground">{r.code} · {r.submission}</div>
+                </td>
+                <td className="px-3 py-2.5">{r.client}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{r.due}</td>
+                <td className="px-3 py-2.5"><PlacementStatus value={r.status} /></td>
+              </tr>
+            ))}
+          </Table>
+        </SectionCard>
 
-      <div className="mt-6 grid gap-5 xl:grid-cols-[1fr_0.9fr]">
-        <Panel
-          title="SUB-0042 · technical submission snapshot"
-          description="The submission wrapper is fictional. The technical deployment underneath is the real shared demo record."
-          action={
-            <Link href="/platform/placement-workspace/submissions/SUB-0042" className="inline-flex items-center gap-1 text-xs font-semibold text-violet-700 hover:underline">
-              Open submission <ArrowRight className="size-3.5" />
+        <SectionCard title="Recent Market Questions" icon={MessageSquareText} viewAllHref="/platform/placement-workspace/questions" viewAllCount={placementQuestions.length}>
+          <Table headers={["Market", "Question", "Status"]}>
+            {placementQuestions.slice(0, 3).map((q) => (
+              <tr key={q.code} className="border-t border-border">
+                <td className="px-3 py-2.5 font-medium">{q.market}</td>
+                <td className="max-w-sm px-3 py-2.5 text-muted-foreground">{q.question}</td>
+                <td className="px-3 py-2.5"><PlacementStatus value={q.status} /></td>
+              </tr>
+            ))}
+          </Table>
+        </SectionCard>
+
+        <SectionCard title="Changes Since Submission" icon={GitBranch} viewAllHref="/platform/placement-workspace/renewals/REN-0042" viewAllCount={1}>
+          {d.latestChange ? (
+            <Link href="/platform/placement-workspace/renewals/REN-0042" className="block rounded-md p-2 hover:bg-muted">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-medium">{d.latestChange.code} · configuration changed</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{d.latestChange.beforeSnapshotCode} → {d.latestChange.afterSnapshotCode}</div>
+                </div>
+                <StatusPill label={d.latestChange.openImpactItems + " open impact"} tone="amber" />
+              </div>
             </Link>
-          }
-        >
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Datum label="Deployment" value={d.code + " · " + d.name} />
-            <Datum label="System" value={d.robot} />
-            <Datum label="Customer / site" value={d.customer + " · " + d.site} />
-            <Datum label="Task" value={d.task} />
-            <Datum label="Baseline" value={d.baselineCode + " · " + d.snapshotCode} mono />
-            <Datum label="Evidence / requirements" value={d.evidenceCount + " / " + d.requirementCount} />
-          </div>
-        </Panel>
+          ) : <div className="py-8 text-center text-sm text-muted-foreground">No material changes.</div>}
+        </SectionCard>
 
-        <Panel title="What the broker is reusing">
-          <div className="space-y-3 text-sm">
-            <ReuseRow label="Exact deployed configuration" value={d.configurationItems.length + " versioned slots"} />
-            <ReuseRow label="Evidence already available" value={String(d.evidenceCount)} />
-            <ReuseRow label="Required items missing" value={String(d.missingCount)} attention />
-            <ReuseRow label="Material change open" value={d.latestChange?.code ?? "None"} attention={Boolean(d.latestChange)} />
-            <ReuseRow label="Incident context" value={d.latestIncident?.code ?? "None"} attention={Boolean(d.latestIncident)} />
-          </div>
-          <div className="mt-5">
-            <Link href="/platform/placement-workspace/share" className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white">
-              <FileStack className="size-4" /> Preview market pack
-            </Link>
-          </div>
-        </Panel>
-      </div>
-
-      <div className="mt-5">
-        <PrototypeNotice>
-          Submission, market, placement status and carrier questions are synthetic discovery objects. Elaris is not providing insurance advice, pricing, placement authority or policy issuance.
-        </PrototypeNotice>
+        <SectionCard title="Broker Outputs" icon={FileText} viewAllHref="/platform/placement-workspace/reports" viewAllCount={3}>
+          <ul className="space-y-2 text-sm">
+            <Output href="/platform/placement-workspace/reports/technical-pack/SUB-0042" title="Technical Submission Pack" sub="SUB-0042 · market-specific output" />
+            <Output href="/platform/placement-workspace/reports" title="Missing Information List" sub="Client follow-up output" />
+            <Output href="/platform/placement-workspace/reports" title="Renewal Change Summary" sub="Changes since prior submission" />
+          </ul>
+        </SectionCard>
       </div>
     </>
   );
 }
 
-function Attention({ icon, title, detail, href }: { icon: React.ReactNode; title: string; detail: string; href: string }) {
+function PlacementStatus({ value }: { value: string }) {
+  const upper = value.toUpperCase();
+  const tone = upper.includes("OPEN") || upper.includes("DUE") || upper.includes("REVIEW") || upper.includes("WAITING") ? "amber" : upper.includes("CURRENT") || upper.includes("ANSWERABLE") ? "green" : "blue";
+  return <StatusPill label={value} tone={tone} />;
+}
+
+function Attention({ href, icon: Icon, title, sub }: { href: string; icon: typeof AlertTriangle; title: string; sub: string }) {
   return (
-    <Link href={href} className="flex items-start gap-3 rounded-xl border border-slate-200 p-3 hover:bg-slate-50">
-      <span className="mt-0.5 text-violet-600">{icon}</span>
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-slate-900">{title}</div>
-        <div className="mt-1 text-xs leading-5 text-slate-500">{detail}</div>
-      </div>
-      <ArrowRight className="mt-1 size-4 text-slate-400" />
-    </Link>
+    <li>
+      <Link href={href} className="flex items-center gap-3 py-3 hover:opacity-80">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground"><Icon className="size-4" /></span>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-medium">{title}</div>
+          <div className="truncate text-xs text-muted-foreground">{sub}</div>
+        </div>
+      </Link>
+    </li>
   );
 }
 
-function Datum({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</div>
-      <div className={"mt-1 text-sm font-semibold text-slate-900 " + (mono ? "font-mono" : "")}>{value}</div>
-    </div>
-  );
+function Table({ headers, children }: { headers: string[]; children: React.ReactNode }) {
+  return <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr>{headers.map((h) => <th key={h} className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">{h}</th>)}</tr></thead><tbody>{children}</tbody></table></div>;
 }
 
-function ReuseRow({ label, value, attention = false }: { label: string; value: string; attention?: boolean }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-0">
-      <span className="text-slate-500">{label}</span>
-      <span className={attention ? "font-semibold text-amber-700" : "font-semibold text-slate-900"}>{value}</span>
-    </div>
-  );
+function Output({ href, title, sub }: { href: string; title: string; sub: string }) {
+  return <li><Link href={href} className="flex items-center gap-3 rounded-md p-2 hover:bg-muted"><FileText className="size-4 text-muted-foreground" /><div><div className="font-medium">{title}</div><div className="text-xs text-muted-foreground">{sub}</div></div></Link></li>;
 }
