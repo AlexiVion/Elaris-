@@ -34,6 +34,15 @@ https://app.notion.com/p/00-HOME-3ebbeb945fd6802dbae4f253211db396?pvs=25
 - [Elaris Overview](company/elaris-overview.md)
 - [Physical AI Industry Map](industry/physical-ai-industry-map.md)
 
+### Product Systems
+- [Product Systems Overview](product-systems/README.md)
+- [Product Systems Registry](product-systems/registry.md)
+- [Product System Template](product-systems/product-system-template.md)
+- [Deployment Control Product System](product-systems/deployment-control.md)
+- [Placement Workspace Product System](product-systems/placement.md)
+- [Underwriting Workspace Product System](product-systems/underwriting.md)
+- [Component Health Hypothesis](product-systems/component-health-hypothesis.md)
+
 ### Product
 - [Deployment Control](product/deployment-control.md)
 

@@ -37,10 +37,11 @@ Before changing code:
 1. Read this `AGENTS.md`.
 2. Read `docs/README.md`.
 3. Read `docs/architecture/platform-product-architecture.md`.
-4. Read the relevant product/pilot/platform docs for the task.
-5. Read the GitHub Issue defining the task.
-6. Inspect open Pull Requests that may touch the same area.
-7. Inspect the current implementation before proposing changes.
+4. Read `docs/product-systems/registry.md` and the relevant Product System definition.
+5. Read the relevant product/pilot/platform docs for the task.
+6. Read the GitHub Issue defining the task.
+7. Inspect open Pull Requests that may touch the same area.
+8. Inspect the current implementation before proposing changes.
 
 Do not start coding from a chat summary alone.
 
@@ -126,6 +127,42 @@ The platform/shared substrate owns:
 **Deployment Control / Deployment & Change Evidence** is the reference application for Robotics Integrator / Deployer.
 
 Its current full product experience is the UI/UX depth benchmark for all actor demos.
+
+---
+
+## 4A. Product System model
+
+Elaris uses this distinction:
+
+> **Platform ≠ Product ≠ Feature**
+
+A **Product System** must solve one recurring job/decision for one primary actor through an end-to-end process:
+
+```text
+Actor
+→ Problem / decision
+→ Trigger
+→ Inputs
+→ Process
+→ AI / deterministic logic
+→ Human authority
+→ Output
+→ Feedback / new data
+```
+
+Rules:
+
+- Do not create a new product because a feature sounds useful.
+- Do not start a new product from screens alone.
+- Register the hypothesis in `docs/product-systems/registry.md`.
+- Use `docs/product-systems/product-system-template.md` before implementation.
+- State the AI role explicitly; “AI-powered” is not an architecture.
+- A Product System does not need its own foundation model.
+- Preserve explicit human authority for consequential decisions.
+- Keep hypothesis objects presentation-only until field evidence justifies persistence.
+- Product demo maturity and product validation are different statuses.
+
+Current registry: `docs/product-systems/registry.md`.
 
 ---
 
