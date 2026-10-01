@@ -58,7 +58,7 @@ export function ActorProductShell({
     <div className="-mx-5 -my-8 min-h-[calc(100vh-73px)] md:-mx-8 md:-my-10">
       <div className="grid min-h-[calc(100vh-73px)] lg:grid-cols-[250px_minmax(0,1fr)]">
         <aside className="border-r border-slate-200 bg-white p-4 lg:p-5">
-          <Link href="/platform" className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-slate-900">
+          <Link href="/" className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-slate-900">
             <ArrowLeft className="size-3.5" />
             All products
           </Link>
