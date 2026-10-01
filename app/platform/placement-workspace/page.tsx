@@ -13,7 +13,7 @@ export default async function PlacementWorkspaceHome() {
 
   return (
     <>
-      <PageHeader title="Placement Workspace" />
+      <PageHeader title="Home" />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Active clients" value={4} icon={Users} tone="blue" delta={null} />
