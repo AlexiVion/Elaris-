@@ -167,9 +167,9 @@ V0 does not:
 - declare a component safe/failed;
 - create persistent Component Health schema.
 
-## Next step
+## Edge Collector integration
 
-Build **Elaris Edge Collector V0** around this contract.
+**Elaris Edge Collector V0 now exists** on top of this contract.
 
 The collector should:
 
@@ -189,4 +189,4 @@ human review / sanitize
 explicit export approval
 ~~~
 
-Before going on-site, the Unitree transport implementation should be prepared against SDK2 public interfaces, but live access remains disabled until the university authorizes the exact network/session.
+A subscriber-only Unitree SDK2 bridge and a TypeScript DDS read-only transport are now implemented for an authorized on-site session. Live access remains disabled in practice until the university authorizes the exact network/session.

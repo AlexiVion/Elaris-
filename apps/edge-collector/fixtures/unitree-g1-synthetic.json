@@ -1,0 +1,57 @@
+{
+  "robot": {
+    "manufacturer": "Unitree",
+    "model": "G1",
+    "variant": "SYNTHETIC"
+  },
+  "channels": [
+    {
+      "name": "rt/lowstate",
+      "messageType": "unitree_hg.msg.dds_.LowState_",
+      "description": "Synthetic Unitree G1 low-state fixture"
+    },
+    {
+      "name": "rt/lowcmd",
+      "messageType": "unitree_hg.msg.dds_.LowCmd_",
+      "description": "Synthetic command channel; must never be subscribed by Elaris"
+    }
+  ],
+  "frames": [
+    {
+      "channel": "rt/lowstate",
+      "payload": {
+        "mode_pr": 0,
+        "mode_machine": 5,
+        "tick": 1001,
+        "imu_state": {
+          "rpy": [0.01, -0.02, 0.03],
+          "gyroscope": [0.1, 0.2, 0.3]
+        },
+        "motor_state": [
+          {"q": 0.1, "dq": 0.2, "ddq": 0.01, "tau_est": 3.1, "temperature": [41, 48], "vol": 48.0, "motorstate": 0},
+          {"q": 0.2, "dq": 0.1, "ddq": 0.02, "tau_est": 2.7, "temperature": [42, 49], "vol": 48.0, "motorstate": 0},
+          {"q": -0.1, "dq": 0.3, "ddq": 0.03, "tau_est": 4.2, "temperature": [43, 51], "vol": 47.9, "motorstate": 0},
+          {"q": 0.42, "dq": 1.25, "ddq": 0.15, "tau_est": 11.8, "temperature": [54, 63], "vol": 48.1, "motorstate": 7}
+        ]
+      }
+    },
+    {
+      "channel": "rt/lowstate",
+      "payload": {
+        "mode_pr": 0,
+        "mode_machine": 5,
+        "tick": 1002,
+        "imu_state": {
+          "rpy": [0.01, -0.02, 0.03],
+          "gyroscope": [0.11, 0.21, 0.31]
+        },
+        "motor_state": [
+          {"q": 0.11, "dq": 0.22, "ddq": 0.01, "tau_est": 3.2, "temperature": [41, 48], "vol": 48.0, "motorstate": 0},
+          {"q": 0.21, "dq": 0.11, "ddq": 0.02, "tau_est": 2.8, "temperature": [42, 49], "vol": 48.0, "motorstate": 0},
+          {"q": -0.11, "dq": 0.31, "ddq": 0.03, "tau_est": 4.3, "temperature": [43, 51], "vol": 47.9, "motorstate": 0},
+          {"q": 0.44, "dq": 1.29, "ddq": 0.16, "tau_est": 12.1, "temperature": [55, 64], "vol": 48.0, "motorstate": 7}
+        ]
+      }
+    }
+  ]
+}

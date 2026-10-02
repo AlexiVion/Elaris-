@@ -30,6 +30,7 @@ https://app.notion.com/p/00-HOME-3ebbeb945fd6802dbae4f253211db396?pvs=25
 - [Platform → Product Architecture](architecture/platform-product-architecture.md)
 - [Current System Design & Humandroid Audit](architecture/system-design.md)
 - [Robot Adapter V0](architecture/robot-adapter-v0.md)
+- [Edge Collector V0](architecture/edge-collector-v0.md)
 
 ### Company
 - [Elaris Overview](company/elaris-overview.md)
@@ -63,6 +64,9 @@ https://app.notion.com/p/00-HOME-3ebbeb945fd6802dbae4f253211db396?pvs=25
 - [Demo Data Audit](pilots/humandroid/demo-data-audit.md)
 - [Evidence Map Semantics](pilots/humandroid/evidence-map-semantics.md)
 - [7-Minute Demo Script](pilots/humandroid/demo-script.md)
+
+### Siglo 21
+- [Siglo 21 Edge Capture Protocol V0](pilots/siglo21/edge-capture-protocol-v0.md)
 
 ### Releases
 - [v0.1 Humandroid Pilot Demo](releases/v0.1-humandroid-pilot-demo.md)
