@@ -76,14 +76,17 @@ The setup script:
 
 - creates `.field-kit/unitree-venv`;
 - clones the official `unitree_sdk2_python` repo under `.field-kit/vendor/`;
-- installs the SDK in that isolated virtual environment;
+- builds and installs CycloneDDS **0.10.2** locally under `.field-kit/vendor/cyclonedds/install`;
+- exports `CYCLONEDDS_HOME`, `CMAKE_PREFIX_PATH` and `LD_LIBRARY_PATH` for that local build;
+- installs the SDK in the isolated virtual environment;
+- writes `.field-kit/env.sh` so the same pinned environment can be reloaded in a new shell;
 - verifies imports for `unitree_sdk2py` and `cyclonedds`;
 - does not connect to a robot.
 
-After setup, export the interpreter printed by the script:
+After setup, load the pinned field environment printed by the script:
 
 ~~~bash
-export ELARIS_UNITREE_PYTHON="$(pwd)/.field-kit/unitree-venv/bin/python"
+source .field-kit/env.sh
 ~~~
 
 List local interfaces:
