@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""
+Elaris Unitree G1 field preflight.
+
+This script never connects to the robot and never imports ChannelPublisher.
+It checks local Python/SDK/network-interface prerequisites for the
+subscriber-only bridge.
+"""
+
+import argparse
+import importlib
+import json
+import platform
+import socket
+import sys
+from pathlib import Path
+
+
+def check_import(module_name):
+    try:
+        module = importlib.import_module(module_name)
+        version = getattr(module, "__version__", None)
+        return {"ok": True, "module": module_name, "version": version}
+    except Exception as exc:
+        return {"ok": False, "module": module_name, "error": str(exc)}
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--interface", required=True)
+    parser.add_argument("--bridge", required=True)
+    args = parser.parse_args()
+
+    interfaces = [name for _, name in socket.if_nameindex()]
+    python_ok = sys.version_info >= (3, 8)
+    bridge_path = Path(args.bridge)
+    bridge_exists = bridge_path.exists()
+    bridge_text = bridge_path.read_text(encoding="utf-8") if bridge_exists else ""
+
+    checks = {
+        "python": {
+            "ok": python_ok,
+            "version": platform.python_version(),
+            "executable": sys.executable,
+            "platform": platform.platform(),
+        },
+        "unitree_sdk2py": check_import("unitree_sdk2py"),
+        "cyclonedds": check_import("cyclonedds"),
+        "network_interface": {
+            "ok": args.interface in interfaces,
+            "requested": args.interface,
+            "available": interfaces,
+        },
+        "bridge": {
+            "ok": bridge_exists
+            and "ChannelSubscriber" in bridge_text
+            and "ChannelPublisher" not in bridge_text,
+            "path": str(bridge_path),
+            "subscriber_import_present": "ChannelSubscriber" in bridge_text,
+            "publisher_import_absent": "ChannelPublisher" not in bridge_text,
+        },
+    }
+
+    ready = all(item.get("ok") is True for item in checks.values())
+    result = {
+        "ready": ready,
+        "mode": "READ_ONLY",
+        "checks": checks,
+        "notes": [
+            "This preflight does not connect to the robot.",
+            "Robot access still requires explicit university authorization.",
+            "Live capture must use the Elaris subscriber-only bridge.",
+        ],
+    }
+
+    print(json.dumps(result, indent=2, sort_keys=True))
+    return 0 if ready else 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
