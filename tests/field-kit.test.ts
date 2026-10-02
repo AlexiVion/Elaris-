@@ -37,6 +37,20 @@ describe("Siglo 21 Field Kit V0", () => {
     expect([...script].every((character) => character.charCodeAt(0) < 128)).toBe(true);
     expect(script).toContain("WINDOWS DEV PREFLIGHT COMPLETE");
   });
+  it("pins CycloneDDS 0.10.2 before installing Unitree SDK2 Python", async () => {
+    const script = await readFile(
+      resolve("scripts/field-kit/setup_unitree_linux.sh"),
+      "utf8"
+    );
+
+    expect(script).toContain("git clone --branch 0.10.2");
+    expect(script).toContain('export CYCLONEDDS_HOME="$DDS_INSTALL_DIR"');
+    expect(script).toContain('export CMAKE_PREFIX_PATH="$CYCLONEDDS_HOME"');
+    expect(script).toContain('python -m pip install -e "$SDK_DIR"');
+    expect(script.indexOf("git clone --branch 0.10.2")).toBeLessThan(
+      script.indexOf('python -m pip install -e "$SDK_DIR"')
+    );
+  });
   it("avoids the NodeSource nodejs/npm apt conflict", async () => {
     const script = await readFile(
       resolve("scripts/field-kit/prepare_wsl_software.sh"),
