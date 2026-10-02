@@ -26,6 +26,8 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(preflight).toContain('check_import("unitree_sdk2py")');
     expect(preflight).toContain('check_import("cyclonedds")');
     expect(preflight).toContain('"This preflight does not connect to the robot."');
+    expect(preflight).toContain("return 0 if software_ready else 2");
+    expect(preflight).not.toContain("return 0 if ready else 2");
   });
 
   it("keeps the Windows preflight ASCII-safe for Windows PowerShell 5.1", async () => {
