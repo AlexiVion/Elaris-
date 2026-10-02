@@ -1,4 +1,4 @@
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import { createInterface } from "node:readline";
 import { resolve } from "node:path";
 import type {
@@ -17,7 +17,7 @@ type BridgeMessage =
 export class UnitreeG1Sdk2ReadOnlyTransport implements ReadOnlyRobotTransport {
   readonly kind = "dds" as const;
 
-  private process: ChildProcessWithoutNullStreams | null = null;
+  private process: ChildProcess | null = null;
   private ready = false;
   private readonly handlers = new Map<string, Set<RobotFrameHandler>>();
   private readonly channels = new Map<string, ReadableRobotChannel>();
@@ -55,8 +55,14 @@ export class UnitreeG1Sdk2ReadOnlyTransport implements ReadOnlyRobotTransport {
         stdio: ["ignore", "pipe", "pipe"],
         shell: false,
         windowsHide: true,
+        env: bridgeEnvironment(),
       }
     );
+
+    if (!child.stdout || !child.stderr) {
+      child.kill();
+      throw new Error("Unitree SDK2 bridge did not expose stdout/stderr pipes");
+    }
 
     this.process = child;
     child.stderr.setEncoding("utf8");
@@ -192,4 +198,34 @@ export class UnitreeG1Sdk2ReadOnlyTransport implements ReadOnlyRobotTransport {
     const stderr = this.stderr.trim();
     return stderr ? `Bridge stderr: ${stderr}` : "No bridge stderr captured.";
   }
+}
+
+
+function bridgeEnvironment(): NodeJS.ProcessEnv {
+  const allowed = [
+    "PATH",
+    "PYTHONPATH",
+    "VIRTUAL_ENV",
+    "CONDA_PREFIX",
+    "LD_LIBRARY_PATH",
+    "DYLD_LIBRARY_PATH",
+    "CYCLONEDDS_URI",
+    "HOME",
+    "USERPROFILE",
+    "SystemRoot",
+    "SYSTEMROOT",
+    "WINDIR",
+    "ComSpec",
+    "COMSPEC",
+    "PATHEXT",
+    "TEMP",
+    "TMP",
+  ] as const;
+
+  const env: NodeJS.ProcessEnv = {};
+  for (const key of allowed) {
+    const value = process.env[key];
+    if (value !== undefined) env[key] = value;
+  }
+  return env;
 }
