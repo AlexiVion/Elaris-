@@ -100,7 +100,9 @@ async function doctorUnitree(args: string[]) {
       console.log(`${check.ok ? "PASS" : "FAIL"}: ${name}`);
     }
     console.log("");
-    console.log(`FIELD READY: ${payload.ready ? "YES" : "NO"}`);
+    console.log(`Host mode: ${payload.host_mode ?? "UNKNOWN"}`);
+    console.log(`SOFTWARE READY: ${payload.software_ready ? "YES" : "NO"}`);
+    console.log(`LIVE ROBOT HOST READY: ${payload.live_host_ready ? "YES" : "NO"}`);
   } else {
     console.log("FIELD READY: NO");
     console.log("Preflight did not return valid JSON.");
@@ -115,8 +117,13 @@ async function doctorUnitree(args: string[]) {
   if (result.error) {
     throw result.error;
   }
-  if (result.status !== 0 || !payload?.ready) {
-    throw new Error("Unitree field preflight failed. Fix FAIL items before any live inspect/capture.");
+  if (!payload?.software_ready) {
+    throw new Error("Unitree software preflight failed. Fix FAIL items before continuing.");
+  }
+
+  if (!payload?.live_host_ready) {
+    console.log("");
+    console.log("Live robot host is NOT field-ready. This is expected on WSL; use it only for SDK/software preparation.");
   }
 }
 async function inspectUnitree(args: string[]) {
