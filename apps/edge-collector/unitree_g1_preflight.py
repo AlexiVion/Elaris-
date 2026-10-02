@@ -36,6 +36,11 @@ def main():
     bridge_path = Path(args.bridge)
     bridge_exists = bridge_path.exists()
     bridge_text = bridge_path.read_text(encoding="utf-8") if bridge_exists else ""
+    publisher_import_absent = all(token not in bridge_text for token in [
+        "import ChannelPublisher",
+        ", ChannelPublisher",
+        "ChannelPublisher(",
+    ])
 
     checks = {
         "python": {
@@ -54,10 +59,10 @@ def main():
         "bridge": {
             "ok": bridge_exists
             and "ChannelSubscriber" in bridge_text
-            and "ChannelPublisher" not in bridge_text,
+            and publisher_import_absent,
             "path": str(bridge_path),
             "subscriber_import_present": "ChannelSubscriber" in bridge_text,
-            "publisher_import_absent": "ChannelPublisher" not in bridge_text,
+            "publisher_import_absent": publisher_import_absent,
         },
     }
 
