@@ -69,7 +69,7 @@ echo "=============================================="
 
 bash scripts/field-kit/setup_unitree_linux.sh
 
-export ELARIS_UNITREE_PYTHON="$FIELD_REPO/.field-kit/unitree-venv/bin/python"
+source "$FIELD_REPO/.field-kit/env.sh"
 
 echo ""
 echo "=============================================="
