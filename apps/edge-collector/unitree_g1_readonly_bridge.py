@@ -7,6 +7,7 @@ Security boundary:
 - never imports ChannelPublisher;
 - subscribes only to rt/lowstate;
 - does not emit wireless-remote bytes, camera, microphone or commands;
+- rate-limits exported state for data minimization;
 - writes newline-delimited JSON to stdout for the local Edge Collector.
 """
 
@@ -21,6 +22,8 @@ from unitree_sdk2py.idl.unitree_hg.msg.dds_ import LowState_
 
 CHANNEL = "rt/lowstate"
 RUNNING = True
+MIN_INTERVAL_NS = 50_000_000
+LAST_EMIT_NS = 0
 
 
 def safe_list(value):
@@ -66,6 +69,13 @@ def emit(message):
 
 
 def handle_lowstate(msg):
+    global LAST_EMIT_NS
+
+    now_ns = time.time_ns()
+    if now_ns - LAST_EMIT_NS < MIN_INTERVAL_NS:
+        return
+    LAST_EMIT_NS = now_ns
+
     payload = {
         "mode_pr": scalar(getattr(msg, "mode_pr", 0), 0),
         "mode_machine": scalar(getattr(msg, "mode_machine", 0), 0),
@@ -80,7 +90,7 @@ def handle_lowstate(msg):
     emit({
         "type": "frame",
         "channel": CHANNEL,
-        "timestamp": time.time_ns(),
+        "timestamp": now_ns,
         "payload": payload,
     })
 
@@ -91,9 +101,17 @@ def stop(_signum, _frame):
 
 
 def main():
+    global MIN_INTERVAL_NS
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--interface", required=True)
+    parser.add_argument("--sample-hz", type=float, default=20.0)
     args = parser.parse_args()
+
+    if args.sample_hz <= 0 or args.sample_hz > 100:
+        raise ValueError("--sample-hz must be > 0 and <= 100")
+
+    MIN_INTERVAL_NS = int(1_000_000_000 / args.sample_hz)
 
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
