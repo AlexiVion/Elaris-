@@ -22,11 +22,28 @@ sudo apt-get install -y \
   python3-pip \
   build-essential \
   cmake \
-  nodejs \
-  npm \
   iproute2
 
-sudo npm install -g pnpm@9.15.4
+# Do not install Ubuntu's separate npm package when NodeSource nodejs is
+# configured: NodeSource's nodejs package conflicts with Ubuntu's npm package.
+if ! command -v node >/dev/null 2>&1; then
+  echo "Node.js not found; installing the configured nodejs package."
+  sudo apt-get install -y nodejs
+fi
+
+if ! command -v npm >/dev/null 2>&1; then
+  echo "ERROR: Node.js is installed but npm is unavailable."
+  echo "The current Elaris WSL setup expects a Node distribution that includes npm."
+  exit 2
+fi
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  sudo npm install -g pnpm@9.15.4
+fi
+
+echo "Node: $(node --version)"
+echo "npm: $(npm --version)"
+echo "pnpm: $(pnpm --version)"
 
 FIELD_REPO="${ELARIS_WSL_REPO:-$HOME/elaris-field}"
 
