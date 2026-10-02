@@ -2,13 +2,15 @@
 
 ## Status
 
-**NEW HYPOTHESIS · NO DEMO · NO VALIDATION**
+**HYPOTHESIS · DEMO READY V0 · NO FIELD VALIDATION YET**
 
 This idea comes from the current founder discussion: Elaris could potentially help an integrator/operator detect component degradation or predict failures.
 
 It is **not** currently a validated Elaris product.
 
-Do not build predictive-maintenance infrastructure until the required real data and workflow are understood.
+A full synthetic-data demo now exists under `/platform/component-health`. The demo is a discovery instrument, not evidence that Humandroid has the depicted data or workflow.
+
+Do not build predictive-maintenance infrastructure or new persistent shared schema until the required real data and workflow are understood.
 
 ## Primary actor
 
@@ -222,6 +224,27 @@ The workflow benefits from Elaris shared technical truth rather than merely dupl
 
 Only after these gates should we create a demo/model experiment.
 
+## Current demo boundary
+
+The V0 demo covers one complete loop:
+
+```text
+Fleet Health
+→ Robot Health
+→ Component Detail
+→ Health signal / evidence
+→ Human inspection decision
+→ Service / replacement
+→ Configuration change
+→ Revalidation checks
+→ Return-to-Service record
+→ Outcome
+```
+
+Public scenario context may reference Humandroid / HMND-0002 / Unitree G1 / TGN, but all health metrics, component serials, anomaly signals, service events and outcomes are explicitly synthetic until Humandroid provides real material.
+
 ## Next action
 
-Run the Humandroid discovery conversation and request one real component-failure/maintenance case plus the data that existed before it.
+Show V0 to Humandroid and reconstruct one real case using:
+
+**1 real robot + 1 real component + 1 real event + the real data/tools/process around that event.**
