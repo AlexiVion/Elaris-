@@ -33,6 +33,9 @@ def main():
 
     interfaces = [name for _, name in socket.if_nameindex()]
     python_ok = sys.version_info >= (3, 8)
+    release_text = platform.release().lower()
+    platform_text = platform.platform().lower()
+    is_wsl = "microsoft" in release_text or "microsoft" in platform_text
     bridge_path = Path(args.bridge)
     bridge_exists = bridge_path.exists()
     bridge_text = bridge_path.read_text(encoding="utf-8") if bridge_exists else ""
@@ -66,13 +69,18 @@ def main():
         },
     }
 
-    ready = all(item.get("ok") is True for item in checks.values())
+    software_ready = all(item.get("ok") is True for item in checks.values())
+    live_host_ready = software_ready and not is_wsl
     result = {
-        "ready": ready,
+        "ready": live_host_ready,
+        "software_ready": software_ready,
+        "live_host_ready": live_host_ready,
+        "host_mode": "WSL" if is_wsl else "LINUX",
         "mode": "READ_ONLY",
         "checks": checks,
         "notes": [
             "This preflight does not connect to the robot.",
+            "WSL may be used for software preparation but is not treated as a field-ready live DDS host.",
             "Robot access still requires explicit university authorization.",
             "Live capture must use the Elaris subscriber-only bridge.",
         ],
