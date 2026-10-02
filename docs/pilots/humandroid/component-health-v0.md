@@ -95,3 +95,5 @@ Kill the standalone hypothesis if existing tools already solve component prognos
 
 ## Engineering boundary
 No new persistent shared schema in V0. Use explicit synthetic demo data in `lib/demo/component-health.ts`. Backend expansion requires field evidence.
+
+A shared read-only integration boundary now exists in `lib/robot-adapters/`. Robot Adapter V0 normalizes OEM-specific robot state into an Elaris telemetry contract without adding persistence or robot control. The first concrete adapter targets Unitree G1 public SDK2 state structures; live DDS/ROS2 connectivity is intentionally deferred to the Edge Collector work and an authorized university session.
