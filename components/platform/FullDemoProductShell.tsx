@@ -3,22 +3,37 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
   Bell,
+  Bot,
+  ClipboardCheck,
   FileQuestion,
   FileText,
   Grid3X3,
+  Hexagon,
   Home,
+  MessageSquareText,
   RefreshCcw,
   Search,
   Send,
   Users,
-  MessageSquareText,
-  Hexagon,
+  Wrench,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-type NavIcon = "home" | "clients" | "submissions" | "requests" | "questions" | "renewals" | "reports";
+type NavIcon =
+  | "home"
+  | "clients"
+  | "submissions"
+  | "requests"
+  | "questions"
+  | "renewals"
+  | "reports"
+  | "robots"
+  | "attention"
+  | "service"
+  | "return";
 
 const iconMap = {
   home: Home,
@@ -28,6 +43,10 @@ const iconMap = {
   questions: MessageSquareText,
   renewals: RefreshCcw,
   reports: FileText,
+  robots: Bot,
+  attention: Activity,
+  service: Wrench,
+  return: ClipboardCheck,
 };
 
 export function FullDemoProductShell({
@@ -37,6 +56,7 @@ export function FullDemoProductShell({
   persona,
   attentionCount,
   nav,
+  demoDataNotice,
   children,
 }: {
   product: string;
@@ -45,6 +65,7 @@ export function FullDemoProductShell({
   persona: string;
   attentionCount: number;
   nav: Array<{ href: string; label: string; icon: NavIcon; exact?: boolean }>;
+  demoDataNotice?: string;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -102,7 +123,7 @@ export function FullDemoProductShell({
         </header>
 
         <div className="border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-center text-xs font-medium text-amber-800 md:px-6">
-          Demo data — insurance workflow objects and organizations are fictional. Shared deployment/configuration data comes from the Elaris demo substrate.
+          {demoDataNotice ?? "Demo data — insurance workflow objects and organizations are fictional. Shared deployment/configuration data comes from the Elaris demo substrate."}
         </div>
 
         <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>

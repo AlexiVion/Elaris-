@@ -21,7 +21,7 @@ Canonical product strategy/discovery remains in Notion. This file exists so huma
 | **Asset Monitoring** | Leasing / Lender / Asset Finance / Economic Owner | What asset do we finance/own, what is its technical state, and what events threaten continuity/value? | HYPOTHESIS | Spec only | Asset-finance / RaaS capital interview |
 | **Portfolio / Accumulation Intelligence** | Carrier Portfolio Risk / Reinsurer / Capacity | Where are concentrations/common dependencies across many insured/deployed systems? | DATA-DEPENDENT FUTURE | Concept only | Requires real portfolio + exposure data first |
 | **Risk Intelligence** | Cross-market / Elaris internal intelligence | Can normalized exposure, controls, events and outcomes produce reusable benchmarks? | LONG-TERM DATA FLYWHEEL | Do not build now | Requires multi-customer outcome dataset |
-| **Component Health** | Integrator / Operator / Maintenance | Which components show credible degradation/failure signals and what inspection/maintenance action should happen next? | **NEW HYPOTHESIS** | None | Humandroid discovery: data availability + failure history + current maintenance process |
+| **Component Health** | Humandroid Reliability / Service / Integrator | Which components deserve attention, why, and what happened after inspection/service/replacement? | **HYPOTHESIS — unvalidated** | **DEMO READY V0** | Humandroid session: 1 real robot + 1 real component + 1 real event + real data/tools/process |
 
 ---
 
@@ -29,9 +29,9 @@ Canonical product strategy/discovery remains in Notion. This file exists so huma
 
 Elaris should not build every registry item in parallel.
 
-The current high-value validation tracks are:
+The current active focus is intentionally narrow:
 
-### Track A — Physical operation
+### Humandroid — Component Health
 
 ```text
 Humandroid
@@ -48,22 +48,7 @@ Goal:
 - determine whether component degradation/failure prediction is a real problem;
 - learn what telemetry/history actually exists before designing ML.
 
-### Track B — Insurance
-
-```text
-Deployment truth
-    ↓
-Placement Workspace
-    ↓
-Underwriting Workspace
-    ↓
-eventually claims / portfolio
-```
-
-Goal:
-- test whether Elaris technical truth changes the quality/speed of insurance workflows;
-- learn the real artifacts, questions and authority boundaries;
-- avoid inventing automated risk/pricing models.
+For the current execution window, other product tracks are paused. Component Health is the only active product wedge. Service, Change Impact and Return-to-Service appear only as parts of the same end-to-end reliability loop.
 
 ---
 

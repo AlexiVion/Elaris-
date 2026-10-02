@@ -13,6 +13,16 @@ export type PlatformProduct = {
 
 export const PLATFORM_PRODUCTS: PlatformProduct[] = [
   {
+    slug: "component-health",
+    name: "Component Health",
+    actor: "Robotics Reliability / Service",
+    status: "PROTOTYPE",
+    description: "Connect component identity, health signals, service actions and configuration history so Humandroid can decide what deserves attention and preserve the outcome.",
+    primaryQuestion: "Which components deserve attention, why, and what happened after we inspected or changed them?",
+    workflow: ["Fleet health", "Component signal", "Human review", "Service", "Configuration change", "Return to service"],
+    sharedObjects: ["Robot", "Configuration", "Deployment", "Change", "Evidence", "Incident"],
+  },
+  {
     slug: "deployment-control",
     name: "Deployment Control",
     actor: "Robotics Integrator / Deployer",
