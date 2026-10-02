@@ -28,6 +28,15 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(preflight).toContain('"This preflight does not connect to the robot."');
   });
 
+  it("keeps the Windows preflight ASCII-safe for Windows PowerShell 5.1", async () => {
+    const script = await readFile(
+      resolve("scripts/field-kit/preflight_windows.ps1"),
+      "utf8"
+    );
+
+    expect([...script].every((character) => character.charCodeAt(0) < 128)).toBe(true);
+    expect(script).toContain("WINDOWS DEV PREFLIGHT COMPLETE");
+  });
   it("keeps field artifacts outside git", async () => {
     const gitignore = await readFile(resolve(".gitignore"), "utf8");
     expect(gitignore).toContain("/captures/");
