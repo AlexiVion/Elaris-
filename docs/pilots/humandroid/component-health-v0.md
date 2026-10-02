@@ -97,3 +97,26 @@ Kill the standalone hypothesis if existing tools already solve component prognos
 No new persistent shared schema in V0. Use explicit synthetic demo data in `lib/demo/component-health.ts`. Backend expansion requires field evidence.
 
 A shared read-only integration boundary now exists in `lib/robot-adapters/`. Robot Adapter V0 normalizes OEM-specific robot state into an Elaris telemetry contract without adding persistence or robot control. The first concrete adapter targets Unitree G1 public SDK2 state structures; live DDS/ROS2 connectivity is intentionally deferred to the Edge Collector work and an authorized university session.
+
+
+## Real-data acquisition path
+
+The first real-data path now has two shared infrastructure layers:
+
+~~~text
+authorized robot
+      ↓
+Elaris Edge Collector V0
+      ↓
+Elaris Robot Adapter
+      ↓
+encrypted local capture
+      ↓
+human review / export approval
+      ↓
+future Component Health ingestion
+~~~
+
+For the first Siglo 21 Unitree G1 session, Edge Collector V0 is read-only, subscriber-only, local-first, encrypted, and has no cloud upload path during capture.
+
+This does not yet make Component Health a validated product. It gives Elaris a controlled way to obtain the first real baseline dataset needed to replace synthetic telemetry.
