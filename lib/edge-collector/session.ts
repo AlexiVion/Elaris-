@@ -103,14 +103,17 @@ export class CaptureSessionWriter {
     this.frameCount += 1;
 
     if (input.events.length > 0) {
-      const encryptedEvents = input.events
-        .map((event) => JSON.stringify(this.crypto.encryptJson(event)))
-        .join("\n") + "\n";
-      await appendFile(join(this.sessionDir, TELEMETRY_FILE), encryptedEvents, { encoding: "utf8" });
+      const encryptedBatch =
+        JSON.stringify(this.crypto.encryptJson(input.events)) + "\n";
+      await appendFile(join(this.sessionDir, TELEMETRY_FILE), encryptedBatch, {
+        encoding: "utf8",
+      });
       this.eventCount += input.events.length;
     }
 
-    await this.persistSummary();
+    if (this.frameCount % 20 === 0) {
+      await this.persistSummary();
+    }
   }
 
   async finalize() {
@@ -235,12 +238,17 @@ export async function decryptTelemetrySample(
   );
 
   const content = await readFile(join(sessionDir, TELEMETRY_FILE), "utf8");
-  const lines = content.split(/\r?\n/).filter(Boolean).slice(0, limit);
+  const lines = content.split(/\r?\n/).filter(Boolean);
+  const events: unknown[] = [];
 
-  return lines.map((line) => {
+  for (const line of lines) {
+    if (events.length >= limit) break;
     const envelope = JSON.parse(line) as EncryptedEnvelope;
-    return crypto.decryptJson(envelope);
-  });
+    const batch = crypto.decryptJson<unknown[]>(envelope);
+    events.push(...batch.slice(0, Math.max(0, limit - events.length)));
+  }
+
+  return events;
 }
 
 async function writeChecksums(sessionDir: string, files: readonly string[]) {
