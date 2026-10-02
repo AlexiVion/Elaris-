@@ -222,7 +222,9 @@ function bridgeEnvironment(): NodeJS.ProcessEnv {
     "TMP",
   ] as const;
 
-  const env: NodeJS.ProcessEnv = {};
+  const env: NodeJS.ProcessEnv = {
+    NODE_ENV: process.env.NODE_ENV ?? "production",
+  };
   for (const key of allowed) {
     const value = process.env[key];
     if (value !== undefined) env[key] = value;
