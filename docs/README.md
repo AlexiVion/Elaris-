@@ -41,7 +41,7 @@ https://app.notion.com/p/00-HOME-3ebbeb945fd6802dbae4f253211db396?pvs=25
 - [Deployment Control Product System](product-systems/deployment-control.md)
 - [Placement Workspace Product System](product-systems/placement.md)
 - [Underwriting Workspace Product System](product-systems/underwriting.md)
-- [Component Health Hypothesis](product-systems/component-health-hypothesis.md)
+- [Component Health V0](product-systems/component-health-hypothesis.md)
 
 ### Product
 - [Deployment Control](product/deployment-control.md)
@@ -52,6 +52,7 @@ https://app.notion.com/p/00-HOME-3ebbeb945fd6802dbae4f253211db396?pvs=25
 - [Operational Readiness Real Mockup](platform/operational-readiness-real-mockup.md)
 
 ### Humandroid Pilot
+- [Component Health V0 Product Spec](pilots/humandroid/component-health-v0.md)
 - [Pilot Spec](pilots/humandroid/pilot-spec.md)
 - [Data Request](pilots/humandroid/data-request.md)
 - [Operating Workflow](pilots/humandroid/operating-workflow.md)
