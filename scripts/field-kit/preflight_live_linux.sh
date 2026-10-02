@@ -19,6 +19,11 @@ if [[ "$(uname -s)" != "Linux" ]]; then
   exit 2
 fi
 
+if grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null || grep -qi microsoft /proc/version 2>/dev/null; then
+  echo "FAIL: WSL detected. WSL is supported for SDK/software preparation only, not as the field-ready live DDS host."
+  exit 2
+fi
+
 for cmd in node pnpm python3 git; do
   if command -v "$cmd" >/dev/null 2>&1; then
     echo "PASS: $cmd -> $(command -v "$cmd")"
