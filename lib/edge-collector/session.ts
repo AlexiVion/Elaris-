@@ -38,6 +38,8 @@ export class CaptureSessionWriter {
 
   static async create(input: CaptureCreateInput) {
     const sessionId = createSessionId();
+    await mkdir(input.rootDir, { recursive: true, mode: 0o700 });
+    await chmod(input.rootDir, 0o700).catch(() => {});
     const sessionDir = join(input.rootDir, sessionId);
     await mkdir(sessionDir, { recursive: false, mode: 0o700 });
     await chmod(sessionDir, 0o700).catch(() => {});
