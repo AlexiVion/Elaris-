@@ -9,11 +9,13 @@ import {
   Network,
   ShieldCheck,
   Siren,
+  HeartPulse,
 } from "lucide-react";
 import { PLATFORM_PRODUCTS } from "@/lib/platform/products";
 import { getHorizontalPlatformData } from "@/lib/db/platform";
 
 const icons = {
+  "component-health": HeartPulse,
   "deployment-control": Network,
   "operational-readiness": Building2,
   "safety-change-control": HardHat,
