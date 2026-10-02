@@ -37,6 +37,17 @@ describe("Siglo 21 Field Kit V0", () => {
     expect([...script].every((character) => character.charCodeAt(0) < 128)).toBe(true);
     expect(script).toContain("WINDOWS DEV PREFLIGHT COMPLETE");
   });
+  it("avoids the NodeSource nodejs/npm apt conflict", async () => {
+    const script = await readFile(
+      resolve("scripts/field-kit/prepare_wsl_software.sh"),
+      "utf8"
+    );
+
+    expect(script).not.toMatch(/apt-get install[\\s\\S]*?nodejs[\\s\\S]*?npm/);
+    expect(script).toContain("command -v node");
+    expect(script).toContain("command -v npm");
+    expect(script).toContain("pnpm@9.15.4");
+  });
   it("provides a WSL software-only preparation script", async () => {
     const script = await readFile(
       resolve("scripts/field-kit/prepare_wsl_software.sh"),
