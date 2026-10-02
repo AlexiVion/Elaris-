@@ -25,12 +25,17 @@ export class UnitreeG1Sdk2ReadOnlyTransport implements ReadOnlyRobotTransport {
 
   constructor(
     private readonly networkInterface: string,
+    private readonly sampleHz = 20,
     private readonly pythonCommand = process.env.ELARIS_UNITREE_PYTHON ?? "python3",
     private readonly bridgePath = resolve("apps/edge-collector/unitree_g1_readonly_bridge.py"),
     private readonly startupTimeoutMs = 12_000
   ) {
     if (!networkInterface.trim()) {
       throw new Error("Unitree network interface is required");
+    }
+
+    if (!Number.isFinite(sampleHz) || sampleHz <= 0 || sampleHz > 100) {
+      throw new Error("Unitree sampleHz must be > 0 and <= 100");
     }
   }
 
@@ -39,7 +44,13 @@ export class UnitreeG1Sdk2ReadOnlyTransport implements ReadOnlyRobotTransport {
 
     const child = spawn(
       this.pythonCommand,
-      [this.bridgePath, "--interface", this.networkInterface],
+      [
+        this.bridgePath,
+        "--interface",
+        this.networkInterface,
+        "--sample-hz",
+        String(this.sampleHz),
+      ],
       {
         stdio: ["ignore", "pipe", "pipe"],
         shell: false,
@@ -154,7 +165,7 @@ export class UnitreeG1Sdk2ReadOnlyTransport implements ReadOnlyRobotTransport {
       this.channels.set(message.channel, {
         name: message.channel,
         messageType: message.messageType ?? null,
-        description: "Unitree SDK2 subscriber-only bridge",
+        description: `Unitree SDK2 subscriber-only bridge sampled at ${this.sampleHz} Hz`,
       });
       this.ready = true;
       return;
