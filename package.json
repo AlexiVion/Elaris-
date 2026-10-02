@@ -12,6 +12,7 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "edge": "tsx apps/edge-collector/cli.ts",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset --force --skip-generate --skip-seed && pnpm db:seed",
     "db:push": "prisma db push",
