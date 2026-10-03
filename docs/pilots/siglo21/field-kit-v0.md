@@ -199,3 +199,21 @@ Do not bring a plan that depends on internet access.
 - Unitree SDK2: https://github.com/unitreerobotics/unitree_sdk2
 
 Current Elaris field assumptions must be rechecked if Unitree changes its SDK or Siglo 21's robot differs from the expected G1 setup.
+
+
+## Field Session Pack V1
+
+The operational packet for the first authorized physical session is now maintained at:
+
+`docs/pilots/siglo21/field-session-pack-v1/README.md`
+
+It contains the session brief, authorization/scope record, robot identification sheet, equipment and technical checklists, exact command sequence, inspect/go-no-go/capture/review/export records, stop conditions, post-session report, Component Health validation record and dry-run record.
+
+A no-robot rehearsal helper is provided at:
+
+~~~bash
+export ELARIS_EDGE_PASSPHRASE='<local-dry-run-secret>'
+bash scripts/field-kit/run_field_session_dry_run.sh <active-multicast-interface>
+~~~
+
+The dry-run helper cannot call `inspect-unitree`, `capture-unitree` or `approve-export`; its purpose is to rehearse host preflight + synthetic encrypted capture + local review while preserving `NOT_APPROVED`.
