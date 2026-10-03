@@ -209,6 +209,8 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(script).toContain("Classification: SENSITIVE");
     expect(script).toContain("Export approval: NOT_APPROVED");
     expect(script).toContain(".field-kit/field-session-dry-run");
+    expect(script).toContain("must be at least 12 characters");
+    expect(script).toContain("${#ELARIS_EDGE_PASSPHRASE}");
     expect(script).not.toContain("inspect-unitree");
     expect(script).not.toContain("capture-unitree");
     expect(script).not.toContain("approve-export");
