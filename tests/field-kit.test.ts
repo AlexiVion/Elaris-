@@ -120,6 +120,9 @@ describe("Siglo 21 Field Kit V0", () => {
     );
 
     expect(runner).toContain('Start-Process -FilePath "powershell.exe" -Verb RunAs');
+    expect(runner).toContain("-Wait -PassThru");
+    expect(runner).toContain("Start-Transcript");
+    expect(runner).toContain("Get-Content $LogPath");
     expect(runner).toContain("enable_wsl_multicast_probe_rule.ps1");
     expect(runner).toContain("test_wsl_multicast.ps1");
     expect(runner).toContain("No robot connection was attempted.");
