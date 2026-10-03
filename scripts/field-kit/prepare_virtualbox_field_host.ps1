@@ -85,11 +85,8 @@ if ($isoHash -ne $UbuntuIsoSha256) {
 }
 Write-Host "Ubuntu ISO SHA256: PASS" -ForegroundColor Green
 
-$vmExists = $false
-& $script:VBoxManage showvminfo $VmName *> $null
-if ($LASTEXITCODE -eq 0) {
-    $vmExists = $true
-}
+$registeredVms = (& $script:VBoxManage list vms 2>$null) | Out-String
+$vmExists = $registeredVms -match ('"' + [regex]::Escape($VmName) + '"')
 
 if (-not $vmExists) {
     Write-Host ""
