@@ -52,6 +52,23 @@ else
   exit 2
 fi
 
+SYSFS_IFACE="/sys/class/net/$IFACE"
+OPERSTATE="$(cat "$SYSFS_IFACE/operstate" 2>/dev/null || true)"
+FLAGS_RAW="$(cat "$SYSFS_IFACE/flags" 2>/dev/null || true)"
+
+if [[ "$OPERSTATE" != "up" ]]; then
+  echo "FAIL: interface link is not active -> $IFACE (operstate=$OPERSTATE)"
+  exit 2
+fi
+
+if [[ -z "$FLAGS_RAW" ]] || (( (FLAGS_RAW & 0x1000) == 0 )); then
+  echo "FAIL: interface is not multicast-capable -> $IFACE (flags=${FLAGS_RAW:-unknown})"
+  exit 2
+fi
+
+echo "PASS: interface link active -> $IFACE"
+echo "PASS: interface multicast capability -> $IFACE"
+
 if [[ -n "${ELARIS_EDGE_PASSPHRASE:-}" ]]; then
   echo "PASS: ELARIS_EDGE_PASSPHRASE is set in this shell"
 else
