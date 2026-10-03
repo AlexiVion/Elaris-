@@ -138,6 +138,16 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(script).toContain("HOST-JOIN MULTICAST PROBE PASS");
     expect(script).toContain("No robot connection was attempted.");
   });
+  it("normalizes VirtualBox bridged interface output before matching", async () => {
+    const script = await readFile(
+      resolve("scripts/field-kit/prepare_virtualbox_field_host.ps1"),
+      "utf8"
+    );
+
+    expect(script).toContain("$bridgedLines = & $script:VBoxManage list bridgedifs");
+    expect(script).toContain("$bridged = $bridgedLines | Out-String");
+    expect(script).toContain("[regex]::Escape($BridgeAdapter)");
+  });
   it("prepares the VirtualBox candidate without repartitioning physical disks", async () => {
     const script = await readFile(
       resolve("scripts/field-kit/prepare_virtualbox_field_host.ps1"),
