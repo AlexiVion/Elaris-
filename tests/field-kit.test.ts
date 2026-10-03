@@ -89,7 +89,9 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(powershell).toContain("Robot connection: NOT ATTEMPTED");
     expect(powershell).toContain("239.255.42.99");
     expect(powershell).toContain('"/mnt/$driveLetter/$relativePath"');
+    expect(powershell).toContain("Substring(3).Replace([char]92, [char]47)");
     expect(powershell).not.toContain("wslpath");
+    expect((powershell.match(/\$token = "ELARIS-MCAST-"/g) ?? []).length).toBe(1);
     expect(receiver).toContain("IP_ADD_MEMBERSHIP");
     expect(powershell).not.toContain("Set-NetFirewallHyperVVMSetting");
   });
