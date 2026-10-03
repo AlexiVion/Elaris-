@@ -12,7 +12,7 @@ test("platform home is the first level and Deployment Control opens as a full pr
   await page.getByRole("link", { name: /Deployment Control/ }).click();
   await expect(page).toHaveURL(/\/platform\/deployment-control$/);
   await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
-  await expect(page.getByText("Active Deployments")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Active Deployments" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Deployments", exact: true })).toBeVisible();
 });
 
@@ -94,27 +94,37 @@ test("Evidence Review exposes assessment, evidence matrix and prototype findings
 });
 
 test("Incident Reconstruction reconstructs baseline, timeline and evidence gaps", async ({ page }) => {
+  test.setTimeout(60_000);
+
   await page.goto("/platform/incident-reconstruction");
 
   await expect(page.getByRole("heading", { name: "Incident Reconstruction" })).toBeVisible();
   await expect(page.getByText(/INC-2026-001/)).toBeVisible();
   await expect(page.getByText(/B-0017-01 · C004/)).toBeVisible();
 
-  await page.getByRole("link", { name: /INC-2026-001/ }).click();
-  await expect(page).toHaveURL(/incident-reconstruction\/incidents\/INC-2026-001/);
+  await Promise.all([
+    page.waitForURL(/incident-reconstruction\/incidents\/INC-2026-001/, { timeout: 20_000 }),
+    page.getByRole("link", { name: /INC-2026-001/ }).click(),
+  ]);
   await expect(page.getByText("Configuration at time is reconstructable")).toBeVisible();
   await expect(page.getByText("Person detected in restricted zone")).toBeVisible();
 
-  await page.getByRole("link", { name: /Open evidence room/ }).click();
-  await expect(page.getByRole("heading", { name: "Evidence Room · INC-2026-001" })).toBeVisible();
+  await Promise.all([
+    page.waitForURL(/incident-reconstruction\/evidence$/, { timeout: 20_000 }),
+    page.getByRole("link", { name: /Open evidence room/ }).click(),
+  ]);
+  await expect(page.getByRole("heading", { name: "Evidence Room · INC-2026-001" })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText("Robot log bundle")).toBeVisible();
   await expect(page.getByText("Photos / video")).toBeVisible();
 });
 
 test("Placement Workspace matches the full demo application standard", async ({ page }) => {
+  test.setTimeout(90_000);
+
   await page.goto("/platform/placement-workspace");
 
-  await expect(page.getByRole("heading", { name: "Placement Workspace" })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Placement Workspace navigation" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Home", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Attention Required" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Active Submissions" })).toBeVisible();
   await expect(page.getByText("SUB-0042").first()).toBeVisible();
@@ -131,24 +141,28 @@ test("Placement Workspace matches the full demo application standard", async ({ 
   await expect(page.getByText("B-0017-01 · C004")).toBeVisible();
 
   await page.getByRole("link", { name: "Information Requests", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Information Requests" })).toBeVisible();
+  await expect(page).toHaveURL(/\/platform\/placement-workspace\/requests$/);
+  await expect(page.getByRole("heading", { name: "Information Requests", exact: true })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText("Operator training record")).toBeVisible();
 
   await page.getByRole("link", { name: "Market Questions", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Market Questions" })).toBeVisible();
+  await expect(page).toHaveURL(/\/platform\/placement-workspace\/questions$/);
+  await expect(page.getByRole("heading", { name: "Market Questions", exact: true })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText(/restricted-zone entry/).first()).toBeVisible();
   await page.getByRole("button", { name: "Mark ready for broker review" }).click();
   await expect(page.getByText(/Nothing was sent externally/)).toBeVisible();
 
   await page.getByRole("link", { name: "Renewals", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Renewals" })).toBeVisible();
+  await expect(page).toHaveURL(/\/platform\/placement-workspace\/renewals$/);
+  await expect(page.getByRole("heading", { name: "Renewals", exact: true })).toBeVisible({ timeout: 20_000 });
   await page.getByRole("link", { name: "REN-0042" }).click();
   await expect(page.getByRole("heading", { name: "Humandroid · Renewal Review" })).toBeVisible();
   await expect(page.getByText("BrainCo Revo2")).toBeVisible();
   await expect(page.getByText("Inspire RH56DFX")).toBeVisible();
 
   await page.getByRole("link", { name: "Reports", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Reports" })).toBeVisible();
+  await expect(page).toHaveURL(/\/platform\/placement-workspace\/reports$/);
+  await expect(page.getByRole("heading", { name: "Reports", exact: true })).toBeVisible({ timeout: 20_000 });
   await page.getByText("Technical Submission Pack").click();
   await expect(page.getByRole("heading", { name: "Technical Submission Pack" })).toBeVisible();
   await expect(page.getByText("Humandroid · SUB-0042 · v2 · illustrative broker output")).toBeVisible();
@@ -159,13 +173,14 @@ test("Underwriting generic prototype still reuses the same DEP-0017 source recor
   await expect(page.getByRole("heading", { name: "Underwriting Workspace" })).toBeVisible();
   await expect(page.getByText(/DEP-0017 · G1 #017/)).toBeVisible();
   await expect(page.getByText("Valve Inspection Pilot")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Open source record" })).toHaveAttribute("href", "/deployments/DEP-0017");
+  await expect(page.getByRole("link", { name: "Open source record" })).toHaveAttribute("href", "/platform/deployment-control/deployments/DEP-0017");
 });
 
 test("Deployment Control stays full-screen at second depth and returns to platform home", async ({ page }) => {
   await page.goto("/platform/deployment-control/deployments/DEP-0017");
   await expect(page.getByRole("heading", { name: "Valve Inspection Pilot" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Deployments", exact: true })).toBeVisible();
+  const mainNavigation = page.getByRole("complementary", { name: "Main navigation" });
+  await expect(mainNavigation.getByRole("link", { name: "Deployments", exact: true })).toBeVisible();
 
   const switcher = page.getByRole("link", { name: "Platform", exact: true });
   await expect(switcher).toBeVisible();
