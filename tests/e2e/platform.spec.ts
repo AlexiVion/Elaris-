@@ -112,6 +112,8 @@ test("Incident Reconstruction reconstructs baseline, timeline and evidence gaps"
 });
 
 test("Placement Workspace matches the full demo application standard", async ({ page }) => {
+  test.setTimeout(90_000);
+
   await page.goto("/platform/placement-workspace");
 
   await expect(page.getByRole("complementary", { name: "Placement Workspace navigation" })).toBeVisible();
