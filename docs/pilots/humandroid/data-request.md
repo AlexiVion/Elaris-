@@ -19,6 +19,9 @@ Ask only for what is needed to reconstruct one real deployment. We do **not** ne
 - OS / SDK if relevant;
 - control software;
 - model / skill / autonomy stack;
+- control mode(s) used in operation;
+- controller build/version or commit if tracked;
+- policy/model identifier + version if tracked;
 - versions Humandroid considers operationally important.
 
 ### Deployment
@@ -73,6 +76,9 @@ We need: **before + after + what Humandroid did next.**
 - logs;
 - ROS bags;
 - telemetry snapshots;
+- one sample showing actual vs desired joint position/velocity/torque if the runtime exposes both;
+- ROS2 topic/message inventory or RobotData-equivalent field map for the relevant component;
+- policy/controller provenance for the same sample window;
 - photos/video;
 - network diagrams;
 - repository metadata;
@@ -85,6 +91,7 @@ PDF, Excel/CSV, Word, screenshots, folders, exports, links, JSON, notes, or an e
 ## Do not request initially
 
 - all source code;
+- full TienKung-Lab / training datasets unless needed for a specific validation question;
 - credentials / API keys;
 - continuous full telemetry;
 - unnecessary personal data;

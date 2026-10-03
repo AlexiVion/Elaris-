@@ -113,6 +113,54 @@ describe("Elaris Robot Adapter V0", () => {
     expect(events.some((event) => event.signal === "system.tick" && event.value === 12345)).toBe(true);
   });
 
+  it("preserves optional execution context without making it mandatory", () => {
+    const adapter = new UnitreeG1Adapter();
+    const motors = Array.from({ length: 29 }, () => ({}));
+    motors[3] = { q: 0.42 };
+
+    const withContext = adapter.normalize(
+      { name: UNITREE_G1_LOWSTATE_CHANNEL },
+      { motor_state: motors },
+      {
+        robotId: "HMND-TEST",
+        captureSessionId: "cap-context",
+        transportKind: "replay",
+        executionContext: {
+          sourceStack: "deploy-tienkung",
+          controlMode: "MLP",
+          controllerId: "rl-control",
+          controllerVersion: "abc123",
+          policyId: "walk",
+          policyVersion: "v17",
+        },
+      }
+    );
+
+    const kneeEvent = withContext.find(
+      (event) => event.componentId === "unitree-g1-joint-03-left-knee"
+    );
+    expect(kneeEvent?.executionContext).toEqual({
+      sourceStack: "deploy-tienkung",
+      controlMode: "MLP",
+      controllerId: "rl-control",
+      controllerVersion: "abc123",
+      policyId: "walk",
+      policyVersion: "v17",
+    });
+
+    const withoutContext = adapter.normalize(
+      { name: UNITREE_G1_LOWSTATE_CHANNEL },
+      { motor_state: motors },
+      {
+        robotId: "US21-G1-01",
+        captureSessionId: "cap-no-context",
+        transportKind: "replay",
+      }
+    );
+
+    expect(withoutContext.every((event) => !("executionContext" in event))).toBe(true);
+  });
+
   it("can replay captured frames without adding any command capability", async () => {
     const adapter = new UnitreeG1Adapter();
     const transport = new ReplayTransport(

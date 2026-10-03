@@ -60,6 +60,20 @@ After the installation completes, the ISO should be detached before normal disk 
 
 ## After Ubuntu boots
 
+### Node runtime
+
+Use Node.js 20 or newer for full repository verification.
+
+The Edge Collector can execute on older Node releases, but the current Playwright toolchain rejects Node 18. The repository therefore declares `node >=20`.
+
+Confirm before running the full verification path:
+
+~~~bash
+node --version
+~~~
+
+### Clone and prepare
+
 Clone Elaris and prepare the existing field stack:
 
 ~~~bash
@@ -127,3 +141,18 @@ Current status:
 **VIRTUALBOX WI-FI MULTICAST PATH: VALIDATED**
 
 **VIRTUALBOX REALTEK / UNITREE LIVE DDS PATH: NOT YET VALIDATED**
+
+
+## Full repository verification on the VM
+
+The external-drive VM can be materially slower than a native SSD host. Vitest therefore allows 30 seconds for ordinary tests and hooks while individual field-kit tests may define a larger explicit timeout.
+
+Run the canonical verification path only with Node 20+.
+
+If `next/font` attempts Google Fonts over an unavailable IPv6 path while IPv4 NAT is working, retry the build with IPv4 DNS ordering for that process:
+
+~~~bash
+NODE_OPTIONS=--dns-result-order=ipv4first pnpm build
+~~~
+
+This is a host-network workaround only; it does not alter Elaris runtime behavior.

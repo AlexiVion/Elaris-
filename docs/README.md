@@ -30,6 +30,8 @@ https://app.notion.com/p/00-HOME-3ebbeb945fd6802dbae4f253211db396?pvs=25
 - [Platform → Product Architecture](architecture/platform-product-architecture.md)
 - [Current System Design & Humandroid Audit](architecture/system-design.md)
 - [Robot Adapter V0](architecture/robot-adapter-v0.md)
+- [Robot Execution Context V0](architecture/robot-execution-context-v0.md)
+- [Humandroid / TienKung Reference Stack](architecture/humandroid-tienkung-reference-stack.md)
 - [Edge Collector V0](architecture/edge-collector-v0.md)
 
 ### Company
