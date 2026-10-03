@@ -22,6 +22,9 @@ next-env.d.ts
 /playwright-report
 /playwright/.cache
 
+# Edge Collector — robot captures are sensitive local artifacts
+/captures/
+
 # misc
 .DS_Store
 *.pem
