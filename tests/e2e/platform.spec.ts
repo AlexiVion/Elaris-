@@ -137,20 +137,23 @@ test("Placement Workspace matches the full demo application standard", async ({ 
   await expect(page.getByText("Operator training record")).toBeVisible();
 
   await page.getByRole("link", { name: "Market Questions", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Market Questions" })).toBeVisible();
+  await expect(page).toHaveURL(/\/platform\/placement-workspace\/questions$/);
+  await expect(page.getByRole("heading", { name: "Market Questions", exact: true })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText(/restricted-zone entry/).first()).toBeVisible();
   await page.getByRole("button", { name: "Mark ready for broker review" }).click();
   await expect(page.getByText(/Nothing was sent externally/)).toBeVisible();
 
   await page.getByRole("link", { name: "Renewals", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Renewals" })).toBeVisible();
+  await expect(page).toHaveURL(/\/platform\/placement-workspace\/renewals$/);
+  await expect(page.getByRole("heading", { name: "Renewals", exact: true })).toBeVisible({ timeout: 20_000 });
   await page.getByRole("link", { name: "REN-0042" }).click();
   await expect(page.getByRole("heading", { name: "Humandroid · Renewal Review" })).toBeVisible();
   await expect(page.getByText("BrainCo Revo2")).toBeVisible();
   await expect(page.getByText("Inspire RH56DFX")).toBeVisible();
 
   await page.getByRole("link", { name: "Reports", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Reports" })).toBeVisible();
+  await expect(page).toHaveURL(/\/platform\/placement-workspace\/reports$/);
+  await expect(page.getByRole("heading", { name: "Reports", exact: true })).toBeVisible({ timeout: 20_000 });
   await page.getByText("Technical Submission Pack").click();
   await expect(page.getByRole("heading", { name: "Technical Submission Pack" })).toBeVisible();
   await expect(page.getByText("Humandroid · SUB-0042 · v2 · illustrative broker output")).toBeVisible();
