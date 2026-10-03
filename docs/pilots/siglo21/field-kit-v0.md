@@ -15,9 +15,11 @@ Unitree's public SDK2 material documents a Linux/Ubuntu development path. The C+
 Elaris therefore separates:
 
 - **Windows development/replay** — already verified locally;
-- **Linux live Unitree path** — the selected field path for SDK2/DDS.
+- **Linux Unitree field path** — the selected SDK2/DDS environment;
+- **WSL2** — software preparation/replay only;
+- **VirtualBox Ubuntu** — prepared field-host candidate with generic bridged multicast receive validated, but real Unitree DDS still pending.
 
-This avoids pretending that the live DDS path has been validated on native Windows.
+This avoids pretending that native Windows or WSL2 has been validated for the live DDS path.
 
 ### WSL2 status
 
@@ -32,7 +34,9 @@ On the current Elaris laptop, WSL2 mirrored networking was verified to expose th
 
 Because SDK2/DDS discovery depends on reliable multicast behavior, Elaris V0 treats this as sufficient evidence to **reject WSL2 as the live robot host for the first field session**.
 
-The live path therefore requires **native Linux with direct NIC access**.
+The live path therefore requires a **Linux host with an actual robot-facing interface that passes the Elaris live preflight**.
+
+The currently prepared host is the Ubuntu VirtualBox VM described in `virtualbox-field-host-v0.md`. Its Wi-Fi bridged generic IPv4 multicast receive path is validated. The actual Siglo 21 robot-facing Ethernet/DDS path is still unvalidated and must be checked on site before live inspect.
 
 ## Field Kit contents
 
@@ -40,8 +44,10 @@ The live path therefore requires **native Linux with direct NIC access**.
 scripts/field-kit/
 ├── preflight_windows.ps1
 ├── prepare_wsl_software.sh
+├── prepare_virtualbox_field_host.ps1
 ├── setup_unitree_linux.sh
 ├── preflight_live_linux.sh
+├── multicast_receiver.py
 ├── test_wsl_multicast.ps1
 └── test_wsl_multicast_host_join.ps1
 
@@ -80,7 +86,9 @@ It does **not** mean the physical Unitree DDS path has been verified.
 
 ## Live preparation — Linux
 
-Use **native Linux** with direct access to the authorized robot network. Do not use WSL2 for live robot DDS.
+Use a **Linux host** with access to the authorized robot network and an interface that passes the Elaris live preflight. Do not use WSL2 for live robot DDS.
+
+The prepared VirtualBox Ubuntu host is acceptable for the next field step only if the actual robot-facing bridged interface is active and passes the same link/multicast/preflight gates on site.
 
 First install basic local prerequisites such as git, Python 3 and Python venv support according to the chosen Linux distribution.
 
@@ -139,6 +147,25 @@ bash scripts/field-kit/preflight_live_linux.sh <authorized-interface>
 ~~~
 
 This runs the no-robot doctor plus a synthetic replay validation.
+
+### Observed no-robot result — 2026-10-03
+
+On the prepared Ubuntu VirtualBox host, using active bridged interface `enp0s8`, the preflight reported:
+
+~~~text
+SOFTWARE READY: YES
+NETWORK LINK READY: YES
+LIVE ROBOT HOST READY: YES
+MODE: READ_ONLY
+ROBOT CONNECTION: NOT ATTEMPTED
+FIELD KIT PREFLIGHT COMPLETE
+~~~
+
+This means the local host prerequisites were satisfied on that active multicast-capable interface.
+
+It does **not** mean a Unitree G1 was discovered or that real `rt/lowstate` was received.
+
+See `robotics-integration-v0-record.md` and `virtualbox-field-host-v0.md` for the full validation record.
 
 ## Equipment checklist
 
