@@ -113,6 +113,17 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(enable).not.toContain("DefaultInboundAction");
     expect(disable).toContain("Remove-NetFirewallHyperVRule");
   });
+  it("self-elevates the multicast probe runner before changing Hyper-V firewall state", async () => {
+    const runner = await readFile(
+      resolve("scripts/field-kit/run_wsl_multicast_probe_admin.ps1"),
+      "utf8"
+    );
+
+    expect(runner).toContain('Start-Process -FilePath "powershell.exe" -Verb RunAs');
+    expect(runner).toContain("enable_wsl_multicast_probe_rule.ps1");
+    expect(runner).toContain("test_wsl_multicast.ps1");
+    expect(runner).toContain("No robot connection was attempted.");
+  });
   it("keeps field artifacts outside git", async () => {
     const gitignore = await readFile(resolve(".gitignore"), "utf8");
     expect(gitignore).toContain("/captures/");
