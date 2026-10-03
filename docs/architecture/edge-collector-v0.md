@@ -96,7 +96,9 @@ captures/
 
 The public session file contains only operational capture metadata such as state, counts, classification and encryption salt.
 
-Sensitive robot identity, purpose, channel details, raw frames, normalized telemetry and reviewer approval are encrypted.
+Sensitive robot identity, purpose, channel details, raw frames, normalized telemetry, optional execution context and reviewer approval are encrypted.
+
+Execution context is captured only when the source stack exposes it or an adapter can establish it with provenance. The collector does not fabricate controller, policy or mode metadata.
 
 Encryption:
 
