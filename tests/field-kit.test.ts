@@ -88,6 +88,8 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(powershell).toContain("MULTICAST PROBE PASS");
     expect(powershell).toContain("Robot connection: NOT ATTEMPTED");
     expect(powershell).toContain("239.255.42.99");
+    expect(powershell).toContain('"/mnt/$driveLetter/$relativePath"');
+    expect(powershell).not.toContain("wslpath");
     expect(receiver).toContain("IP_ADD_MEMBERSHIP");
     expect(powershell).not.toContain("Set-NetFirewallHyperVVMSetting");
   });
