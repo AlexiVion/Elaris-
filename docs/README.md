@@ -29,6 +29,7 @@ https://app.notion.com/p/00-HOME-3ebbeb945fd6802dbae4f253211db396?pvs=25
 ### Architecture
 - [Platform → Product Architecture](architecture/platform-product-architecture.md)
 - [Current System Design & Humandroid Audit](architecture/system-design.md)
+- [Robot Adapter V0](architecture/robot-adapter-v0.md)
 
 ### Company
 - [Elaris Overview](company/elaris-overview.md)
