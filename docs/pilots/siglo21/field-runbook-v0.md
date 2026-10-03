@@ -27,23 +27,30 @@ Do not copy passwords, SSH keys or unrelated credentials into Elaris.
 
 ## Stage 0 — Local preflight
 
-On **native Linux** (WSL2 is not an approved live DDS host):
+On the **Linux field host** (WSL2 is not an approved live DDS host):
 
 ~~~bash
 export ELARIS_UNITREE_PYTHON="<field-kit-venv>/bin/python"
 bash scripts/field-kit/preflight_live_linux.sh <iface>
 ~~~
 
-Required result:
+Required result includes:
 
 ~~~text
-FIELD READY: YES
+PASS: interface link active
+PASS: interface multicast capability
+SOFTWARE READY: YES
+NETWORK LINK READY: YES
+LIVE ROBOT HOST READY: YES
 FIELD KIT PREFLIGHT COMPLETE
+No robot connection or command was attempted.
 ~~~
 
-If not green, do not proceed to live inspect.
+If any required gate is not green, do not proceed to live inspect.
 
-The current WSL2 environment may be used for SDK/software preparation and replay only. It must not be substituted for this native-Linux gate.
+The current WSL2 environment may be used for SDK/software preparation and replay only.
+
+The prepared VirtualBox Ubuntu host is an acceptable field-host candidate only when the **actual on-site robot-facing bridged interface** passes this same preflight. The no-robot Wi-Fi multicast validation does not substitute for real Unitree DDS discovery.
 
 ## Stage 1 — Connect physically
 
