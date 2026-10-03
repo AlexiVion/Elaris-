@@ -102,6 +102,7 @@ async function doctorUnitree(args: string[]) {
     console.log("");
     console.log(`Host mode: ${payload.host_mode ?? "UNKNOWN"}`);
     console.log(`SOFTWARE READY: ${payload.software_ready ? "YES" : "NO"}`);
+    console.log(`NETWORK LINK READY: ${payload.network_link_ready ? "YES" : "NO"}`);
     console.log(`LIVE ROBOT HOST READY: ${payload.live_host_ready ? "YES" : "NO"}`);
   } else {
     console.log("FIELD READY: NO");
@@ -123,7 +124,7 @@ async function doctorUnitree(args: string[]) {
 
   if (!payload?.live_host_ready) {
     console.log("");
-    console.log("Live robot host is NOT field-ready. This is expected on WSL; use it only for SDK/software preparation.");
+    console.log("Live robot host is NOT field-ready. WSL is software-only, and native Linux also requires an active multicast-capable interface.");
   }
 }
 async function inspectUnitree(args: string[]) {
