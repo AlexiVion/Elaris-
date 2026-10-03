@@ -12,7 +12,7 @@ test("platform home is the first level and Deployment Control opens as a full pr
   await page.getByRole("link", { name: /Deployment Control/ }).click();
   await expect(page).toHaveURL(/\/platform\/deployment-control$/);
   await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
-  await expect(page.getByText("Active Deployments")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Active Deployments" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Deployments", exact: true })).toBeVisible();
 });
 
@@ -114,7 +114,8 @@ test("Incident Reconstruction reconstructs baseline, timeline and evidence gaps"
 test("Placement Workspace matches the full demo application standard", async ({ page }) => {
   await page.goto("/platform/placement-workspace");
 
-  await expect(page.getByRole("heading", { name: "Placement Workspace" })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Placement Workspace navigation" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Home", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Attention Required" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Active Submissions" })).toBeVisible();
   await expect(page.getByText("SUB-0042").first()).toBeVisible();
@@ -159,13 +160,14 @@ test("Underwriting generic prototype still reuses the same DEP-0017 source recor
   await expect(page.getByRole("heading", { name: "Underwriting Workspace" })).toBeVisible();
   await expect(page.getByText(/DEP-0017 · G1 #017/)).toBeVisible();
   await expect(page.getByText("Valve Inspection Pilot")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Open source record" })).toHaveAttribute("href", "/deployments/DEP-0017");
+  await expect(page.getByRole("link", { name: "Open source record" })).toHaveAttribute("href", "/platform/deployment-control/deployments/DEP-0017");
 });
 
 test("Deployment Control stays full-screen at second depth and returns to platform home", async ({ page }) => {
   await page.goto("/platform/deployment-control/deployments/DEP-0017");
   await expect(page.getByRole("heading", { name: "Valve Inspection Pilot" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Deployments", exact: true })).toBeVisible();
+  const mainNavigation = page.getByRole("complementary", { name: "Main navigation" });
+  await expect(mainNavigation.getByRole("link", { name: "Deployments", exact: true })).toBeVisible();
 
   const switcher = page.getByRole("link", { name: "Platform", exact: true });
   await expect(switcher).toBeVisible();
