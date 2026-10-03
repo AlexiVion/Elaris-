@@ -42,8 +42,12 @@ if ($drive.SizeRemaining -lt 12GB) {
     throw "At least 12 GB free is required on D: for the VM workflow."
 }
 
-$bridged = & $script:VBoxManage list bridgedifs
+$bridgedLines = & $script:VBoxManage list bridgedifs
+$bridged = $bridgedLines | Out-String
+
 if ($bridged -notmatch [regex]::Escape($BridgeAdapter)) {
+    Write-Host "VirtualBox bridged interfaces detected:" -ForegroundColor Yellow
+    Write-Host $bridged
     throw "Bridged adapter not found in VirtualBox: $BridgeAdapter"
 }
 
