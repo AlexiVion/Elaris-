@@ -54,6 +54,20 @@ export type TelemetrySource = {
   rawField?: string | null;
 };
 
+/**
+ * Optional runtime/control provenance attached to telemetry when the source
+ * stack exposes it. This is descriptive context only; it does not grant Elaris
+ * any command/control capability.
+ */
+export type RobotExecutionContext = {
+  sourceStack?: string | null;
+  controlMode?: string | null;
+  controllerId?: string | null;
+  controllerVersion?: string | null;
+  policyId?: string | null;
+  policyVersion?: string | null;
+};
+
 export type NormalizedTelemetryEvent = {
   timestamp: string;
   captureSessionId: string;
@@ -65,6 +79,7 @@ export type NormalizedTelemetryEvent = {
   unit?: string | null;
   sensitivity: DataSensitivity;
   source: TelemetrySource;
+  executionContext?: RobotExecutionContext | null;
 };
 
 export type NormalizationContext = {
@@ -73,6 +88,7 @@ export type NormalizationContext = {
   configurationId?: string | null;
   timestamp?: string;
   transportKind: RobotTransportKind;
+  executionContext?: RobotExecutionContext | null;
 };
 
 export type RobotAdapterSecurityProfile = {
