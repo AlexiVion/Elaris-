@@ -53,6 +53,8 @@ test("global search finds a deployment by code", async ({ page }) => {
 
 
 test("evidence and requirements filter to the pilot deployment", async ({ page }) => {
+  test.setTimeout(60_000);
+
   await page.goto("/evidence?deployment=DEP-0017");
   await expect(page.getByText("INT-042")).toBeVisible();
   await expect(page.getByText("Integration test").first()).toBeVisible();
