@@ -127,6 +127,17 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(runner).toContain("test_wsl_multicast.ps1");
     expect(runner).toContain("No robot connection was attempted.");
   });
+  it("diagnoses the mirrored multicast host-membership path", async () => {
+    const script = await readFile(
+      resolve("scripts/field-kit/test_wsl_multicast_host_join.ps1"),
+      "utf8"
+    );
+
+    expect(script).toContain("JoinMulticastGroup");
+    expect(script).toContain("PASS:HOST:");
+    expect(script).toContain("HOST-JOIN MULTICAST PROBE PASS");
+    expect(script).toContain("No robot connection was attempted.");
+  });
   it("keeps field artifacts outside git", async () => {
     const gitignore = await readFile(resolve(".gitignore"), "utf8");
     expect(gitignore).toContain("/captures/");
