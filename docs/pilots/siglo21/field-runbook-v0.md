@@ -27,7 +27,7 @@ Do not copy passwords, SSH keys or unrelated credentials into Elaris.
 
 ## Stage 0 — Local preflight
 
-On Linux:
+On **native Linux** (WSL2 is not an approved live DDS host):
 
 ~~~bash
 export ELARIS_UNITREE_PYTHON="<field-kit-venv>/bin/python"
@@ -42,6 +42,8 @@ FIELD KIT PREFLIGHT COMPLETE
 ~~~
 
 If not green, do not proceed to live inspect.
+
+The current WSL2 environment may be used for SDK/software preparation and replay only. It must not be substituted for this native-Linux gate.
 
 ## Stage 1 — Connect physically
 
