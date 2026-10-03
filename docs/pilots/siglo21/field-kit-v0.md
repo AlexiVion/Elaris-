@@ -19,13 +19,31 @@ Elaris therefore separates:
 
 This avoids pretending that the live DDS path has been validated on native Windows.
 
+### WSL2 status
+
+WSL2 is approved only as a **software preparation/replay environment**, not as the live field host.
+
+On the current Elaris laptop, WSL2 mirrored networking was verified to expose the physical Windows NICs and advertise multicast capability. The Unitree SDK2/CycloneDDS stack also reached `SOFTWARE READY: YES`. However, repeated no-robot multicast probes showed that host-originated multicast was not delivered into WSL, including after:
+
+- enabling mirrored networking;
+- verifying matching Windows/WSL interface MAC addresses;
+- adding a narrow Hyper-V inbound UDP test rule;
+- joining the multicast group on the Windows host.
+
+Because SDK2/DDS discovery depends on reliable multicast behavior, Elaris V0 treats this as sufficient evidence to **reject WSL2 as the live robot host for the first field session**.
+
+The live path therefore requires **native Linux with direct NIC access**.
+
 ## Field Kit contents
 
 ~~~text
 scripts/field-kit/
 ├── preflight_windows.ps1
+├── prepare_wsl_software.sh
 ├── setup_unitree_linux.sh
-└── preflight_live_linux.sh
+├── preflight_live_linux.sh
+├── test_wsl_multicast.ps1
+└── test_wsl_multicast_host_join.ps1
 
 apps/edge-collector/
 ├── unitree_g1_preflight.py
@@ -62,7 +80,7 @@ It does **not** mean the physical Unitree DDS path has been verified.
 
 ## Live preparation — Linux
 
-Use a Linux environment with direct access to the authorized robot network.
+Use **native Linux** with direct access to the authorized robot network. Do not use WSL2 for live robot DDS.
 
 First install basic local prerequisites such as git, Python 3 and Python venv support according to the chosen Linux distribution.
 
