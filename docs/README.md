@@ -69,6 +69,7 @@ https://app.notion.com/p/00-HOME-3ebbeb945fd6802dbae4f253211db396?pvs=25
 
 ### Siglo 21
 - [Robotics Integration V0 — Implementation & Verification Record](pilots/siglo21/robotics-integration-v0-record.md)
+- [Field Session Pack V1](pilots/siglo21/field-session-pack-v1/README.md)
 - [Siglo 21 Field Kit V0](pilots/siglo21/field-kit-v0.md)
 - [Siglo 21 Field Runbook V0](pilots/siglo21/field-runbook-v0.md)
 - [Siglo 21 Edge Capture Protocol V0](pilots/siglo21/edge-capture-protocol-v0.md)
