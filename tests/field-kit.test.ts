@@ -161,6 +161,20 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(script).toContain("$vmExists = $registeredVms -match");
     expect(script).not.toContain("showvminfo $VmName *> $null");
   });
+  it("blocks live Linux preflight when the selected interface link is not active or multicast-capable", async () => {
+    const script = await readFile(
+      resolve("scripts/field-kit/preflight_live_linux.sh"),
+      "utf8"
+    );
+
+    expect(script).toContain("/sys/class/net/$IFACE/operstate");
+    expect(script).toContain("/sys/class/net/$IFACE/flags");
+    expect(script).toContain('OPERSTATE" != "up"');
+    expect(script).toContain("FLAGS_RAW & 0x1000");
+    expect(script).toContain("FAIL: interface link is not active");
+    expect(script).toContain("FAIL: interface is not multicast-capable");
+  });
+
   it("prepares the VirtualBox candidate without repartitioning physical disks", async () => {
     const script = await readFile(
       resolve("scripts/field-kit/prepare_virtualbox_field_host.ps1"),
