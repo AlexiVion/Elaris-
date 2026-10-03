@@ -138,6 +138,21 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(script).toContain("HOST-JOIN MULTICAST PROBE PASS");
     expect(script).toContain("No robot connection was attempted.");
   });
+  it("prepares the VirtualBox candidate without repartitioning physical disks", async () => {
+    const script = await readFile(
+      resolve("scripts/field-kit/prepare_virtualbox_field_host.ps1"),
+      "utf8"
+    );
+
+    expect(script).toContain("--variant Split2G");
+    expect(script).toContain("--nic1 nat");
+    expect(script).toContain("--nic2 bridged");
+    expect(script).toContain("Realtek PCIe GbE Family Controller");
+    expect(script).toContain("97f3d7ffb032c3eb3b23d2c8be9cc76e60c2c1f2c0146ba5ba9fe01cafae0fd8");
+    expect(script).not.toContain("Clear-Disk");
+    expect(script).not.toContain("Format-Volume");
+    expect(script).not.toContain("Resize-Partition");
+  });
   it("keeps field artifacts outside git", async () => {
     const gitignore = await readFile(resolve(".gitignore"), "utf8");
     expect(gitignore).toContain("/captures/");
