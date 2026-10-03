@@ -36,81 +36,26 @@ if (-not (Test-Path $receiverWindows)) {
     throw "Multicast receiver not found: $receiverWindows"
 }
 
-if ($receiverWindows -notmatch '^([A-Za-z]):\\(.*)
-
-$token = "ELARIS-MCAST-" + [guid]::NewGuid().ToString("N")
-
-Write-Host "Windows interface: $($ipConfig.InterfaceAlias)"
-Write-Host "Windows IPv4: $localIp"
-Write-Host "Multicast group: ${Group}:${Port}"
-Write-Host "Robot connection: NOT ATTEMPTED"
-Write-Host ""
-
-$job = Start-Job -ScriptBlock {
-    param($DistroName, $ScriptPath, $MulticastGroup, $MulticastPort, $InterfaceIp, $ExpectedToken, $Timeout)
-    & wsl -d $DistroName -- python3 $ScriptPath `
-        --group $MulticastGroup `
-        --port $MulticastPort `
-        --interface-ip $InterfaceIp `
-        --expect-token $ExpectedToken `
-        --timeout $Timeout
-} -ArgumentList $Distro, $receiverWsl, $Group, $Port, $localIp, $token, $TimeoutSeconds
-
-try {
-    Start-Sleep -Seconds 2
-
-    $client = [System.Net.Sockets.UdpClient]::new()
-    try {
-        $address = [System.Net.IPAddress]::Parse($localIp)
-        $client.Client.Bind([System.Net.IPEndPoint]::new($address, 0))
-        $client.MulticastLoopback = $true
-        $endpoint = [System.Net.IPEndPoint]::new([System.Net.IPAddress]::Parse($Group), $Port)
-        $bytes = [System.Text.Encoding]::UTF8.GetBytes($token)
-
-        1..3 | ForEach-Object {
-            [void]$client.Send($bytes, $bytes.Length, $endpoint)
-            Start-Sleep -Milliseconds 250
-        }
-    } finally {
-        if ($client) { $client.Dispose() }
-    }
-
-    [void](Wait-Job $job -Timeout ($TimeoutSeconds + 4))
-    $output = (Receive-Job $job -ErrorAction SilentlyContinue | Out-String).Trim()
-    if ($output) { Write-Host $output }
-
-    if ($output -notmatch [regex]::Escape("PASS:$token")) {
-        throw "Multicast probe failed. Do not change firewall broadly; inspect Hyper-V/Windows firewall next."
-    }
-
-    Write-Host ""
-    Write-Host "MULTICAST PROBE PASS" -ForegroundColor Green
-    Write-Host "Windows -> WSL mirrored multicast received successfully." -ForegroundColor Green
-    Write-Host "No robot connection was attempted." -ForegroundColor Yellow
-} finally {
-    if ($job) {
-        Stop-Job $job -ErrorAction SilentlyContinue
-        Remove-Job $job -Force -ErrorAction SilentlyContinue
-    }
-}
-) {
+if ($receiverWindows.Length -lt 4 -or $receiverWindows[1] -ne [char]58 -or $receiverWindows[2] -ne [char]92) {
     throw "Expected a local Windows drive path, got: $receiverWindows"
 }
 
-$driveLetter = $Matches[1].ToLowerInvariant()
-$relativePath = $Matches[2] -replace '\\', '/'
+$driveLetter = $receiverWindows.Substring(0, 1).ToLowerInvariant()
+$relativePath = $receiverWindows.Substring(3).Replace([char]92, [char]47)
 $receiverWsl = "/mnt/$driveLetter/$relativePath"
 
 $token = "ELARIS-MCAST-" + [guid]::NewGuid().ToString("N")
 
 Write-Host "Windows interface: $($ipConfig.InterfaceAlias)"
 Write-Host "Windows IPv4: $localIp"
+Write-Host "WSL receiver: $receiverWsl"
 Write-Host "Multicast group: ${Group}:${Port}"
 Write-Host "Robot connection: NOT ATTEMPTED"
 Write-Host ""
 
 $job = Start-Job -ScriptBlock {
     param($DistroName, $ScriptPath, $MulticastGroup, $MulticastPort, $InterfaceIp, $ExpectedToken, $Timeout)
+
     & wsl -d $DistroName -- python3 $ScriptPath `
         --group $MulticastGroup `
         --port $MulticastPort `
@@ -135,12 +80,17 @@ try {
             Start-Sleep -Milliseconds 250
         }
     } finally {
-        if ($client) { $client.Dispose() }
+        if ($client) {
+            $client.Dispose()
+        }
     }
 
     [void](Wait-Job $job -Timeout ($TimeoutSeconds + 4))
     $output = (Receive-Job $job -ErrorAction SilentlyContinue | Out-String).Trim()
-    if ($output) { Write-Host $output }
+
+    if ($output) {
+        Write-Host $output
+    }
 
     if ($output -notmatch [regex]::Escape("PASS:$token")) {
         throw "Multicast probe failed. Do not change firewall broadly; inspect Hyper-V/Windows firewall next."
