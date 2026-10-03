@@ -102,6 +102,50 @@ The normalized event shape is OEM-independent:
 
 Component Health should reason over this normalized vocabulary rather than over OEM-specific message names.
 
+## Optional execution context
+
+Some robot stacks expose not only physical state but also the runtime/control context that produced that state.
+
+Elaris preserves this context when available through an optional `RobotExecutionContext`:
+
+~~~json
+{
+  "sourceStack": "deploy-tienkung",
+  "controlMode": "MLP",
+  "controllerId": "rl-control",
+  "controllerVersion": "abc123",
+  "policyId": "walk",
+  "policyVersion": "v17"
+}
+~~~
+
+The context is descriptive provenance. It does **not** add publish, actuation or remote-control capability.
+
+Adapters and collectors must remain valid when no execution context is available.
+
+See:
+- `docs/architecture/robot-execution-context-v0.md`
+- `docs/architecture/humandroid-tienkung-reference-stack.md`
+
+## Actual vs desired signal semantics
+
+When a controller exposes both observed and commanded/desired state, Elaris should preserve the distinction instead of collapsing both into one generic signal.
+
+Preferred normalized vocabulary:
+
+~~~text
+joint.position.actual
+joint.position.desired
+joint.velocity.actual
+joint.velocity.desired
+joint.torque.actual
+joint.torque.desired
+~~~
+
+A deterministic tracking delta may later be derived as `actual - desired`, with provenance to both inputs. A tracking delta is evidence, not a declaration that a component is failed or safe.
+
+Existing adapters do not need to invent desired signals when the OEM source does not expose them.
+
 ## Unitree G1 V0
 
 The first concrete adapter is UnitreeG1Adapter.
