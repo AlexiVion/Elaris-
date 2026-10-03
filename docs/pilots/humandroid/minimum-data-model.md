@@ -52,6 +52,23 @@ For real Humandroid data we should validate whether we additionally need:
 
 Do not add those fields until the pilot shows they are needed.
 
+## Runtime execution context
+
+Robot Adapter V0 may attach optional capture-time execution provenance to normalized telemetry:
+
+~~~text
+sourceStack
+controlMode
+controllerId / controllerVersion
+policyId / policyVersion
+~~~
+
+This is integration metadata, not a new persistent shared-domain entity in V0.
+
+For Humandroid, validate whether the real stack can tie component telemetry to the exact controller/policy/configuration active at that moment. If the relationship proves stable and operationally useful, decide later whether it belongs in persistent configuration/evidence history.
+
+When both actual and desired joint signals are available, retain both. Do not overwrite one with the other.
+
 ## Requirements modeling decision
 
 Today, requirements are represented as **EvidenceItem(category = REQUIREMENT)**.

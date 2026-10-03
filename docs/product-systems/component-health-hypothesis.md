@@ -60,6 +60,8 @@ Actual trigger model is unknown.
 Potentially:
 - sensor/telemetry streams;
 - actuator/motor/current/temperature/vibration data;
+- observed vs desired joint position/velocity/torque when the controller exposes both;
+- execution context such as control mode, controller version and policy/version;
 - error/event logs;
 - duty cycles;
 - runtime/cycle count;
@@ -186,19 +188,22 @@ Ask:
 4. Which logs/telemetry are stored?
 5. For how long?
 6. Can data be tied to exact robot/component/version?
-7. How many comparable events exist?
-8. What does the technician inspect?
-9. Who decides replace vs continue?
-10. What is the economic consequence of unexpected failure?
-11. What tools already monitor this?
-12. Would an early warning change an actual decision?
+7. Can the event be tied to the control mode, controller build and policy/model version that were active?
+8. Does the stack expose both actual and desired position/velocity/torque for the component?
+9. How many comparable events exist?
+10. What does the technician inspect?
+11. Who decides replace vs continue?
+12. What is the economic consequence of unexpected failure?
+13. What tools already monitor this?
+14. Would an early warning change an actual decision?
 
 Request, if they can share safely:
 - telemetry/log sample;
 - maintenance/service record;
 - component replacement history;
 - incident/failure chronology;
-- list of data available by robot/component.
+- list of data available by robot/component;
+- controller/policy/configuration provenance for the same time window when available.
 
 ## Validation gates
 
