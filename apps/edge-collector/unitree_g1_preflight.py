@@ -32,6 +32,14 @@ def main():
     args = parser.parse_args()
 
     interfaces = [name for _, name in socket.if_nameindex()]
+    interface_exists = args.interface in interfaces
+    operstate_path = Path("/sys/class/net") / args.interface / "operstate"
+    flags_path = Path("/sys/class/net") / args.interface / "flags"
+    operstate = operstate_path.read_text(encoding="utf-8").strip() if operstate_path.exists() else "unknown"
+    flags = int(flags_path.read_text(encoding="utf-8").strip(), 16) if flags_path.exists() else 0
+    iff_up = bool(flags & 0x1)
+    iff_multicast = bool(flags & 0x1000)
+    network_link_ready = interface_exists and iff_up and operstate == "up" and iff_multicast
     python_ok = sys.version_info >= (3, 8)
     release_text = platform.release().lower()
     platform_text = platform.platform().lower()
@@ -55,9 +63,12 @@ def main():
         "unitree_sdk2py": check_import("unitree_sdk2py"),
         "cyclonedds": check_import("cyclonedds"),
         "network_interface": {
-            "ok": args.interface in interfaces,
+            "ok": interface_exists,
             "requested": args.interface,
             "available": interfaces,
+            "operstate": operstate,
+            "iff_up": iff_up,
+            "iff_multicast": iff_multicast,
         },
         "bridge": {
             "ok": bridge_exists
@@ -70,12 +81,13 @@ def main():
     }
 
     software_ready = all(item.get("ok") is True for item in checks.values())
-    live_host_ready = software_ready and not is_wsl
+    live_host_ready = software_ready and not is_wsl and network_link_ready
     result = {
         "ready": live_host_ready,
         "software_ready": software_ready,
         "live_host_ready": live_host_ready,
         "host_mode": "WSL" if is_wsl else "LINUX",
+        "network_link_ready": network_link_ready,
         "mode": "READ_ONLY",
         "checks": checks,
         "notes": [
