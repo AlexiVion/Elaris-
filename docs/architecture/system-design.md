@@ -83,9 +83,35 @@ Reports/share views exist, but the exact customer/safety workflow has not been v
 Not implemented. That is acceptable: the first pilot can be human + AI-assisted outside the deterministic core.
 
 ### 6. Integrations
-No Git/Drive/fleet/ROS integration yet. Correct for now.
 
-Integrate only after identifying which source creates repeated manual work.
+The repository now includes a bounded **read-only robotics acquisition path** for validation work:
+
+~~~text
+authorized robot / replay source
+        ↓
+Robot Adapter V0
+        ↓
+Edge Collector V0
+        ↓
+encrypted local capture
+        ↓
+human review / explicit export approval
+~~~
+
+The first concrete adapter targets Unitree G1 public SDK2 state structures.
+
+This does **not** mean production robot integration is validated. The physical Siglo 21 G1 connection, actual DDS discovery and real `rt/lowstate` capture remain pending.
+
+There is still no general Git/Drive/fleet integration and no production Humandroid ROS2/TienKung adapter.
+
+Integrate additional sources only after identifying which source creates repeated manual work or supplies evidence needed for a validated Product System.
+
+See:
+
+- `docs/architecture/robot-adapter-v0.md`
+- `docs/architecture/edge-collector-v0.md`
+- `docs/architecture/robot-execution-context-v0.md`
+- `docs/pilots/siglo21/robotics-integration-v0-record.md`
 
 ## Architecture to preserve
 
@@ -93,6 +119,13 @@ Integrate only after identifying which source creates repeated manual work.
 External sources
       ↓
 manual/assisted intake
+      │
+      ├── robot state path (when authorized)
+      │     Robot Adapter
+      │          ↓
+      │     Edge Collector
+      │          ↓
+      │     encrypted local evidence
       ↓
 ConfigurationSnapshot + Deployment
       ↓
