@@ -75,6 +75,22 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(script).not.toContain("inspect-unitree");
     expect(script).not.toContain("capture-unitree");
   });
+  it("provides a no-robot mirrored multicast probe", async () => {
+    const powershell = await readFile(
+      resolve("scripts/field-kit/test_wsl_multicast.ps1"),
+      "utf8"
+    );
+    const receiver = await readFile(
+      resolve("scripts/field-kit/multicast_receiver.py"),
+      "utf8"
+    );
+
+    expect(powershell).toContain("MULTICAST PROBE PASS");
+    expect(powershell).toContain("Robot connection: NOT ATTEMPTED");
+    expect(powershell).toContain("239.255.42.99");
+    expect(receiver).toContain("IP_ADD_MEMBERSHIP");
+    expect(powershell).not.toContain("Set-NetFirewallHyperVVMSetting");
+  });
   it("keeps field artifacts outside git", async () => {
     const gitignore = await readFile(resolve(".gitignore"), "utf8");
     expect(gitignore).toContain("/captures/");
