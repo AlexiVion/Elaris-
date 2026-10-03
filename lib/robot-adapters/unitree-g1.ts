@@ -156,6 +156,9 @@ function event(
       channel,
       rawField,
     },
+    ...(context.executionContext
+      ? { executionContext: context.executionContext }
+      : {}),
   };
 }
 
