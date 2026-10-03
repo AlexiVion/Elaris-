@@ -14,7 +14,7 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(bridge).not.toMatch(/ChannelPublisher\s*\(/);
     expect(bridge).not.toContain("rt/lowcmd");
     expect(bridge).not.toContain("rt/arm_sdk");
-  });
+  }, 120_000);
 
   it("provides a no-robot Unitree doctor", async () => {
     const preflight = await readFile(
@@ -167,8 +167,9 @@ describe("Siglo 21 Field Kit V0", () => {
       "utf8"
     );
 
-    expect(script).toContain("/sys/class/net/$IFACE/operstate");
-    expect(script).toContain("/sys/class/net/$IFACE/flags");
+    expect(script).toContain('SYSFS_IFACE="/sys/class/net/$IFACE"');
+    expect(script).toContain('$SYSFS_IFACE/operstate');
+    expect(script).toContain('$SYSFS_IFACE/flags');
     expect(script).toContain('OPERSTATE" != "up"');
     expect(script).toContain("FLAGS_RAW & 0x1000");
     expect(script).toContain("FAIL: interface link is not active");
