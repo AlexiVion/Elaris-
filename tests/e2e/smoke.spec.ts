@@ -6,14 +6,14 @@ import { test, expect } from "@playwright/test";
  * Change Impact (golden counters 3/3/2/1, nine affected items).
  */
 
-test("home renders KPIs and links to a deployment", async ({ page }) => {
-  await page.goto("/");
+test("Deployment Control home renders KPIs and links to a deployment", async ({ page }) => {
+  await page.goto("/platform/deployment-control");
   await expect(page.getByRole("heading", { name: "Home", exact: true })).toBeVisible();
-  await expect(page.getByText("Active Deployments").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Active Deployments" })).toBeVisible();
   await expect(page.getByText("Demo data")).toBeVisible();
 
   await page.getByRole("link", { name: "Valve Inspection Pilot" }).first().click();
-  await expect(page).toHaveURL(/\/deployments\/DEP-0017/);
+  await expect(page).toHaveURL(/\/platform\/deployment-control\/deployments\/DEP-0017/);
 });
 
 test("deployment overview computes readiness and coverage", async ({ page }) => {
