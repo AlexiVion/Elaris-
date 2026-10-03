@@ -148,6 +148,16 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(script).toContain("$bridged = $bridgedLines | Out-String");
     expect(script).toContain("[regex]::Escape($BridgeAdapter)");
   });
+  it("detects an absent VirtualBox VM without calling showvminfo", async () => {
+    const script = await readFile(
+      resolve("scripts/field-kit/prepare_virtualbox_field_host.ps1"),
+      "utf8"
+    );
+
+    expect(script).toContain("$registeredVms = (& $script:VBoxManage list vms 2>$null) | Out-String");
+    expect(script).toContain("$vmExists = $registeredVms -match");
+    expect(script).not.toContain("showvminfo $VmName *> $null");
+  });
   it("prepares the VirtualBox candidate without repartitioning physical disks", async () => {
     const script = await readFile(
       resolve("scripts/field-kit/prepare_virtualbox_field_host.ps1"),
