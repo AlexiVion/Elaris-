@@ -16,6 +16,12 @@ if [[ -z "${ELARIS_EDGE_PASSPHRASE:-}" ]]; then
   exit 2
 fi
 
+if (( ${#ELARIS_EDGE_PASSPHRASE} < 12 )); then
+  echo "FAIL: ELARIS_EDGE_PASSPHRASE must be at least 12 characters."
+  echo "Choose a longer local dry-run secret and retry."
+  exit 2
+fi
+
 echo "=================================================="
 echo "ELARIS FIELD SESSION PACK V1 — DRY RUN"
 echo "=================================================="
