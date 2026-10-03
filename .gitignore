@@ -24,6 +24,7 @@ next-env.d.ts
 
 # Edge Collector — robot captures are sensitive local artifacts
 /captures/
+/.field-kit/
 
 # misc
 .DS_Store
