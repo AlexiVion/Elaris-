@@ -132,7 +132,7 @@ test("Placement Workspace matches the full demo application standard", async ({ 
   await expect(page.getByText("B-0017-01 · C004")).toBeVisible();
 
   await page.getByRole("link", { name: "Information Requests", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Information Requests" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Information Requests", exact: true })).toBeVisible();
   await expect(page.getByText("Operator training record")).toBeVisible();
 
   await page.getByRole("link", { name: "Market Questions", exact: true }).click();
