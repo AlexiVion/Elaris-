@@ -209,3 +209,21 @@ later anomaly models
 ~~~
 
 Failure prediction and Remaining Useful Life remain out of scope until longitudinal data and real outcomes support them.
+
+## Field readiness
+
+A dedicated **Siglo 21 Field Kit V0** now wraps the collector with:
+
+- Windows replay/development preflight;
+- Linux live-SDK setup;
+- no-robot Unitree doctor;
+- Linux live preflight;
+- on-site field runbook;
+- explicit stop conditions and data-approval sequence.
+
+The selected live path targets Linux because Unitree's public SDK2 documentation publishes an Ubuntu/Linux development setup. Windows remains valid for replay, development, encrypted capture review and synthetic validation, but Elaris does not claim native-Windows DDS field readiness.
+
+See:
+
+- `docs/pilots/siglo21/field-kit-v0.md`
+- `docs/pilots/siglo21/field-runbook-v0.md`

@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import {
   ReplayTransport,
@@ -26,6 +27,9 @@ async function main() {
   const [, , command, ...args] = process.argv;
 
   switch (command) {
+    case "doctor-unitree":
+      await doctorUnitree(args);
+      return;
     case "inspect-unitree":
       await inspectUnitree(args);
       return;
@@ -52,6 +56,77 @@ async function main() {
   }
 }
 
+async function doctorUnitree(args: string[]) {
+  const networkInterface = requiredFlag(args, "--interface");
+  const pythonCommand = process.env.ELARIS_UNITREE_PYTHON ?? "python3";
+  const scriptPath = resolve("apps/edge-collector/unitree_g1_preflight.py");
+  const bridgePath = resolve("apps/edge-collector/unitree_g1_readonly_bridge.py");
+
+  const env = { ...process.env };
+  delete env.ELARIS_EDGE_PASSPHRASE;
+
+  const result = spawnSync(
+    pythonCommand,
+    [scriptPath, "--interface", networkInterface, "--bridge", bridgePath],
+    {
+      encoding: "utf8",
+      shell: false,
+      windowsHide: true,
+      env,
+    }
+  );
+
+  const stdout = (result.stdout ?? "").trim();
+  const stderr = (result.stderr ?? "").trim();
+
+  let payload: any = null;
+  try {
+    payload = stdout ? JSON.parse(stdout) : null;
+  } catch {
+    payload = null;
+  }
+
+  console.log("ELARIS UNITREE FIELD DOCTOR");
+  console.log("---------------------------");
+  console.log("Robot connection: NOT ATTEMPTED");
+  console.log("Mode: READ ONLY");
+  console.log(`Python: ${pythonCommand}`);
+  console.log(`Requested interface: ${networkInterface}`);
+  console.log("");
+
+  if (payload?.checks) {
+    const checks = payload.checks as Record<string, { ok?: boolean; [key: string]: unknown }>;
+    for (const [name, check] of Object.entries(checks)) {
+      console.log(`${check.ok ? "PASS" : "FAIL"}: ${name}`);
+    }
+    console.log("");
+    console.log(`Host mode: ${payload.host_mode ?? "UNKNOWN"}`);
+    console.log(`SOFTWARE READY: ${payload.software_ready ? "YES" : "NO"}`);
+    console.log(`NETWORK LINK READY: ${payload.network_link_ready ? "YES" : "NO"}`);
+    console.log(`LIVE ROBOT HOST READY: ${payload.live_host_ready ? "YES" : "NO"}`);
+  } else {
+    console.log("FIELD READY: NO");
+    console.log("Preflight did not return valid JSON.");
+  }
+
+  if (stderr) {
+    console.log("");
+    console.log("Preflight stderr:");
+    console.log(stderr);
+  }
+
+  if (result.error) {
+    throw result.error;
+  }
+  if (!payload?.software_ready) {
+    throw new Error("Unitree software preflight failed. Fix FAIL items before continuing.");
+  }
+
+  if (!payload?.live_host_ready) {
+    console.log("");
+    console.log("Live robot host is NOT field-ready. WSL is software-only, and native Linux also requires an active multicast-capable interface.");
+  }
+}
 async function inspectUnitree(args: string[]) {
   const networkInterface = requiredFlag(args, "--interface");
   const sampleHz = numberFlag(args, "--hz", 20);
@@ -420,6 +495,8 @@ Security defaults:
   export requires explicit local approval
 
 Commands:
+
+  pnpm edge doctor-unitree --interface <iface>
 
   pnpm edge inspect-unitree --interface <iface> [--hz 20]
 
