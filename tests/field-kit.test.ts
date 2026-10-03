@@ -95,6 +95,24 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(receiver).toContain("IP_ADD_MEMBERSHIP");
     expect(powershell).not.toContain("Set-NetFirewallHyperVVMSetting");
   });
+  it("keeps the WSL multicast firewall exception narrow and removable", async () => {
+    const enable = await readFile(
+      resolve("scripts/field-kit/enable_wsl_multicast_probe_rule.ps1"),
+      "utf8"
+    );
+    const disable = await readFile(
+      resolve("scripts/field-kit/disable_wsl_multicast_probe_rule.ps1"),
+      "utf8"
+    );
+
+    expect(enable).toContain("-Direction Inbound");
+    expect(enable).toContain("-Protocol UDP");
+    expect(enable).toContain("-LocalPorts $Port");
+    expect(enable).toContain("-VMCreatorId $WslCreatorId");
+    expect(enable).toContain("-Action Allow");
+    expect(enable).not.toContain("DefaultInboundAction");
+    expect(disable).toContain("Remove-NetFirewallHyperVRule");
+  });
   it("keeps field artifacts outside git", async () => {
     const gitignore = await readFile(resolve(".gitignore"), "utf8");
     expect(gitignore).toContain("/captures/");
