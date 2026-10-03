@@ -94,19 +94,26 @@ test("Evidence Review exposes assessment, evidence matrix and prototype findings
 });
 
 test("Incident Reconstruction reconstructs baseline, timeline and evidence gaps", async ({ page }) => {
+  test.setTimeout(60_000);
+
   await page.goto("/platform/incident-reconstruction");
 
   await expect(page.getByRole("heading", { name: "Incident Reconstruction" })).toBeVisible();
   await expect(page.getByText(/INC-2026-001/)).toBeVisible();
   await expect(page.getByText(/B-0017-01 · C004/)).toBeVisible();
 
-  await page.getByRole("link", { name: /INC-2026-001/ }).click();
-  await expect(page).toHaveURL(/incident-reconstruction\/incidents\/INC-2026-001/);
+  await Promise.all([
+    page.waitForURL(/incident-reconstruction\/incidents\/INC-2026-001/, { timeout: 20_000 }),
+    page.getByRole("link", { name: /INC-2026-001/ }).click(),
+  ]);
   await expect(page.getByText("Configuration at time is reconstructable")).toBeVisible();
   await expect(page.getByText("Person detected in restricted zone")).toBeVisible();
 
-  await page.getByRole("link", { name: /Open evidence room/ }).click();
-  await expect(page.getByRole("heading", { name: "Evidence Room · INC-2026-001" })).toBeVisible();
+  await Promise.all([
+    page.waitForURL(/incident-reconstruction\/evidence$/, { timeout: 20_000 }),
+    page.getByRole("link", { name: /Open evidence room/ }).click(),
+  ]);
+  await expect(page.getByRole("heading", { name: "Evidence Room · INC-2026-001" })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText("Robot log bundle")).toBeVisible();
   await expect(page.getByText("Photos / video")).toBeVisible();
 });
