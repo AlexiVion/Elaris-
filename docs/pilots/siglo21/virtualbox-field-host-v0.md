@@ -156,3 +156,55 @@ NODE_OPTIONS=--dns-result-order=ipv4first pnpm build
 ~~~
 
 This is a host-network workaround only; it does not alter Elaris runtime behavior.
+
+
+## Final VM verification result — 2026-10-03
+
+The Ubuntu VirtualBox host completed the repository verification path after the environment was upgraded to Node 20 and Playwright Chromium system dependencies were installed.
+
+Observed runtime:
+
+- Node 20.20.2;
+- npm 10.8.2;
+- pnpm 9.15.4;
+- Playwright Chromium installed;
+- required Ubuntu browser libraries installed through Playwright's official dependency installer.
+
+Verification evidence collected during the integrated stack work:
+
+~~~text
+pnpm db:reset                       PASS
+pnpm lint                           PASS
+pnpm typecheck                      PASS
+pnpm test                           PASS — 90/90
+NODE_OPTIONS=--dns-result-order=ipv4first pnpm build
+                                      PASS
+pnpm exec playwright test           PASS — 15/15
+~~~
+
+Additional targeted evidence:
+
+~~~text
+Robot Adapter tests                 7/7 PASS
+Field Kit tests                    15/15 PASS
+Platform E2E spec                   8/8 PASS
+Incident Reconstruction target      1/1 PASS
+Evidence/requirements smoke target  1/1 PASS
+~~~
+
+The full Playwright suite took approximately 3.5 minutes on the external-drive VM. Some multi-page E2E scenarios required scoped test timeouts because the VM is materially slower than a native SSD environment.
+
+Those timeout changes are test-harness accommodations only. They do not alter product/runtime behavior.
+
+Current interpretation:
+
+~~~text
+VM SOFTWARE ENVIRONMENT             READY
+GENERIC WI-FI MULTICAST RECEIVE     VALIDATED
+LINUX LIVE-HOST PREREQUISITES       READY
+PHYSICAL UNITREE G1 CONNECTION      NOT ATTEMPTED
+REAL UNITREE DDS DISCOVERY          NOT VALIDATED
+REAL rt/lowstate                    NOT VALIDATED
+~~~
+
+See `docs/pilots/siglo21/robotics-integration-v0-record.md` for the complete implementation and integration record.
