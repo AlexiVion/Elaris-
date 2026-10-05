@@ -1,0 +1,355 @@
+# Elaris × NVIDIA Cosmos — Execution Backlog V0
+
+**Estado general:** PLANNED  
+**Fecha:** 2026-10-05  
+**Gestión:** GitHub repository as source of truth  
+**Spec:** `spec-v0.md`  
+**Plan:** `implementation-plan-v0.md`
+
+> Nota operativa: el repositorio fuente `AlexiVion/Elaris-` tiene Issues deshabilitados y la integración actual no tiene permiso para crear Issues en `Juanmarossi/Elaris-`. Hasta que Juanma habilite/cree los Issues canónicos, este archivo funciona como backlog ejecutable y versionado.
+
+---
+
+## Estados permitidos
+
+- `BLOCKED`
+- `READY`
+- `IN_PROGRESS`
+- `REVIEW`
+- `VALIDATED`
+- `DONE`
+- `KILLED`
+
+---
+
+## Backlog
+
+| ID | Fase | Estado | Dependencia | Branch sugerida |
+|---|---|---|---|---|
+| COSMOS-000 | Epic / programa | READY | — | — |
+| COSMOS-001 | Dataset #001 Siglo 21 | BLOCKED | autorización / robot real | `field/siglo21-dataset-001` |
+| COSMOS-002 | Scenario Domain Contract | READY | spec | `feat/scenario-domain-v0` |
+| COSMOS-003 | Runtime + WorldModelProvider | READY | COSMOS-002 parcialmente | `feat/world-model-provider-v0` |
+| COSMOS-004 | Cosmos Reasoner V0 | BLOCKED | COSMOS-003 | `feat/cosmos-reasoner-v0` |
+| COSMOS-005 | Scenario Evidence Pack V0 | BLOCKED | COSMOS-002 + COSMOS-004 | `feat/scenario-evidence-pack-v0` |
+| COSMOS-006 | Cosmos Generator / Action experiment | BLOCKED | COSMOS-005 | `exp/cosmos-generator-v0` |
+| COSMOS-007 | Isaac Sim bridge experiment | BLOCKED | COSMOS-002 | `exp/isaac-scenario-bridge-v0` |
+| COSMOS-008 | Product System integration | BLOCKED | COSMOS-005 + decisions 006/007 | `feat/scenario-product-views-v0` |
+| COSMOS-009 | Humandroid + insurance validation | BLOCKED | COSMOS-005/008 | no code branch required |
+| COSMOS-010 | Productization decision | BLOCKED | COSMOS-009 | docs/decision only |
+
+---
+
+# COSMOS-000 — Epic / programa
+
+## Objective
+
+Ejecutar Elaris × NVIDIA Cosmos V0 y terminar con una decisión explícita:
+
+- PRODUCTIZE
+- SERVICE CAPABILITY
+- MERGE INTO EXISTING PRODUCT
+- KILL
+
+## Done
+
+- COSMOS-001..010 resueltos o explícitamente descartados;
+- field + user evidence registrada;
+- decisión final versionada.
+
+---
+
+# COSMOS-001 — Capture and approve Siglo 21 Dataset #001
+
+**Estado:** BLOCKED  
+**Bloqueador:** acceso autorizado al Unitree G1 real.
+
+## Objective
+
+Obtener el primer baseline real read-only usando Robot Adapter + Edge Collector + Field Kit.
+
+## Deliverables
+
+- field preflight;
+- inspect-unitree;
+- encrypted capture;
+- manifest;
+- checksums;
+- normalization sample;
+- session report;
+- export approval.
+
+## Acceptance criteria
+
+- variante/DOF/channels observados donde sea posible;
+- `rt/lowstate` real o fallo documentado;
+- zero robot commands;
+- no ChannelPublisher;
+- data local/encrypted hasta aprobación;
+- Dataset #001 aprobado para experimento o bloqueo explícito.
+
+---
+
+# COSMOS-002 — Scenario Domain Contract V0
+
+**Estado:** READY
+
+## Objective
+
+Crear dominio de scenarios independiente de NVIDIA.
+
+## Deliverables
+
+`lib/scenarios/`:
+
+- types;
+- schema;
+- compiler;
+- provenance;
+- evidence-class;
+- templates;
+- hash.
+
+## Tests
+
+- deterministic hash;
+- missing critical refs fail;
+- observed/synthetic boundary;
+- provenance roundtrip;
+- golden scenario.
+
+## Acceptance criteria
+
+Funciona sin NVIDIA SDKs.
+
+---
+
+# COSMOS-003 — Runtime + WorldModelProvider
+
+**Estado:** READY
+
+## Objective
+
+Desacoplar Elaris de Cosmos y elegir runtime V0.
+
+## Deliverables
+
+`lib/world-models/`:
+
+- provider contract;
+- registry;
+- mock;
+- capabilities;
+- health.
+
+ADR:
+
+`docs/architecture/adr-cosmos-runtime-v0.md`.
+
+## Runtime comparison
+
+- NVIDIA hosted;
+- NIM;
+- GPU cloud;
+- local NIM;
+- Cosmos Framework.
+
+## Acceptance criteria
+
+- non-sensitive smoke call;
+- provider/model/runtime metadata visible;
+- no secrets logged;
+- fallback definido.
+
+---
+
+# COSMOS-004 — Cosmos Reasoner V0
+
+**Estado:** BLOCKED por COSMOS-003
+
+## Objective
+
+ScenarioSpec → Cosmos Reasoner → ScenarioFinding.
+
+## Acceptance criteria
+
+- end-to-end request;
+- result = INFERRED;
+- source refs preserved;
+- model/version recorded;
+- timeout/auth/error paths tested;
+- CI uses mocks and needs no live credentials.
+
+---
+
+# COSMOS-005 — Scenario Evidence Pack V0
+
+**Estado:** BLOCKED
+
+## Objective
+
+Crear el primer deliverable trazable.
+
+## Sections
+
+1. Scope
+2. System Snapshot
+3. Configuration/Baseline
+4. Observed Evidence
+5. Scenario Matrix
+6. Runs
+7. Findings
+8. Assumptions
+9. Model Provenance
+10. Evaluations
+11. Open Questions
+12. Limitations
+13. Human Review
+
+## Acceptance criteria
+
+Observed / Simulated / Inferred son inequívocos.
+
+---
+
+# COSMOS-006 — Cosmos Generator / Action Experiment
+
+**Estado:** BLOCKED
+
+## Objective
+
+Evaluar world generation y action modes sin asumir compatibilidad Unitree.
+
+## Acceptance criteria
+
+- domain/action contract comprobado antes de mapping;
+- unsupported G1 action path fails closed;
+- seed/version/hashes registrados;
+- outputs SIMULATED;
+- decisión KEEP / MODIFY / DO NOT USE.
+
+---
+
+# COSMOS-007 — Isaac Sim Bridge Experiment
+
+**Estado:** BLOCKED
+
+## Objective
+
+Materializar un ScenarioSpec como escenario físico.
+
+## Acceptance criteria
+
+- robot/joints/config mapeados;
+- missing geometry/config explícito;
+- ScenarioSpec hash preservado;
+- output SIMULATED;
+- decisión KEEP / MODIFY / DO NOT USE.
+
+---
+
+# COSMOS-008 — Product System Integration
+
+**Estado:** BLOCKED
+
+## Candidate surfaces
+
+### Deployment Control
+Scenario Retest Suggestions.
+
+### Component Health
+Component Scenario Review.
+
+### Placement / Risk Record
+Physical AI Scenario Stress Test.
+
+### Incident Reconstruction
+Counterfactual Scenario Set.
+
+## Acceptance criteria
+
+Cada integración tiene:
+
+- actor;
+- decisión;
+- evidence boundary;
+- human authority;
+- no unsupported claim.
+
+---
+
+# COSMOS-009 — Humandroid + insurance validation
+
+**Estado:** BLOCKED
+
+## Humandroid
+
+Mostrar:
+
+- real baseline cuando exista;
+- 3–5 scenario preview;
+- provenance;
+- limitations.
+
+Capturar:
+
+- useful/noise;
+- missing scenarios;
+- changed decision;
+- owner;
+- willingness to pay.
+
+## Risk / insurance actor
+
+Mostrar el mismo technical truth como Scenario Stress Test.
+
+## Acceptance criteria
+
+Real review documentada o bloqueo explícito.
+
+---
+
+# COSMOS-010 — Productization decision
+
+**Estado:** BLOCKED
+
+## Inputs
+
+- field evidence;
+- repeated workflow;
+- actor feedback;
+- willingness to pay;
+- runtime cost;
+- trust/provenance;
+- Generator decision;
+- Isaac decision.
+
+## Output
+
+Uno de:
+
+- PRODUCTIZE;
+- KEEP AS SERVICE;
+- MERGE INTO PRODUCT;
+- KILL.
+
+No continuar por inercia.
+
+---
+
+# Operating procedure
+
+Al empezar un ticket:
+
+1. cambiar estado a `IN_PROGRESS`;
+2. crear branch sugerida;
+3. registrar decisiones importantes en el mismo ticket/backlog o ADR;
+4. implementar;
+5. ejecutar verification;
+6. abrir PR;
+7. pasar a `REVIEW`;
+8. merge;
+9. adjuntar evidencia/commit/PR;
+10. pasar a `DONE` o `VALIDATED`.
+
+Cuando Issues estén disponibles en el repositorio canónico, crear un Issue por cada `COSMOS-00X` usando esta sección como body y reemplazar este backlog por links a los Issues sin perder el historial.
