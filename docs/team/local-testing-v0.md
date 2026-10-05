@@ -169,19 +169,75 @@ No se debe degradar el estándar de verificación: se mueve el cómputo al entor
 
 ## Self-hosted GitHub runner
 
-Un self-hosted runner puede añadirse más adelante para que GitHub orqueste jobs sobre una máquina propia.
+El repositorio incluye:
 
-No se habilita automáticamente en V0 porque el fork actual es público. Un runner conectado a un repositorio público amplía la superficie de ejecución de código no confiable.
+`.github/workflows/local-self-hosted.yml`
 
-Si se habilita después:
+Este workflow es **manual-only** mediante `workflow_dispatch`.
 
-1. usar un runner dedicado;
-2. evitar triggers automáticos desde pull requests públicos;
-3. preferir `workflow_dispatch` o ramas controladas;
-4. usar labels dedicados como `elaris-local`;
-5. no guardar secretos sensibles en el workspace del runner;
-6. mantener Robot/Edge capture data fuera del runner workspace;
-7. no convertir la máquina de campo Siglo 21 en runner de CI.
+No escucha:
+
+- `pull_request`;
+- `push`;
+- forks;
+- branches externas.
+
+Target:
+
+~~~text
+self-hosted
+windows
+x64
+elaris-local
+~~~
+
+### Registro inicial en Windows
+
+En GitHub:
+
+~~~text
+Repository
+→ Settings
+→ Actions
+→ Runners
+→ New self-hosted runner
+→ Windows
+→ x64
+~~~
+
+Ejecutar en PowerShell los comandos que GitHub genera en esa pantalla.
+
+Durante la configuración:
+
+- nombre recomendado: `elaris-local-win`;
+- label custom: `elaris-local`;
+- directorio recomendado por GitHub: `C:\actions-runner`;
+- para V0, preferir ejecución interactiva con `.\run.cmd` antes que instalarlo como servicio.
+
+La registration token generada por GitHub es temporal. No debe guardarse en el repo, en docs ni en scripts.
+
+### Uso
+
+1. iniciar el runner local con `.\run.cmd`;
+2. abrir Actions → `Elaris Local Self-Hosted Verification`;
+3. elegir `Run workflow`;
+4. el job corre en tu máquina y ejecuta `pnpm verify:local`.
+
+### Seguridad
+
+El fork actual es público. Por eso el workflow self-hosted permanece manual-only.
+
+No agregar `pull_request` a este workflow mientras el runner apunte a una workstation personal.
+
+Mantener:
+
+1. el runner apagado cuando no se usa;
+2. secretos sensibles fuera del workspace;
+3. Robot/Edge capture data fuera del runner workspace;
+4. la VM/host de campo Siglo 21 fuera del pool de CI;
+5. un label dedicado `elaris-local`.
+
+Si en el futuro Elaris usa un runner dedicado/aislado o el repositorio cambia su exposición, esta política puede revisarse mediante ADR.
 
 ## Relación con la verificación anterior
 
