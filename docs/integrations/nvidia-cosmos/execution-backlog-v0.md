@@ -141,7 +141,7 @@ Funciona sin NVIDIA SDKs.
 
 # COSMOS-003 — Runtime + WorldModelProvider
 
-**Estado:** READY
+**Estado:** IN_PROGRESS
 
 ## Objective
 
