@@ -1,7 +1,10 @@
 import type { EvidenceProvenance } from "./evidence-class";
 import { canonicalScenarioSpec, hashScenario } from "./hash";
 import { buildScenarioProvenance } from "./provenance";
-import { scenarioSpecSchema } from "./schema";
+import {
+  evidenceProvenanceSchema,
+  scenarioSpecSchema,
+} from "./schema";
 import type { CompiledScenario, ScenarioSpec } from "./types";
 
 export type CompileScenarioInput = {
@@ -22,10 +25,13 @@ export function compileScenario(
   const parsed = scenarioSpecSchema.parse(input.spec) as ScenarioSpec;
   const spec = canonicalScenarioSpec(parsed);
   const hash = hashScenario(spec);
+  const evidence = (input.evidence ?? []).map(
+    (item) => evidenceProvenanceSchema.parse(item) as EvidenceProvenance
+  );
   const provenance = buildScenarioProvenance(
     spec,
     hash,
-    input.evidence ?? []
+    evidence
   );
 
   return deepFreeze({
