@@ -314,15 +314,16 @@ Documentación oficial revisada el 2026-10-05:
 - P4 puede implementar CosmosProvider sin contaminar Scenario Domain.
 - CI usa mock sin credenciales.
 - Sensitive egress falla cerrado.
-- Hosted permite medir valor antes de pagar infraestructura GPU.
-- NIM queda definido como escape hatch de control/reproducibilidad.
+- El provider vendor-neutral permite cambiar de runtime sin tocar Scenario Domain.
+- El fallo del hosted path queda registrado como evidencia operativa, no oculto.
+- NIM queda definido como camino ejecutable para control/reproducibilidad cuando exista infraestructura aprobada.
 
 ### Costes
 
-- habrá al menos dos runtime modes;
 - hosted y self-hosted pueden exponer metadata distinta;
 - model-version observability debe normalizarse;
-- P3 conserva un gate externo pendiente hasta ejecutar smoke real.
+- el live gate requiere GPU/runtime disponible si NVIDIA no reactiva hosted;
+- P3 conserva un bloqueo externo explícito hasta ejecutar una inferencia Cosmos real.
 
 ---
 
@@ -330,7 +331,6 @@ Documentación oficial revisada el 2026-10-05:
 
 **KEEP.**
 
-- WorldModelProvider: KEEP.
 - WorldModelProvider: KEEP.
 - NVIDIA hosted API: **DEFER / RECHECK**, not currently accepted as the primary executable runtime.
 - NIM cloud/dedicated: **PROMOTE TO PRIMARY EXECUTABLE PATH** for a real Cosmos API smoke, subject to cost/infrastructure approval.
