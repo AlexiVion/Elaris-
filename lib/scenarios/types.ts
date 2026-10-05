@@ -1,7 +1,4 @@
-import type {
-  EvidenceClass,
-  EvidenceProvenance,
-} from "./evidence-class";
+import type { EvidenceProvenance } from "./evidence-class";
 
 export const SCENARIO_CAPABILITIES = [
   "REASON",
@@ -76,7 +73,7 @@ export type ScenarioArtifact = Readonly<{
   localPath?: string | null;
   sha256: string;
   sensitivity: "PUBLIC" | "INTERNAL" | "SENSITIVE" | "RESTRICTED";
-  evidenceClass: EvidenceClass;
+  evidenceClass: "SIMULATED" | "INFERRED";
 }>;
 
 export type ScenarioFinding = Readonly<{
@@ -84,7 +81,7 @@ export type ScenarioFinding = Readonly<{
   runId: string;
   claim: string;
   evidenceRefs: readonly string[];
-  evidenceClass: "INFERRED" | "HYPOTHESIS" | "HUMAN_CONFIRMED";
+  evidenceClass: "INFERRED" | "HYPOTHESIS";
   confidenceDescriptor?: string | null;
   limitations: readonly string[];
   humanReviewStatus:
