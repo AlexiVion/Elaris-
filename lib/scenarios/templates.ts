@@ -25,7 +25,7 @@ export const REDUCED_COMPONENT_PERFORMANCE_TEMPLATE: ScenarioTemplate =
     failureHypotheses: [
       "Reduced component performance may alter task execution and should be reviewed against observed evidence.",
     ],
-    requestedCapabilities: ["REASON"],
+    requestedCapabilities: ["REASON"] as const,
   });
 
 export function applyScenarioTemplate(
