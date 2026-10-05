@@ -29,7 +29,7 @@
 | COSMOS-000 | Epic / programa | READY | — | — |
 | COSMOS-001 | Dataset #001 Siglo 21 | BLOCKED | autorización / robot real | `field/siglo21-dataset-001` |
 | COSMOS-002 | Scenario Domain Contract | REVIEW | spec | `feat/scenario-domain-v0` |
-| COSMOS-003 | Runtime + WorldModelProvider | IN_PROGRESS | COSMOS-002 parcialmente + live NVIDIA smoke | `feat/world-model-provider-v0` |
+| COSMOS-003 | Runtime + WorldModelProvider | BLOCKED | hosted Cosmos API unavailable; self-hosted runtime required for live gate | `feat/world-model-provider-v0` |
 | COSMOS-004 | Cosmos Reasoner V0 | BLOCKED | COSMOS-003 | `feat/cosmos-reasoner-v0` |
 | COSMOS-005 | Scenario Evidence Pack V0 | BLOCKED | COSMOS-002 + COSMOS-004 | `feat/scenario-evidence-pack-v0` |
 | COSMOS-006 | Cosmos Generator / Action experiment | BLOCKED | COSMOS-005 | `exp/cosmos-generator-v0` |
@@ -141,7 +141,8 @@ Funciona sin NVIDIA SDKs.
 
 # COSMOS-003 — Runtime + WorldModelProvider
 
-**Estado:** IN_PROGRESS
+**Estado:** BLOCKED
+**Bloqueador:** el hosted NVIDIA API autentica y lista modelos, pero los Cosmos Reasoner probados no están actualmente invocables por API; el live inference gate requiere un runtime self-hosted/controlado o que NVIDIA reactive el servicio.
 
 ## Objective
 
@@ -197,8 +198,14 @@ ADR:
   - `nvidia/cosmos3-nano-reasoner` — **NOT VISIBLE** para la cuenta/endpoint actual;
   - `nvidia/cosmos-reason2-8b` — visible en el catálogo devuelto;
   - no se envió field data ni información sensible.
-- Esta evidencia valida acceso/autenticación al hosted NVIDIA API, **no** una inferencia Cosmos3 Nano.
-- Próximo gate: ejecutar un non-sensitive live smoke con un Cosmos model visible y registrar la inferencia; mantener Cosmos3 Nano explícitamente como target no validado mientras siga fuera del catálogo de la cuenta.
+- Segunda prueba hosted ejecutada con `nvidia/cosmos-reason2-8b`:
+  - target visible en `GET /v1/models` — YES;
+  - `POST /v1/chat/completions` — HTTP 404;
+  - no se envió field data ni información sensible.
+- NVIDIA Developer Forums documenta el mismo patrón para Cosmos Reason2 (modelo visible en `/v1/models` + 404 de inference) y un representante de NVIDIA informó que el API/video upload del modelo fue deshabilitado por razones de seguridad; el modelo queda utilizable vía web experience o self-hosted deployment.
+- `nvidia/cosmos3-nano-reasoner` permanece publicado como Free Endpoint en Build, pero no aparece en el catálogo autenticado de esta cuenta y su invocación directa también devolvió 404. No se afirma la causa exacta de esa discrepancia.
+- Conclusión operativa: hosted NVIDIA API **no satisface actualmente el live Cosmos inference gate** para Elaris. COSMOS-003 pasa a `BLOCKED` por dependencia externa/runtime.
+- Próximo camino ejecutable: NIM/self-hosted OpenAI-compatible runtime en infraestructura GPU controlada cuando exista una opción de coste/infraestructura aceptada, o reintentar hosted sólo si NVIDIA reactiva/exhibe un Cosmos Reasoner invocable.
 - Dataset #001 continúa separado y BLOCKED por acceso/autorización al Unitree G1 real; ningún fixture sintético se reclasifica como evidencia observada.
 
 ---
