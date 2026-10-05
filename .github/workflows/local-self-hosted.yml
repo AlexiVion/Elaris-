@@ -1,0 +1,39 @@
+name: Elaris Local Self-Hosted Verification
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: elaris-local-self-hosted
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Full local verification
+    runs-on:
+      - self-hosted
+      - windows
+      - x64
+      - elaris-local
+    timeout-minutes: 60
+    env:
+      DATABASE_URL: file:./dev.db
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Runtime versions
+        shell: powershell
+        run: |
+          node --version
+          pnpm --version
+          git --version
+
+      - name: Ensure Playwright Chromium
+        shell: powershell
+        run: pnpm exec playwright install chromium
+
+      - name: Full repository verification
+        shell: powershell
+        run: pnpm verify:local

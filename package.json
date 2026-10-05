@@ -17,7 +17,10 @@
     "db:reset": "prisma migrate reset --force --skip-generate --skip-seed && pnpm db:seed",
     "db:push": "prisma db push",
     "postinstall": "prisma generate",
-    "field:preflight:windows": "powershell -ExecutionPolicy Bypass -File scripts/field-kit/preflight_windows.ps1"
+    "field:preflight:windows": "powershell -ExecutionPolicy Bypass -File scripts/field-kit/preflight_windows.ps1",
+    "verify:local": "node scripts/testing/run-local-gates.mjs",
+    "verify:quick": "node scripts/testing/run-local-gates.mjs --quick",
+    "test:scenarios": "vitest run tests/scenarios"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
