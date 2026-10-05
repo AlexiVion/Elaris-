@@ -27,8 +27,8 @@ const skipInstall = args.has("--skip-install") || quick;
 const skipDb = args.has("--skip-db") || quick;
 const skipE2e = args.has("--skip-e2e") || quick;
 
-const git = executable("git");
-const pnpm = executable("pnpm");
+const git = "git";
+const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 
 const repoRoot = capture(git, ["rev-parse", "--show-toplevel"]).trim();
 if (!repoRoot) {
@@ -144,10 +144,6 @@ console.log("============================================================");
 
 if (failed) {
   process.exitCode = 1;
-}
-
-function executable(name) {
-  return process.platform === "win32" ? `${name}.cmd` : name;
 }
 
 function capture(command, commandArgs) {
