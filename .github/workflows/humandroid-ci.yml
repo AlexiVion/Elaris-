@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/humandroid-pilot
+      - chore/cosmos-003-verification
   pull_request:
     branches:
       - main
