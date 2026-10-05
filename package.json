@@ -17,7 +17,8 @@
     "db:reset": "prisma migrate reset --force --skip-generate --skip-seed && pnpm db:seed",
     "db:push": "prisma db push",
     "postinstall": "prisma generate",
-    "field:preflight:windows": "powershell -ExecutionPolicy Bypass -File scripts/field-kit/preflight_windows.ps1"
+    "field:preflight:windows": "powershell -ExecutionPolicy Bypass -File scripts/field-kit/preflight_windows.ps1",
+    "field:dry-run": "bash scripts/field-kit/run_field_session_dry_run.sh"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

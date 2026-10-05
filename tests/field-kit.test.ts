@@ -196,4 +196,24 @@ describe("Siglo 21 Field Kit V0", () => {
     expect(gitignore).toContain("/captures/");
     expect(gitignore).toContain("/.field-kit/");
   });
+  it("provides a no-robot Field Session Pack dry run that cannot enter live acquisition", async () => {
+    const script = await readFile(
+      resolve("scripts/field-kit/run_field_session_dry_run.sh"),
+      "utf8"
+    );
+
+    expect(script).toContain("preflight_live_linux.sh");
+    expect(script).toContain("capture-replay");
+    expect(script).toContain("pnpm edge review");
+    expect(script).toContain("State: FINALIZED");
+    expect(script).toContain("Classification: SENSITIVE");
+    expect(script).toContain("Export approval: NOT_APPROVED");
+    expect(script).toContain(".field-kit/field-session-dry-run");
+    expect(script).toContain("must be at least 12 characters");
+    expect(script).toContain("${#ELARIS_EDGE_PASSPHRASE}");
+    expect(script).not.toContain("inspect-unitree");
+    expect(script).not.toContain("capture-unitree");
+    expect(script).not.toContain("approve-export");
+  });
+
 });
