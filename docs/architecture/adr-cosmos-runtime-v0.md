@@ -1,6 +1,6 @@
 # ADR — Cosmos Runtime V0
 
-**Estado:** ACCEPTED FOR NON-SENSITIVE SPIKE · LIVE SMOKE PENDING  
+**Estado:** REVISED · HOSTED LIVE INFERENCE BLOCKED  
 **Fecha:** 2026-10-05  
 **Track:** Elaris × NVIDIA Cosmos  
 **Ticket:** COSMOS-003  
@@ -12,8 +12,8 @@
 
 Para V0 se adopta una estrategia en dos niveles:
 
-1. **Runtime primario de engineering/spike:** endpoint hosted de NVIDIA para `nvidia/cosmos3-nano-reasoner`, limitado estrictamente a inputs `PUBLIC` / `INTERNAL` no sensibles y fixtures synthetic/replay.
-2. **Fallback y runtime requerido para datos sensibles/reales cuando corresponda:** Cosmos3 Reasoner NIM self-hosted en una GPU cloud o servidor dedicado dentro de un boundary explícitamente aprobado.
+1. **Primary executable runtime for a real API integration:** Cosmos3 Reasoner NIM/self-hosted on controlled GPU infrastructure when an acceptable cost/runtime option is available.
+2. **Hosted NVIDIA endpoint:** retained only as a re-check target / manual web-experience path while the API availability mismatch remains unresolved. It is not currently accepted as the primary executable V0 runtime.
 
 No se selecciona Local NIM como default V0.
 
@@ -106,12 +106,25 @@ Orden aplicado:
 4. reproducibilidad;
 5. setup operativo.
 
-### Hosted gana el spike porque
+### Hosted was originally selected for the spike because
 
-- no requiere provisionar GPU;
-- Reasoner es la primera capability priorizada;
-- permite probar ScenarioSpec → Reasoner con synthetic data;
-- reduce tiempo hasta evidencia de utilidad.
+- it does not require provisioning a GPU;
+- Reasoner is the first prioritized capability;
+- it would allow ScenarioSpec → Reasoner with synthetic data;
+- it would minimize time to first evidence.
+
+### Hosted status after live verification
+
+On 2026-10-05 the operator executed two authenticated smoke paths:
+
+- `nvidia/cosmos3-nano-reasoner`: not returned by the authenticated `GET /v1/models` catalogue; direct inference returned HTTP 404.
+- `nvidia/cosmos-reason2-8b`: returned by `GET /v1/models`, but `POST /v1/chat/completions` returned HTTP 404.
+
+This means hosted access/authentication is valid, but a live Cosmos Reasoner inference is not currently available through the tested API path.
+
+NVIDIA Developer Forums documents the same Cosmos Reason2 behavior and states that its hosted API/video upload capability was disabled for security reasons. The exact reason why Cosmos3 Nano is shown as a Free Endpoint in Build while not being exposed/invocable for this account is not established by this ADR.
+
+Therefore hosted no longer satisfies the P3 live-smoke gate.
 
 ### Hosted pierde como runtime de evidencia sensible porque
 
@@ -253,11 +266,16 @@ Registrar:
 
 ### Estado actual
 
-**BLOCKED ON CREDENTIAL/EXTERNAL ACCESS.**
+**BLOCKED ON LIVE COSMOS RUNTIME AVAILABILITY.**
 
-No existe una NVIDIA API key disponible en el contexto de ejecución actual.
+A valid NVIDIA Build API key exists outside the repository and authenticated successfully against the hosted model catalogue.
 
-No se reemplaza este gate con `MockWorldModelProvider`.
+The blocker is no longer credentials. The blocker is that the tested hosted Cosmos Reasoner routes do not currently complete inference:
+
+- Cosmos3 Nano: not visible in the authenticated catalogue and direct inference returns 404.
+- Cosmos Reason2 8B: visible in the catalogue, but inference returns 404.
+
+No mock result substitutes for this gate.
 
 ---
 
@@ -313,8 +331,9 @@ Documentación oficial revisada el 2026-10-05:
 **KEEP.**
 
 - WorldModelProvider: KEEP.
-- NVIDIA hosted: KEEP para non-sensitive spike.
-- NIM cloud/dedicated: KEEP como fallback / sensitive-data runtime.
-- Local NIM: DEFER.
+- WorldModelProvider: KEEP.
+- NVIDIA hosted API: **DEFER / RECHECK**, not currently accepted as the primary executable runtime.
+- NIM cloud/dedicated: **PROMOTE TO PRIMARY EXECUTABLE PATH** for a real Cosmos API smoke, subject to cost/infrastructure approval.
+- Local NIM: DEFER unless suitable NVIDIA GPU hardware becomes available.
 - Cosmos Framework: DEFER.
 - Real Cosmos validation: **NOT YET CLAIMED**.
