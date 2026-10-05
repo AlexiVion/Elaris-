@@ -28,7 +28,7 @@
 |---|---|---|---|---|
 | COSMOS-000 | Epic / programa | READY | — | — |
 | COSMOS-001 | Dataset #001 Siglo 21 | BLOCKED | autorización / robot real | `field/siglo21-dataset-001` |
-| COSMOS-002 | Scenario Domain Contract | READY | spec | `feat/scenario-domain-v0` |
+| COSMOS-002 | Scenario Domain Contract | REVIEW | spec | `feat/scenario-domain-v0` |
 | COSMOS-003 | Runtime + WorldModelProvider | READY | COSMOS-002 parcialmente | `feat/world-model-provider-v0` |
 | COSMOS-004 | Cosmos Reasoner V0 | BLOCKED | COSMOS-003 | `feat/cosmos-reasoner-v0` |
 | COSMOS-005 | Scenario Evidence Pack V0 | BLOCKED | COSMOS-002 + COSMOS-004 | `feat/scenario-evidence-pack-v0` |
@@ -92,7 +92,7 @@ Obtener el primer baseline real read-only usando Robot Adapter + Edge Collector 
 
 # COSMOS-002 — Scenario Domain Contract V0
 
-**Estado:** READY
+**Estado:** REVIEW
 
 ## Objective
 
@@ -121,6 +121,21 @@ Crear dominio de scenarios independiente de NVIDIA.
 ## Acceptance criteria
 
 Funciona sin NVIDIA SDKs.
+
+## Execution evidence — 2026-10-05
+
+- Implementation head verificado: `87c61f056526adc7100c8386ef728d2af33b7b0c`.
+- GitHub Actions verification run: `37343725674` sobre un commit temporal que difiere del implementation head únicamente por el trigger de CI.
+- `pnpm db:reset` — PASS.
+- `pnpm lint` — PASS.
+- `pnpm typecheck` — PASS.
+- `pnpm test` — PASS: 107/107 tests, 16/16 test files.
+- `pnpm build` — PASS.
+- `pnpm test:e2e` — PASS: 15/15 Playwright tests.
+- El Scenario Domain no importa NVIDIA SDKs ni depende de un runtime Cosmos.
+- El golden scenario sigue explícitamente clasificado como replay/synthetic + hypothesis; no constituye field validation.
+- Dataset #001 continúa BLOCKED por acceso/autorización al Unitree G1 real.
+- Warning no bloqueante observado en GitHub Actions: acciones basadas en Node.js 20 están siendo forzadas por el runner a Node.js 24.
 
 ---
 
