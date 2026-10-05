@@ -191,7 +191,14 @@ ADR:
 - Runtime V0 seleccionado para spike: NVIDIA hosted `nvidia/cosmos3-nano-reasoner`, sólo con payload sintético/no sensible.
 - Fallback definido: Cosmos3 Reasoner NIM en infraestructura GPU controlada para datos sensibles cuando exista aprobación.
 - Credencial NVIDIA disponible para el operador fuera del repositorio; **no se almacena ni se registra en GitHub**.
-- **Gate pendiente:** ejecutar y registrar una llamada real no sensible al endpoint hospedado. Hasta ese momento COSMOS-003 permanece `IN_PROGRESS` y no constituye validación real de Cosmos.
+- Hosted API preflight ejecutado por el operador desde Windows/PowerShell con una NVIDIA Build API key fuera del repositorio:
+  - `GET https://integrate.api.nvidia.com/v1/models` — SUCCESS;
+  - credencial válida para el hosted API;
+  - `nvidia/cosmos3-nano-reasoner` — **NOT VISIBLE** para la cuenta/endpoint actual;
+  - `nvidia/cosmos-reason2-8b` — visible en el catálogo devuelto;
+  - no se envió field data ni información sensible.
+- Esta evidencia valida acceso/autenticación al hosted NVIDIA API, **no** una inferencia Cosmos3 Nano.
+- Próximo gate: ejecutar un non-sensitive live smoke con un Cosmos model visible y registrar la inferencia; mantener Cosmos3 Nano explícitamente como target no validado mientras siga fuera del catálogo de la cuenta.
 - Dataset #001 continúa separado y BLOCKED por acceso/autorización al Unitree G1 real; ningún fixture sintético se reclasifica como evidencia observada.
 
 ---
