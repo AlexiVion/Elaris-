@@ -1,17 +1,40 @@
 param(
-    [string]$Endpoint = "https://integrate.api.nvidia.com/v1/chat/completions",
+    [string]$BaseUrl = "https://integrate.api.nvidia.com/v1",
     [string]$Model = "nvidia/cosmos3-nano-reasoner"
 )
 
 $ErrorActionPreference = "Stop"
 
+function Get-HttpErrorBody {
+    param($ErrorRecord)
+
+    try {
+        $response = $ErrorRecord.Exception.Response
+        if ($null -eq $response) { return $null }
+
+        $stream = $response.GetResponseStream()
+        if ($null -eq $stream) { return $null }
+
+        $reader = New-Object System.IO.StreamReader($stream)
+        try {
+            return $reader.ReadToEnd()
+        }
+        finally {
+            $reader.Dispose()
+        }
+    }
+    catch {
+        return $null
+    }
+}
+
 Write-Host "Elaris Cosmos hosted smoke V0"
-Write-Host "Endpoint: $Endpoint"
+Write-Host "Base URL: $BaseUrl"
 Write-Host "Model:    $Model"
 Write-Host "Data:     SYNTHETIC / NON-SENSITIVE"
 Write-Host ""
 
-$secureKey = Read-Host "NVIDIA API key" -AsSecureString
+$secureKey = Read-Host "NVIDIA Build API key" -AsSecureString
 $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey)
 
 try {
@@ -22,9 +45,65 @@ try {
     }
 
     $headers = @{
-        Authorization = "Bearer $apiKey"
-        Accept        = "application/json"
+        Authorization  = "Bearer $apiKey"
+        Accept         = "application/json"
         "Content-Type" = "application/json"
+    }
+
+    # Preflight: validate hosted API access and model visibility before inference.
+    Write-Host "Preflight: checking NVIDIA hosted model catalogue..."
+    try {
+        $catalog = Invoke-RestMethod -Method GET -Uri "$BaseUrl/models" -Headers $headers
+    }
+    catch {
+        $statusCode = $null
+        if ($_.Exception.Response -and $_.Exception.Response.StatusCode) {
+            try { $statusCode = [int]$_.Exception.Response.StatusCode } catch {}
+        }
+
+        $failure = [ordered]@{
+            smoke = "ELARIS_COSMOS_HOSTED_V0"
+            stage = "HOSTED_API_PREFLIGHT"
+            success = $false
+            input_class = "SYNTHETIC_NON_SENSITIVE"
+            base_url = $BaseUrl
+            requested_model = $Model
+            http_status = $statusCode
+            error = $_.Exception.Message
+            response_body = Get-HttpErrorBody $_
+            hint = "Use the API key generated from the model Experience / Free Endpoint flow, not only the Deploy / NGC container key."
+        }
+
+        $failure | ConvertTo-Json -Depth 10
+        exit 1
+    }
+
+    $modelIds = @()
+    if ($catalog.data) {
+        $modelIds = @($catalog.data | ForEach-Object { $_.id })
+    }
+
+    $modelVisible = $modelIds -contains $Model
+
+    Write-Host ("Preflight: hosted API reachable; target model visible = {0}" -f $modelVisible)
+
+    if (-not $modelVisible) {
+        $matching = @($modelIds | Where-Object { $_ -match "cosmos" })
+
+        $failure = [ordered]@{
+            smoke = "ELARIS_COSMOS_HOSTED_V0"
+            stage = "MODEL_VISIBILITY"
+            success = $false
+            input_class = "SYNTHETIC_NON_SENSITIVE"
+            base_url = $BaseUrl
+            requested_model = $Model
+            target_model_visible = $false
+            visible_cosmos_models = $matching
+            hint = "The hosted API key is valid, but this account/key does not currently expose the requested Cosmos model."
+        }
+
+        $failure | ConvertTo-Json -Depth 10
+        exit 1
     }
 
     $body = @{
@@ -60,8 +139,35 @@ Clearly state that the scenario is synthetic and that none of the hypotheses are
         stream = $false
     } | ConvertTo-Json -Depth 10
 
+    $endpoint = "$BaseUrl/chat/completions"
     $startedAt = (Get-Date).ToUniversalTime()
-    $response = Invoke-RestMethod -Method POST -Uri $Endpoint -Headers $headers -Body $body
+
+    try {
+        $response = Invoke-RestMethod -Method POST -Uri $endpoint -Headers $headers -Body $body
+    }
+    catch {
+        $statusCode = $null
+        if ($_.Exception.Response -and $_.Exception.Response.StatusCode) {
+            try { $statusCode = [int]$_.Exception.Response.StatusCode } catch {}
+        }
+
+        $failure = [ordered]@{
+            smoke = "ELARIS_COSMOS_HOSTED_V0"
+            stage = "INFERENCE"
+            success = $false
+            input_class = "SYNTHETIC_NON_SENSITIVE"
+            endpoint = $endpoint
+            requested_model = $Model
+            target_model_visible = $true
+            http_status = $statusCode
+            error = $_.Exception.Message
+            response_body = Get-HttpErrorBody $_
+        }
+
+        $failure | ConvertTo-Json -Depth 10
+        exit 1
+    }
+
     $finishedAt = (Get-Date).ToUniversalTime()
 
     if (-not $response.choices -or -not $response.choices[0].message) {
@@ -70,12 +176,14 @@ Clearly state that the scenario is synthetic and that none of the hypotheses are
 
     $result = [ordered]@{
         smoke = "ELARIS_COSMOS_HOSTED_V0"
+        stage = "INFERENCE"
         success = $true
         evidence_class = "INFERRED"
         input_class = "SYNTHETIC_NON_SENSITIVE"
-        endpoint = $Endpoint
+        endpoint = $endpoint
         requested_model = $Model
         returned_model = $response.model
+        target_model_visible = $true
         started_at_utc = $startedAt.ToString("o")
         finished_at_utc = $finishedAt.ToString("o")
         response = $response.choices[0].message.content
@@ -84,18 +192,13 @@ Clearly state that the scenario is synthetic and that none of the hypotheses are
     $result | ConvertTo-Json -Depth 10
 }
 catch {
-    $statusCode = $null
-    if ($_.Exception.Response -and $_.Exception.Response.StatusCode) {
-        try { $statusCode = [int]$_.Exception.Response.StatusCode } catch {}
-    }
-
     $failure = [ordered]@{
         smoke = "ELARIS_COSMOS_HOSTED_V0"
+        stage = "LOCAL_SCRIPT"
         success = $false
         input_class = "SYNTHETIC_NON_SENSITIVE"
-        endpoint = $Endpoint
+        base_url = $BaseUrl
         requested_model = $Model
-        http_status = $statusCode
         error = $_.Exception.Message
     }
 
