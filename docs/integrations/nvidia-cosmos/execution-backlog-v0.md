@@ -29,7 +29,7 @@
 | COSMOS-000 | Epic / programa | READY | — | — |
 | COSMOS-001 | Dataset #001 Siglo 21 | BLOCKED | autorización / robot real | `field/siglo21-dataset-001` |
 | COSMOS-002 | Scenario Domain Contract | REVIEW | spec | `feat/scenario-domain-v0` |
-| COSMOS-003 | Runtime + WorldModelProvider | READY | COSMOS-002 parcialmente | `feat/world-model-provider-v0` |
+| COSMOS-003 | Runtime + WorldModelProvider | IN_PROGRESS | COSMOS-002 parcialmente + live NVIDIA smoke | `feat/world-model-provider-v0` |
 | COSMOS-004 | Cosmos Reasoner V0 | BLOCKED | COSMOS-003 | `feat/cosmos-reasoner-v0` |
 | COSMOS-005 | Scenario Evidence Pack V0 | BLOCKED | COSMOS-002 + COSMOS-004 | `feat/scenario-evidence-pack-v0` |
 | COSMOS-006 | Cosmos Generator / Action experiment | BLOCKED | COSMOS-005 | `exp/cosmos-generator-v0` |
@@ -175,6 +175,24 @@ ADR:
 - provider/model/runtime metadata visible;
 - no secrets logged;
 - fallback definido.
+
+## Execution evidence — 2026-10-05
+
+- Implementation head verificado: `48f3d204759497f623581a894de30cfefe16e26e`.
+- GitHub Actions verification run: `37345320307` sobre branch temporal de verificación que agrega únicamente el trigger necesario para ejecutar CI.
+- `pnpm db:reset` — PASS.
+- `pnpm lint` — PASS.
+- `pnpm typecheck` — PASS.
+- `pnpm test` — PASS: **118/118 tests, 18/18 test files**.
+- `pnpm build` — PASS.
+- `pnpm test:e2e` — PASS: **15/15 Playwright tests**.
+- `WorldModelProvider`, registry, mock provider, capability boundaries, provenance preservation, secret-like metadata rejection y external data boundary están cubiertos por tests.
+- ADR de runtime creado en `docs/architecture/adr-cosmos-runtime-v0.md`.
+- Runtime V0 seleccionado para spike: NVIDIA hosted `nvidia/cosmos3-nano-reasoner`, sólo con payload sintético/no sensible.
+- Fallback definido: Cosmos3 Reasoner NIM en infraestructura GPU controlada para datos sensibles cuando exista aprobación.
+- Credencial NVIDIA disponible para el operador fuera del repositorio; **no se almacena ni se registra en GitHub**.
+- **Gate pendiente:** ejecutar y registrar una llamada real no sensible al endpoint hospedado. Hasta ese momento COSMOS-003 permanece `IN_PROGRESS` y no constituye validación real de Cosmos.
+- Dataset #001 continúa separado y BLOCKED por acceso/autorización al Unitree G1 real; ningún fixture sintético se reclasifica como evidencia observada.
 
 ---
 
