@@ -21,6 +21,7 @@ next-env.d.ts
 /test-results
 /playwright-report
 /playwright/.cache
+/.local-runs/
 
 # Edge Collector — robot captures are sensitive local artifacts
 /captures/
