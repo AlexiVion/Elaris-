@@ -14,7 +14,7 @@ export const SCENARIO_CAPABILITIES = [
 
 export type ScenarioCapability = (typeof SCENARIO_CAPABILITIES)[number];
 
-export type ScenarioSpec = {
+export type ScenarioSpec = Readonly<{
   scenarioId: string;
   title: string;
   purpose: string;
@@ -34,7 +34,7 @@ export type ScenarioSpec = {
   requestedCapabilities: readonly ScenarioCapability[];
   createdBy: string;
   createdAt: string;
-};
+}>;
 
 export type ScenarioRunStatus =
   | "PENDING"
@@ -43,7 +43,7 @@ export type ScenarioRunStatus =
   | "FAILED"
   | "CANCELLED";
 
-export type ScenarioRun = {
+export type ScenarioRun = Readonly<{
   runId: string;
   scenarioId: string;
   scenarioHash: string;
@@ -58,7 +58,7 @@ export type ScenarioRun = {
   startedAt: string;
   completedAt?: string | null;
   status: ScenarioRunStatus;
-};
+}>;
 
 export type ScenarioArtifactKind =
   | "TEXT_REASONING"
@@ -68,7 +68,7 @@ export type ScenarioArtifactKind =
   | "PHYSICS_TRACE"
   | "METRIC";
 
-export type ScenarioArtifact = {
+export type ScenarioArtifact = Readonly<{
   artifactId: string;
   runId: string;
   kind: ScenarioArtifactKind;
@@ -77,9 +77,9 @@ export type ScenarioArtifact = {
   sha256: string;
   sensitivity: "PUBLIC" | "INTERNAL" | "SENSITIVE" | "RESTRICTED";
   evidenceClass: EvidenceClass;
-};
+}>;
 
-export type ScenarioFinding = {
+export type ScenarioFinding = Readonly<{
   findingId: string;
   runId: string;
   claim: string;
@@ -92,23 +92,23 @@ export type ScenarioFinding = {
     | "CONFIRMED"
     | "REJECTED"
     | "NEEDS_REVISION";
-};
+}>;
 
-export type ScenarioEvaluationCheck = {
+export type ScenarioEvaluationCheck = Readonly<{
   checkId: string;
   label: string;
   status: "PASS" | "FAIL" | "NOT_APPLICABLE";
   detail?: string | null;
-};
+}>;
 
-export type ScenarioEvaluation = {
+export type ScenarioEvaluation = Readonly<{
   evaluationId: string;
   runId: string;
   evaluator: string;
   checks: readonly ScenarioEvaluationCheck[];
   result: "PASS" | "FAIL" | "REVIEW_REQUIRED";
   limitations: readonly string[];
-};
+}>;
 
 export type ScenarioSourceRefKind =
   | "ROBOT"
@@ -121,21 +121,21 @@ export type ScenarioSourceRefKind =
   | "EXECUTION_CONTEXT"
   | "OBSERVED_EVIDENCE";
 
-export type ScenarioSourceRef = {
+export type ScenarioSourceRef = Readonly<{
   kind: ScenarioSourceRefKind;
   ref: string;
-};
+}>;
 
-export type ScenarioProvenance = {
+export type ScenarioProvenance = Readonly<{
   compilerVersion: string;
   scenarioHash: string;
   compiledAt: string;
   sourceRefs: readonly ScenarioSourceRef[];
   evidence: readonly EvidenceProvenance[];
-};
+}>;
 
-export type CompiledScenario = {
+export type CompiledScenario = Readonly<{
   spec: ScenarioSpec;
   hash: string;
   provenance: ScenarioProvenance;
-};
+}>;
