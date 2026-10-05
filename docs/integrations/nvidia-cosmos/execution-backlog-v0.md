@@ -28,7 +28,7 @@
 |---|---|---|---|---|
 | COSMOS-000 | Epic / programa | READY | — | — |
 | COSMOS-001 | Dataset #001 Siglo 21 | BLOCKED | autorización / robot real | `field/siglo21-dataset-001` |
-| COSMOS-002 | Scenario Domain Contract | READY | spec | `feat/scenario-domain-v0` |
+| COSMOS-002 | Scenario Domain Contract | IN_PROGRESS | spec | `feat/scenario-domain-v0` |
 | COSMOS-003 | Runtime + WorldModelProvider | READY | COSMOS-002 parcialmente | `feat/world-model-provider-v0` |
 | COSMOS-004 | Cosmos Reasoner V0 | BLOCKED | COSMOS-003 | `feat/cosmos-reasoner-v0` |
 | COSMOS-005 | Scenario Evidence Pack V0 | BLOCKED | COSMOS-002 + COSMOS-004 | `feat/scenario-evidence-pack-v0` |
@@ -92,7 +92,7 @@ Obtener el primer baseline real read-only usando Robot Adapter + Edge Collector 
 
 # COSMOS-002 — Scenario Domain Contract V0
 
-**Estado:** READY
+**Estado:** IN_PROGRESS
 
 ## Objective
 
