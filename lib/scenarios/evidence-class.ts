@@ -26,14 +26,14 @@ export const SCENARIO_USE_APPROVALS = [
 
 export type ScenarioUseApproval = (typeof SCENARIO_USE_APPROVALS)[number];
 
-export type EvidenceProvenance = {
+export type EvidenceProvenance = Readonly<{
   ref: string;
   evidenceClass: EvidenceClass;
   sourceKind: EvidenceSourceKind;
   scenarioUseApproval: ScenarioUseApproval;
   sourceSha256?: string | null;
   note?: string | null;
-};
+}>;
 
 /**
  * Enforces the V0 truth boundary before evidence can enter a compiled scenario.
