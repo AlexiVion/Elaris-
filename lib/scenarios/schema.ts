@@ -75,7 +75,7 @@ export const scenarioArtifactSchema = z.object({
   localPath: nonEmpty.nullish(),
   sha256,
   sensitivity: z.enum(["PUBLIC", "INTERNAL", "SENSITIVE", "RESTRICTED"]),
-  evidenceClass: evidenceClassSchema,
+  evidenceClass: z.enum(["SIMULATED", "INFERRED"]),
 }).strict().refine(
   (artifact) => Boolean(artifact.uri || artifact.localPath),
   "ScenarioArtifact requires uri or localPath"
@@ -86,7 +86,7 @@ export const scenarioFindingSchema = z.object({
   runId: nonEmpty,
   claim: nonEmpty,
   evidenceRefs: z.array(nonEmpty),
-  evidenceClass: z.enum(["INFERRED", "HYPOTHESIS", "HUMAN_CONFIRMED"]),
+  evidenceClass: z.enum(["INFERRED", "HYPOTHESIS"]),
   confidenceDescriptor: z.string().trim().min(1).max(500).nullish(),
   limitations: z.array(nonEmpty),
   humanReviewStatus: z.enum([
