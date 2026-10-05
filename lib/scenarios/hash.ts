@@ -2,7 +2,7 @@ import { sha256Canonical } from "@/lib/engine/hash";
 import type { ScenarioSpec } from "./types";
 
 function sortedUnique(values: readonly string[]) {
-  return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+  return [...new Set(values)].sort();
 }
 
 /**
