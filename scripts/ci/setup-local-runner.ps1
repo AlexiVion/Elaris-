@@ -98,12 +98,11 @@ try {
         Write-Host ""
         Write-Host "Runner registered successfully."
         Write-Host "This PowerShell is not elevated, so the runner was not installed as a service."
-        Write-Host "Start it now with:"
-        Write-Host "  cd $RunnerRoot"
-        Write-Host "  .\run.cmd"
+        Write-Host "Starting the runner interactively in a separate window..."
+        Start-Process -FilePath (Join-Path $RunnerRoot "run.cmd") -WorkingDirectory $RunnerRoot
         Write-Host ""
-        Write-Host "Keep that runner window open while CI is running."
-        Write-Host "RUNNER_REGISTERED_INTERACTIVE"
+        Write-Host "Keep the runner window open while CI is running."
+        Write-Host "RUNNER_READY_INTERACTIVE"
     }
 }
 finally {
