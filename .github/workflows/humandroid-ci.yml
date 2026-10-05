@@ -1,23 +1,36 @@
-name: Humandroid Pilot CI
+name: Elaris CI
 
 on:
+  pull_request:
   push:
     branches:
-      - feat/humandroid-pilot
-  pull_request:
-    branches:
       - main
+      - migration/alexi-platform-v1
+  workflow_dispatch:
+
+concurrency:
+  group: elaris-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    name: Verify
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
+    timeout-minutes: 30
+
     env:
       DATABASE_URL: file:./dev.db
+      CI: true
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          clean: true
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -49,8 +62,13 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Install Playwright Chromium
+      - name: Install Playwright Chromium dependencies
+        if: runner.os == 'Linux'
         run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright Chromium
+        if: runner.os != 'Linux'
+        run: pnpm exec playwright install chromium
 
       - name: E2E smoke tests
         run: pnpm test:e2e
