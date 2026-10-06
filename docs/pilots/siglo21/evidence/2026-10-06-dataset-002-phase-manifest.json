@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "sessionId": "CAP-20261006-3A6982",
+  "contextEvidenceClass": "HUMAN_CONFIRMED",
+  "phases": [
+    {
+      "id": "IDLE_BASELINE",
+      "label": "Idle baseline",
+      "start": "2026-10-06T15:22:41+00:00",
+      "end": "2026-10-06T15:25:00+00:00"
+    },
+    {
+      "id": "WAIST_YAW",
+      "label": "Waist yaw controlled motion",
+      "start": "2026-10-06T15:25:00+00:00",
+      "end": "2026-10-06T15:35:05+00:00"
+    },
+    {
+      "id": "LEFT_SHOULDER_ROLL",
+      "label": "Left shoulder roll controlled probe",
+      "start": "2026-10-06T15:35:05+00:00",
+      "end": "2026-10-06T15:37:19+00:00"
+    },
+    {
+      "id": "LEFT_SHOULDER_PITCH",
+      "label": "Left shoulder pitch controlled probe",
+      "start": "2026-10-06T15:37:19+00:00",
+      "end": "2026-10-06T15:39:41+00:00"
+    },
+    {
+      "id": "LOCOMOTION_FORWARD_BACK",
+      "label": "Forward / backward locomotion",
+      "start": "2026-10-06T15:39:41+00:00",
+      "end": "2026-10-06T15:41:10+00:00"
+    },
+    {
+      "id": "TURNING",
+      "label": "Left / right turning",
+      "start": "2026-10-06T15:41:11+00:00",
+      "end": "2026-10-06T15:42:40+00:00"
+    },
+    {
+      "id": "MIXED_OPERATION",
+      "label": "Mixed operation",
+      "start": "2026-10-06T15:42:41+00:00",
+      "end": "2026-10-06T15:44:31+00:00"
+    },
+    {
+      "id": "RECOVERY_IDLE",
+      "label": "Recovery idle",
+      "start": "2026-10-06T15:44:31+00:00",
+      "end": "2026-10-06T15:53:49+00:00"
+    }
+  ]
+}
