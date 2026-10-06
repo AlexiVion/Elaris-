@@ -66,7 +66,7 @@ export type ComponentPhaseEvidence = {
 export type PhaseEvidence = {
   phase: FieldPhase;
   frameCount: number;
-  eventCount: number;
+  jointEventCount: number;
   componentCount: number;
   components: ComponentPhaseEvidence[];
 };
@@ -309,7 +309,7 @@ export async function analyzeComponentHealthFieldEvidence(input: {
     return {
       phase,
       frameCount,
-      eventCount: phaseAcc.eventCount,
+      jointEventCount: phaseAcc.eventCount,
       componentCount: components.length,
       components,
     };
@@ -415,12 +415,12 @@ export function renderFieldEvidenceMarkdown(pack: FieldEvidencePack) {
   rows.push("");
   rows.push("## Phase overview");
   rows.push("");
-  rows.push("| Phase | Start | End | Frames | Events | Components |");
+  rows.push("| Phase | Start | End | Frames | Joint numeric events | Components |");
   rows.push("|---|---|---|---:|---:|---:|");
 
   for (const phase of pack.phases) {
     rows.push(
-      `| ${phase.phase.label} | ${phase.phase.start} | ${phase.phase.end} | ${phase.frameCount} | ${phase.eventCount} | ${phase.componentCount} |`
+      `| ${phase.phase.label} | ${phase.phase.start} | ${phase.phase.end} | ${phase.frameCount} | ${phase.jointEventCount} | ${phase.componentCount} |`
     );
   }
 
