@@ -99,7 +99,7 @@ describe("Component Health observed baseline V0", () => {
       delta: 2,
     });
 
-    expect(knee.signals["joint.torque_estimate"]?.absP95).toBeCloseTo(2.9);
+    expect(knee.evidenceState).toBe("OBSERVED_USABLE");\n    expect(knee.signals["joint.torque_estimate"]?.absP95).toBeCloseTo(2.9);\n    expect(knee.signals["joint.acceleration"]?.quality).toBe("CONSTANT_ZERO");
 
     const state = knee.signals["motor.state_code"];
     expect(state && "observedValues" in state ? state.observedValues : []).toEqual([0, 1]);
