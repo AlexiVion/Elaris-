@@ -87,11 +87,16 @@ No debe contarse como dataset canónico ni como evidencia finalizada.
 | Local directory | `/home/elaris/elaris-field/captures/CAP-20261006-3A6982` |
 | Purpose | `component-health-controlled-sweep-v1` |
 | Requested capture | 2400 s @ <= 12 Hz |
-| State at last field evidence | IN PROGRESS / FINALIZATION PENDING |
+| State at salvage | OPEN (collector interrupted after robot power-off) |
+| Disposition | SALVAGED PARTIAL CAPTURE / INTEGRITY VERIFIED |
 | Classification | SENSITIVE |
 | Export approval | NOT_APPROVED |
-| Size observed at 15:44:31 UTC | ~1.8 GiB |
-| Free disk observed | ~4.7 GiB |
+| Frames preserved | 15,000 |
+| Normalized events preserved | 3,615,000 |
+| Final local size | ~1.9 GiB |
+| Robot power-off / connection loss marker | 2026-10-06T15:53:49+00:00 |
+| Salvage timestamp | 2026-10-06T15:53:58+00:00 |
+| Free disk after salvage | ~4.6 GiB |
 
 Capture command:
 
@@ -104,22 +109,22 @@ pnpm edge capture-unitree \
   --hz 12
 ~~~
 
-**Important:** the marker `DATASET-002 END` at 15:44:44 UTC was emitted before the 2400-second collector had finalized. It is therefore a premature operator marker and must not be used as the real dataset end. The canonical end is the collector's actual `Capture FINALIZED` timestamp, to be appended after completion.
+**Important:** the marker `DATASET-002 END` at 15:44:44 UTC was premature. The robot later powered off and the connection was lost at 15:53:49 UTC. The collector was interrupted manually and therefore never reached normal `Capture FINALIZED` state. Dataset #002 remains `OPEN` in `session.public.json`, but all files present at salvage time were flushed, hashed and verified successfully. The canonical physical-session end is the robot power-off marker at 15:53:49 UTC.
 
 ---
 
 ## 2. Marker file
 
-The corrected phase markers were written locally through shell variable `$MARK` with filename pattern:
+The corrected phase markers were preserved at:
 
 ~~~text
-/home/elaris/elaris-field/captures/component-health-field-markers-corrected-*.tsv
+/home/elaris/elaris-field/captures/component-health-field-markers-corrected-20261006-152241.tsv
 ~~~
 
-Exact filename is pending final field-shell confirmation with:
+A copy was also preserved in the Dataset #002 salvage metadata directory:
 
-~~~bash
-printf '%s\n' "$MARK"
+~~~text
+/home/elaris/elaris-field/captures/CAP-20261006-3A6982-salvage-meta/operator-markers.tsv
 ~~~
 
 Marker format:
@@ -153,6 +158,8 @@ Marker format:
 2026-10-06T15:44:31+00:00  PHASE RECOVERY_IDLE START
 2026-10-06T15:44:44+00:00  PHASE RECOVERY_IDLE END
 2026-10-06T15:44:44+00:00  DATASET-002 END controlled-sweep-v1
+2026-10-06T15:53:49+00:00  ROBOT POWER OFF / CONNECTION LOST — UNPLANNED SESSION END
+2026-10-06T15:53:49+00:00  DATASET-002 PHYSICAL SESSION END ACTUAL — ROBOT OFF
 ~~~
 
 ### Canonical interpretation for later segmentation
@@ -168,7 +175,7 @@ The duplicate early `IDLE_BASELINE END` / `WAIST_YAW START` markers are supersed
 | LOCOMOTION_FORWARD_BACK | 15:39:41 | 15:41:10 | 6 forward/back cycles |
 | TURNING | 15:41:11 | 15:42:40 | 8 left/right cycles |
 | MIXED_OPERATION | 15:42:41 | 15:44:31 | 4 mixed cycles |
-| RECOVERY_IDLE | 15:44:31 | PENDING COLLECTOR FINALIZATION | 15:44:44 end marker is premature |
+| RECOVERY_IDLE | 15:44:31 | 15:53:49 | 15:44:44 end marker is premature; physical session ended on robot power-off |
 
 All timestamps above are UTC offsets as produced by `date -Is`.
 
@@ -359,7 +366,17 @@ Available disk: ~4.7G
 Filesystem use: ~65–66%
 ~~~
 
-The capture was intentionally reduced from the aborted 45 min @ 20 Hz plan to 40 min @ 12 Hz to preserve local disk margin.
+After robot power-off and salvage:
+
+~~~text
+Dataset #001: ~131M
+Dataset #002: ~1.9G
+Dataset #002 salvage metadata: ~28K
+Available disk: ~4.6G
+Filesystem use: ~66%
+~~~
+
+The capture was intentionally reduced from the aborted 45 min @ 20 Hz plan to 40 min @ 12 Hz to preserve local disk margin. The robot powered off before the requested collector duration elapsed.
 
 ---
 
@@ -419,8 +436,16 @@ The field machine is the authoritative custody location until an explicit export
 /home/elaris/elaris-field/
 ├── captures/
 │   ├── CAP-20261006-C7A52F/          # Dataset #001 — FINALIZED
-│   ├── CAP-20261006-3A6982/          # Dataset #002 — capture/finalization pending
-│   └── component-health-field-markers-corrected-*.tsv
+│   ├── CAP-20261006-3A6982/          # Dataset #002 — OPEN, salvaged partial capture
+│   ├── CAP-20261006-3A6982-salvage-meta/
+│   │   ├── files.txt
+│   │   ├── marker-source.txt
+│   │   ├── operator-markers.tsv
+│   │   ├── salvaged-at.txt
+│   │   ├── session.public.snapshot.json
+│   │   └── sha256.txt
+│   ├── component-health-field-markers-corrected-20261006-152241.tsv
+│   └── 2026-10-06-field-file-inventory.txt
 ├── apps/edge-collector/
 ├── lib/edge-collector/
 ├── lib/component-health/
@@ -454,28 +479,75 @@ GitHub stores only this non-secret evidence registry and product code until expo
 
 ---
 
-## 9. Finalization actions still required for Dataset #002
+## 9. Dataset #002 salvage and integrity verification
 
-After the collector itself prints `Capture FINALIZED`, record:
+The collector was interrupted after the robot powered off. Normal Elaris finalization did not occur; therefore no collector-generated `checksums.sha256` or `FINALIZED` state exists for Dataset #002.
 
-1. actual finalization timestamp;
-2. final frame count;
-3. final normalized event count;
-4. final capture directory size;
-5. exact marker filename from `printf '%s\n' "$MARK"`;
-6. final `df -h .`;
-7. `pnpm edge review captures/CAP-20261006-3A6982` metadata;
-8. verify `checksums.sha256` exists;
-9. preserve `NOT_APPROVED` unless an authorized export decision is made;
-10. append a corrected `RECOVERY_IDLE END ACTUAL` and `DATASET-002 END ACTUAL` marker after collector finalization.
+The following files were present and preserved:
 
-Recommended final marker correction:
+| File | Size at salvage |
+|---|---:|
+| `manifest.enc.json` | 1,360 bytes |
+| `raw.ndjson.enc` | 91,110,071 bytes |
+| `session.public.json` | 376 bytes |
+| `telemetry.ndjson.enc` | 1,898,796,463 bytes |
 
-~~~bash
-mark "NOTE markers at 15:44:44 RECOVERY_IDLE END / DATASET-002 END were premature; collector continued"
-mark "PHASE RECOVERY_IDLE END ACTUAL"
-mark "DATASET-002 END ACTUAL controlled-sweep-v1"
+The public session snapshot at salvage recorded:
+
+~~~text
+sessionId: CAP-20261006-3A6982
+classification: SENSITIVE
+state: OPEN
+createdAt: 2026-10-06T15:22:33.535Z
+frameCount: 15000
+eventCount: 3615000
+exportApproval: NOT_APPROVED
+mode: READ_ONLY
+crypto: AES-256-GCM / scrypt
 ~~~
+
+A separate salvage hash registry was created at:
+
+~~~text
+/home/elaris/elaris-field/captures/CAP-20261006-3A6982-salvage-meta/sha256.txt
+~~~
+
+Recorded SHA-256 values:
+
+~~~text
+manifest.enc.json
+6e22c846034c6e5c6bd17fe643c350ca49eb46a4f47c97c8e730edd4e3a3bf5c
+
+raw.ndjson.enc
+4e403b4b96f1d07212a911a15a6c3f034aa7666cb251dd2571a73f12fb5f05d2
+
+session.public.json
+db7bf92ade57571d43e8b3048ecbc4267955f6ca426f120de6d91a183e764719
+
+telemetry.ndjson.enc
+e9e14dcf01c18156c818a87a3c6225da152a92c0736219b115653680571eb3ba
+~~~
+
+Verification result after `sync`:
+
+~~~text
+manifest.enc.json: OK
+raw.ndjson.enc: OK
+session.public.json: OK
+telemetry.ndjson.enc: OK
+~~~
+
+The local field-file inventory was also preserved at:
+
+~~~text
+/home/elaris/elaris-field/captures/2026-10-06-field-file-inventory.txt
+~~~
+
+Dataset #002 must therefore be described as:
+
+> **salvaged partial capture with verified file integrity**
+
+and not as `FINALIZED`.
 
 ---
 
@@ -483,7 +555,7 @@ mark "DATASET-002 END ACTUAL controlled-sweep-v1"
 
 Current truthful claim:
 
-> Elaris has captured a real encrypted Unitree G1 baseline and is collecting a controlled multi-phase master session with synchronized operator markers, sufficient to build post-session per-component and per-phase descriptive comparisons.
+> Elaris preserved one finalized real encrypted Unitree G1 baseline and one integrity-verified salvaged multi-phase capture containing synchronized operator markers and 3,615,000 normalized events, sufficient for post-session per-component and per-phase descriptive analysis subject to the known interruption boundary.
 
 Not yet supported:
 
@@ -493,4 +565,5 @@ Not yet supported:
 - remaining useful life;
 - OEM safety-limit compliance;
 - causal attribution of code 3104;
-- final Dataset #002 counts until collector finalizes.
+- treating Dataset #002 as normally FINALIZED;
+- assuming telemetry continued after the robot power-off boundary.
