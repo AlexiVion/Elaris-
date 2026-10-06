@@ -243,7 +243,7 @@ function inferComponentEvidenceState(
 
   const state = signals["motor.state_code"];
   const hasNonZeroStateCode =
-    Boolean(state) &&
+    state !== undefined &&
     "observedValues" in state &&
     state.observedValues.some((value) => value !== 0);
 
