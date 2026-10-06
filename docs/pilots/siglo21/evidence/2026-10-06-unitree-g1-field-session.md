@@ -567,3 +567,61 @@ Not yet supported:
 - causal attribution of code 3104;
 - treating Dataset #002 as normally FINALIZED;
 - assuming telemetry continued after the robot power-off boundary.
+
+
+---
+
+## 11. Physical handoff archive
+
+A portable field handoff archive was created from the preserved datasets and repository state.
+
+Archive:
+
+~~~text
+/home/elaris/elaris-transfer/2026-10-06/ELARIS_FIELD_HANDOFF_2026-10-06.tar
+~~~
+
+Archive size observed on Windows:
+
+~~~text
+2,128,363,520 bytes
+~~~
+
+SHA-256:
+
+~~~text
+6bf5f63a39831e96e3ec9960129979fe6f3d53595300f7ba581f69be30ec04a1
+~~~
+
+The archive contains:
+
+- Dataset #001;
+- Dataset #002 salvaged capture;
+- Dataset #002 salvage metadata;
+- corrected operator markers;
+- field file inventory;
+- canonical evidence document;
+- source SHA-256 inventory;
+- portable Git bundle with complete local history and refs;
+- source branch/head/remotes/status metadata.
+
+The archive was copied to the physical external drive:
+
+~~~text
+WD Elements 1078
+USB
+Windows drive D:
+D:\ELARIS_FIELD_2026-10-06\ELARIS_FIELD_HANDOFF_2026-10-06.tar
+~~~
+
+The Windows-side SHA-256 was recomputed after transfer and exactly matched the source hash.
+
+Transfer status:
+
+~~~text
+EXTERNAL DRIVE COPY VERIFIED OK
+~~~
+
+After verification, the field VM was flushed with `sync`, shut down cleanly through ACPI, and no VirtualBox VM remained running.
+
+The external-drive copy is a physical handoff medium. Raw captures remain SENSITIVE / NOT_APPROVED and are not committed to the public GitHub repository.
