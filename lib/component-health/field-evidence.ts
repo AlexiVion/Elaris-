@@ -332,6 +332,7 @@ export async function analyzeComponentHealthFieldEvidence(input: {
       "No health score, failure probability, remaining useful life, or OEM safety compliance claim is produced.",
       "Phase boundaries are HUMAN_CONFIRMED context and remain distinct from OBSERVED telemetry evidence.",
       "Relative changes are descriptive and have no pass/fail threshold unless a separately validated rule exists.",
+      "The historical baseline session does not have sufficiently confirmed operating context; baseline-to-phase deltas must not be interpreted as degradation or fault evidence.",
       "A salvaged OPEN capture remains OPEN and is never rewritten as FINALIZED.",
       "Signal semantics such as temperature channel meaning and voltage units remain subject to OEM schema validation.",
       "Export approval and data sensitivity remain governed independently from local analysis.",
