@@ -424,7 +424,9 @@ async function healthBaseline(args: string[]) {
   console.log(`Assessment: ${baseline.assessment}`);
   console.log(`Frames: ${baseline.frameCount}`);
   console.log(`Normalized events: ${baseline.eventCount}`);
-  console.log(`Mapped joint slots observed: ${baseline.componentCount}`);\n  console.log(`Usable observed components: ${baseline.usableComponentCount}`);\n  console.log(`Unresolved motor slots: ${baseline.unresolvedSlotCount}`);
+  console.log(`Mapped joint slots observed: ${baseline.componentCount}`);
+  console.log(`Usable observed components: ${baseline.usableComponentCount}`);
+  console.log(`Unresolved motor slots: ${baseline.unresolvedSlotCount}`);
   console.log("");
   console.log("No diagnosis, failure probability, health score, or RUL is produced.");
   console.log("");
@@ -442,16 +444,34 @@ async function healthBaseline(args: string[]) {
   }
 
   for (const component of components) {
+    const evidenceSuffix =
+      component.evidenceState === "OBSERVED_UNRESOLVED_SLOT"
+        ? " [UNRESOLVED SLOT]"
+        : "";
+
     console.log(
-      `[${String(component.oemIndex ?? "?").padStart(2, "0")}] ${component.componentName}`
+      `[${String(component.oemIndex ?? "?").padStart(2, "0")}] ${component.componentName}${evidenceSuffix}`
     );
+
+    if (component.evidenceState === "OBSERVED_UNRESOLVED_SLOT") {
+      console.log("  evidence: physical signals are constant zero with a non-zero OEM state code");
+      console.log("  interpretation: configuration/slot unresolved — NOT treated as healthy or active");
+    }
 
     printSignal(component.signals["motor.temperature.casing"], "  casing temp", true);
     printSignal(component.signals["motor.temperature.winding"], "  winding temp", true);
     printSignal(component.signals["motor.voltage"], "  voltage", true);
-    printSignal(component.signals["joint.torque_estimate"], "  torque |p95|", false, true);
-    printSignal(component.signals["joint.velocity"], "  velocity |p95|", false, true);
-    printSignal(component.signals["joint.acceleration"], "  accel |p95|", false, true);
+    printSignal(component.signals["joint.torque_estimate"], "  torque", false, true);
+    printSignal(component.signals["joint.velocity"], "  velocity", false, true);
+
+    const acceleration = component.signals["joint.acceleration"];
+    if (acceleration?.quality === "CONSTANT_ZERO") {
+      console.log(
+        `  acceleration: CONSTANT_ZERO across ${acceleration.samples} samples | coverage=${percent(acceleration.coverage)} | informativeness=UNRESOLVED`
+      );
+    } else {
+      printSignal(acceleration, "  acceleration", false, true);
+    }
 
     const state = component.signals["motor.state_code"];
     if (state && "observedValues" in state) {
