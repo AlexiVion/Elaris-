@@ -9,6 +9,7 @@ import {
   type ReadableRobotChannel,
   type RobotIdentity,
 } from "@/lib/robot-adapters";
+import { analyzeComponentHealthBaseline } from "@/lib/component-health/baseline";
 import {
   CaptureSessionWriter,
   approveCaptureExport,
@@ -41,6 +42,9 @@ async function main() {
       return;
     case "review":
       await reviewCapture(args);
+      return;
+    case "health-baseline":
+      await healthBaseline(args);
       return;
     case "approve-export":
       await approveExport(args);
@@ -399,6 +403,114 @@ async function reviewCapture(args: string[]) {
   }
 }
 
+
+async function healthBaseline(args: string[]) {
+  const passphrase = requirePassphrase();
+  const sessionDir = resolve(requiredPositional(args, 0, "session directory"));
+  const requestedComponent = optionalFlag(args, "--component");
+  const json = args.includes("--json");
+
+  const baseline = await analyzeComponentHealthBaseline(sessionDir, passphrase);
+
+  if (json) {
+    console.log(JSON.stringify(baseline, null, 2));
+    return;
+  }
+
+  console.log("ELARIS COMPONENT HEALTH — OBSERVED BASELINE");
+  console.log("-------------------------------------------");
+  console.log(`Session: ${baseline.sessionId}`);
+  console.log(`Evidence class: ${baseline.evidenceClass}`);
+  console.log(`Assessment: ${baseline.assessment}`);
+  console.log(`Frames: ${baseline.frameCount}`);
+  console.log(`Normalized events: ${baseline.eventCount}`);
+  console.log(`Joint components observed: ${baseline.componentCount}`);
+  console.log("");
+  console.log("No diagnosis, failure probability, health score, or RUL is produced.");
+  console.log("");
+
+  const components = requestedComponent
+    ? baseline.components.filter(
+        (component) =>
+          component.componentId === requestedComponent ||
+          component.componentName.toLowerCase().includes(requestedComponent.toLowerCase())
+      )
+    : baseline.components;
+
+  if (components.length === 0) {
+    throw new Error(`No observed component matches: ${requestedComponent}`);
+  }
+
+  for (const component of components) {
+    console.log(
+      `[${String(component.oemIndex ?? "?").padStart(2, "0")}] ${component.componentName}`
+    );
+
+    printSignal(component.signals["motor.temperature.casing"], "  casing temp", true);
+    printSignal(component.signals["motor.temperature.winding"], "  winding temp", true);
+    printSignal(component.signals["motor.voltage"], "  voltage", true);
+    printSignal(component.signals["joint.torque_estimate"], "  torque |p95|", false, true);
+    printSignal(component.signals["joint.velocity"], "  velocity |p95|", false, true);
+    printSignal(component.signals["joint.acceleration"], "  accel |p95|", false, true);
+
+    const state = component.signals["motor.state_code"];
+    if (state && "observedValues" in state) {
+      console.log(
+        `  state codes: ${state.observedValues.join(", ")} | transitions=${state.transitions} | coverage=${percent(state.coverage)}`
+      );
+    }
+
+    console.log("");
+  }
+
+  console.log("Limitations:");
+  for (const limitation of baseline.limitations) {
+    console.log(`  - ${limitation}`);
+  }
+}
+
+function printSignal(
+  signal: import("@/lib/component-health/baseline").NumericSignalBaseline |
+    import("@/lib/component-health/baseline").StateSignalBaseline |
+    undefined,
+  label: string,
+  range = false,
+  absP95 = false
+) {
+  if (!signal) {
+    console.log(`${label}: NOT OBSERVED`);
+    return;
+  }
+
+  const unit = signal.unit ? ` ${signal.unit}` : "";
+
+  if (absP95) {
+    console.log(
+      `${label}: ${fmt(signal.absP95)}${unit} | max=${fmt(signal.max)}${unit} | n=${signal.samples} | coverage=${percent(signal.coverage)}`
+    );
+    return;
+  }
+
+  if (range) {
+    console.log(
+      `${label}: mean=${fmt(signal.mean)}${unit} | p95=${fmt(signal.p95)}${unit} | min=${fmt(signal.min)}${unit} | max=${fmt(signal.max)}${unit} | n=${signal.samples} | coverage=${percent(signal.coverage)}`
+    );
+    return;
+  }
+
+  console.log(
+    `${label}: mean=${fmt(signal.mean)}${unit} | n=${signal.samples} | coverage=${percent(signal.coverage)}`
+  );
+}
+
+function fmt(value: number) {
+  return Number.isFinite(value) ? value.toFixed(3) : "NaN";
+}
+
+function percent(value: number) {
+  return `${(value * 100).toFixed(1)}%`;
+}
+
 async function approveExport(args: string[]) {
   const passphrase = requirePassphrase();
   const sessionDir = resolve(requiredPositional(args, 0, "session directory"));
@@ -513,6 +625,8 @@ Commands:
     [--configuration <id>] [--root captures]
 
   pnpm edge review <capture-dir> [--sample 5]
+
+  pnpm edge health-baseline <capture-dir> [--component <id-or-name>] [--json]
 
   pnpm edge approve-export <capture-dir> \\
     --reviewer <name> \\
