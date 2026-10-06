@@ -5,7 +5,6 @@ import { basename, join } from "node:path";
 import { createInterface } from "node:readline";
 import {
   analyzeComponentHealthBaseline,
-  type ComponentHealthBaseline,
   type NumericSignalBaseline,
   type SignalQuality,
   type StateSignalBaseline,
