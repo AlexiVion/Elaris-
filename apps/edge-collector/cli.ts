@@ -424,7 +424,7 @@ async function healthBaseline(args: string[]) {
   console.log(`Assessment: ${baseline.assessment}`);
   console.log(`Frames: ${baseline.frameCount}`);
   console.log(`Normalized events: ${baseline.eventCount}`);
-  console.log(`Joint components observed: ${baseline.componentCount}`);
+  console.log(`Mapped joint slots observed: ${baseline.componentCount}`);\n  console.log(`Usable observed components: ${baseline.usableComponentCount}`);\n  console.log(`Unresolved motor slots: ${baseline.unresolvedSlotCount}`);
   console.log("");
   console.log("No diagnosis, failure probability, health score, or RUL is produced.");
   console.log("");
@@ -486,7 +486,7 @@ function printSignal(
 
   if (absP95) {
     console.log(
-      `${label}: ${fmt(signal.absP95)}${unit} | max=${fmt(signal.max)}${unit} | n=${signal.samples} | coverage=${percent(signal.coverage)}`
+      `${label}: absP95=${fmt(signal.absP95)}${unit} | signed=[${fmt(signal.min)}, ${fmt(signal.max)}]${unit} | n=${signal.samples} | coverage=${percent(signal.coverage)}`
     );
     return;
   }
