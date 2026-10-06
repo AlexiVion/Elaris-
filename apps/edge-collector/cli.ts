@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import {
@@ -10,6 +10,11 @@ import {
   type RobotIdentity,
 } from "@/lib/robot-adapters";
 import { analyzeComponentHealthBaseline } from "@/lib/component-health/baseline";
+import {
+  analyzeComponentHealthFieldEvidence,
+  loadFieldPhaseManifest,
+  renderFieldEvidenceMarkdown,
+} from "@/lib/component-health/field-evidence";
 import {
   CaptureSessionWriter,
   approveCaptureExport,
@@ -45,6 +50,9 @@ async function main() {
       return;
     case "health-baseline":
       await healthBaseline(args);
+      return;
+    case "health-report":
+      await healthReport(args);
       return;
     case "approve-export":
       await approveExport(args);
@@ -531,6 +539,68 @@ function percent(value: number) {
   return `${(value * 100).toFixed(1)}%`;
 }
 
+async function healthReport(args: string[]) {
+  const passphrase = requirePassphrase();
+  const baselineDir = resolve(requiredPositional(args, 0, "baseline session directory"));
+  const sessionDir = resolve(requiredPositional(args, 1, "observed session directory"));
+  const phaseManifestPath = resolve(requiredFlag(args, "--phases"));
+  const salvageHashFlag = optionalFlag(args, "--salvage-hashes");
+  const salvageHashFile = salvageHashFlag ? resolve(salvageHashFlag) : null;
+
+  const phaseManifest = await loadFieldPhaseManifest(phaseManifestPath);
+  const report = await analyzeComponentHealthFieldEvidence({
+    baselineDir,
+    sessionDir,
+    passphrase,
+    phaseManifest,
+    salvageHashFile,
+  });
+
+  const outputDir = resolve(
+    optionalFlag(args, "--out") ??
+      `derived/${report.sessionId}-field-evidence-v0`
+  );
+
+  await mkdir(outputDir, { recursive: true });
+
+  const jsonPath = resolve(outputDir, "field-evidence-report.json");
+  const markdownPath = resolve(outputDir, "field-evidence-report.md");
+  const phaseSnapshotPath = resolve(outputDir, "phase-manifest.json");
+
+  await writeFile(jsonPath, JSON.stringify(report, null, 2) + "\n", "utf8");
+  await writeFile(
+    markdownPath,
+    renderFieldEvidenceMarkdown(report) + "\n",
+    "utf8"
+  );
+  await writeFile(
+    phaseSnapshotPath,
+    JSON.stringify(phaseManifest, null, 2) + "\n",
+    "utf8"
+  );
+
+  console.log("ELARIS COMPONENT HEALTH — FIELD EVIDENCE REPORT");
+  console.log("-----------------------------------------------");
+  console.log(`Baseline: ${report.baselineSessionId}`);
+  console.log(`Observed session: ${report.sessionId}`);
+  console.log(`Session state: ${report.sessionState}`);
+  console.log(`Disposition: ${report.disposition}`);
+  console.log(
+    `Integrity: ${report.integrity.verified ? "VERIFIED" : "NOT VERIFIED"} via ${report.integrity.method}`
+  );
+  console.log(`Phases analyzed: ${report.phases.length}`);
+  console.log(`Classification: ${report.sourceClassification}`);
+  console.log("");
+  console.log("Generated:");
+  console.log(`  ${jsonPath}`);
+  console.log(`  ${markdownPath}`);
+  console.log(`  ${phaseSnapshotPath}`);
+  console.log("");
+  console.log(
+    "Descriptive evidence only — no diagnosis, health score, failure probability, or RUL."
+  );
+}
+
 async function approveExport(args: string[]) {
   const passphrase = requirePassphrase();
   const sessionDir = resolve(requiredPositional(args, 0, "session directory"));
@@ -647,6 +717,11 @@ Commands:
   pnpm edge review <capture-dir> [--sample 5]
 
   pnpm edge health-baseline <capture-dir> [--component <id-or-name>] [--json]
+
+  pnpm edge health-report <baseline-dir> <observed-session-dir> \
+    --phases <phase-manifest.json> \
+    [--salvage-hashes <sha256.txt>] \
+    [--out <derived-output-dir>]
 
   pnpm edge approve-export <capture-dir> \\
     --reviewer <name> \\
