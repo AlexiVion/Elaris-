@@ -80,6 +80,26 @@ describe("Component Health Audit Workbench V0.4", () => {
     );
   });
 
+  it("rejects a V0.3 output pack if the evidence JSON changes after checksum sealing", async () => {
+    const root = await privateRoot();
+    const directory = join(root, "tampered");
+    const report = fixtureReport("CH-A03-TAMPER");
+    await writeReport(directory, report);
+
+    await writeFile(
+      join(directory, "field-evidence-v03.json"),
+      JSON.stringify({ ...report, assessment: "DESCRIPTIVE_OPERATIONAL_EVIDENCE", limitations: ["tampered after sealing"] }, null, 2) + "\n",
+      "utf8"
+    );
+
+    process.env.ELARIS_COMPONENT_HEALTH_V03_ROOT = root;
+    delete process.env.ELARIS_COMPONENT_HEALTH_V03_REPORT;
+
+    await expect(loadComponentHealthWorkbench()).rejects.toThrow(
+      "V0.3 output integrity mismatch"
+    );
+  });
+
   it("uses the explicitly requested Analysis ID when multiple valid runs exist", async () => {
     const root = await privateRoot();
     await writeReport(join(root, "one"), fixtureReport("CH-A03-ONE"));
