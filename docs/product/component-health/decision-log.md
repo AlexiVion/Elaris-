@@ -88,6 +88,16 @@ related_prs: []
 **Riesgos que permanecen:** export `NOT_APPROVED`, semánticas OEM no validadas, plaintext equivalence `NOT_INDEPENDENTLY_VERIFIED`, bounded-memory no implementado.
 **Siguiente alcance propuesto:** V0.4 Audit Workbench, todavía requiere aprobación separada para implementación.
 
+### CH-DEC-20261007-09 — Autorización de implementación V0.4 Audit Workbench
+
+**Estado:** `APPROVED_FOR_IMPLEMENTATION` por Alexi Vion en conversación del proyecto (2026-10-07): «perfecto, sigamos».
+**Versión:** V0.4 Audit Workbench.
+**Rama/PR:** `feat/component-health-audit-workbench-v04` · PR #18 draft.
+**Alcance aprobado:** hacer consumible V0.3 desde una experiencia operacional privada: Overview, Sessions/AnalysisRuns, Components, Phase Explorer, Quality Review y Draft Report sin hardcoding de datos reales.
+**Decisión de arquitectura provisional:** primer slice artifact-backed/read-only; validar el workflow antes de fijar persistencia/review-note schema.
+**Límites:** no aprobación de export, release, multi-user, diagnóstico, score, RUL, control del robot o publicación de evidencia.
+**Gate:** typecheck/tests/build/E2E + recorrido con Dataset #002 real + revisión de ausencia de leakage.
+
 ## Registro histórico
 
 | Fecha UTC | ID | Cambio | Autor | Aprobación | Evidencia |
@@ -95,5 +105,6 @@ related_prs: []
 | 2026-10-06 | Inicio del registro | Decisiones y gates propuestos | Auditoría Elaris | PENDIENTE | Este PR |
 | 2026-10-07 | CH-DEC-20261007-07 | Inicio implementación V0.3 Evidence Engine | Alexi Vion | APPROVED_FOR_IMPLEMENTATION (no release ni datos) | PR #17 / solicitud explícita de implementación |
 | 2026-10-07 | CH-DEC-20261007-08 | V0.3 alcanza VERIFIED_LOCAL | Evidencia de operador | VERIFIED_LOCAL técnico; no release | PR #17 + doble run Dataset #002 |
+| 2026-10-07 | CH-DEC-20261007-09 | Inicio implementación V0.4 Audit Workbench | Alexi Vion | APPROVED_FOR_IMPLEMENTATION (no release ni datos) | PR #18 / solicitud «sigamos» |
 
 **Editar al tomar una decisión:** copiar template, completar aprobador, fecha y referencia PR/comentario; actualizar el estado correspondiente en [version-registry.md](version-registry.md). No reemplazar silenciosamente la historia: añadir nueva decisión que supersede la anterior.
