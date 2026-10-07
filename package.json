@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
-    "test:component-health": "vitest run tests/component-health-baseline.test.ts tests/component-health-field-evidence.test.ts tests/component-health-evidence-engine-v03.test.ts tests/component-health-workbench-v04.test.ts",
+    "test:component-health": "vitest run tests/component-health-baseline.test.ts tests/component-health-field-evidence.test.ts tests/component-health-evidence-engine-v03.test.ts tests/component-health-workbench-v04.test.ts tests/component-health-review-v041.test.ts",
     "test:e2e": "playwright test",
     "edge": "tsx apps/edge-collector/cli.ts",
     "db:seed": "tsx prisma/seed.ts",

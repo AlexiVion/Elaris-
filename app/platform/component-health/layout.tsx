@@ -6,6 +6,7 @@ const nav = [
   { label: "Components", href: "/platform/component-health/components", icon: "attention" as const },
   { label: "Phases", href: "/platform/component-health/phases", icon: "phases" as const },
   { label: "Quality", href: "/platform/component-health/quality", icon: "service" as const },
+  { label: "Review", href: "/platform/component-health/review", icon: "return" as const },
   { label: "Reports", href: "/platform/component-health/reports", icon: "reports" as const },
 ];
 

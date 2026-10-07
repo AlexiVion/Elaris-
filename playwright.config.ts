@@ -20,9 +20,12 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `node ./node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port ${e2ePort}`,
+    // Make the E2E gate self-contained. Next dev can cold-compile for several
+    // minutes on /mnt/c, while a previous dev run can also leave .next without
+    // a production BUILD_ID. Build first, then exercise the production server.
+    command: `pnpm build && node ./node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port ${e2ePort}`,
     url: e2eURL,
     reuseExistingServer: !process.env.CI,
-    timeout: 300_000,
+    timeout: 900_000,
   },
 });
