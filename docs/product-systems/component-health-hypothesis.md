@@ -1,5 +1,7 @@
 # Product System Hypothesis — Component Health
 
+> **DOCUMENTO HISTÓRICO (fase anterior al campo).** El estado «NO FIELD VALIDATION YET» que aparece debajo describe la hipótesis previa a la sesión real Unitree G1 de 2026-10-06 y **no es el estado actual**. Para auditoría, producto real, backlog y estados vigentes ir a [Component Health Product OS](../product/component-health/README.md). La validación real es descriptiva; no constituye diagnóstico, failure prediction ni data export approval.
+
 ## Status
 
 **HYPOTHESIS · DEMO READY V0 · NO FIELD VALIDATION YET**
