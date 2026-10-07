@@ -50,6 +50,15 @@ test("Component Health V0.4 uses private V0.3 artifacts without exposing synthet
   await expect(page.getByText(/QA RECORDS/)).toBeVisible();
   await expect(page.getByText(/not component failures/i)).toBeVisible();
 
+  await page.goto("/platform/component-health/review");
+  await expect(
+    page.getByRole("heading", { name: "Review & Next Actions" })
+  ).toBeVisible();
+  await expect(page.getByText("Qué tenés que decidir acá")).toBeVisible();
+  await expect(page.getByText(/No tenés que decidir si el robot está sano/)).toBeVisible();
+  await expect(page.getByText(/Data export/i).first()).toBeVisible();
+  await expect(page.getByText(/NOT APPROVED/i).first()).toBeVisible();
+
   await page.goto("/platform/component-health/reports/draft");
   await expect(
     page.getByRole("heading", { name: "Internal Draft Report" })
