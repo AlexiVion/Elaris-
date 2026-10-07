@@ -120,7 +120,7 @@ export default async function FieldComponentsPage() {
                         component.unresolved
                           ? "amber"
                           : component.missingPhases > 0
-                            ? "slate"
+                            ? "gray"
                             : "green"
                       }
                     />
