@@ -1,102 +1,29 @@
 # Elaris — Product Systems Registry
 
-This registry is the repository-level index of Elaris Product Systems.
+**Canonical portfolio:** 14 Product Systems.  
+**Planning baseline:** 2026-10-07 / Component Health V0.4.3.
 
-Canonical product strategy/discovery remains in Notion. This file exists so humans and AI agents can quickly understand **what each product system is, its evidence level, and what must happen next** before coding.
+| Product | Primary actor | Current evidence/state | Roadmap |
+|---|---|---|---|
+| **Deployment Control / Deployment & Change Evidence** | A04/A05 | PILOT / LIVE REFERENCE | [roadmap](../product/deployment-control/roadmap.md) |
+| **Operational Readiness** | A06/A08/A07 | HYPOTHESIS · VISUAL PROTOTYPE | [roadmap](../product/operational-readiness/roadmap.md) |
+| **Safety Change Control** | A09 | HYPOTHESIS · VISUAL PROTOTYPE | [roadmap](../product/safety-change-control/roadmap.md) |
+| **Evidence Review** | A11 | HYPOTHESIS · VISUAL PROTOTYPE | [roadmap](../product/evidence-review/roadmap.md) |
+| **Placement Workspace** | A14 | HYPOTHESIS · DEMO READY | [roadmap](../product/placement-workspace/roadmap.md) |
+| **Underwriting Workspace** | A15 | HYPOTHESIS · CONCEPT PROTOTYPE | [roadmap](../product/underwriting-workspace/roadmap.md) |
+| **Incident Reconstruction** | A18 | HYPOTHESIS · VISUAL PROTOTYPE | [roadmap](../product/incident-reconstruction/roadmap.md) |
+| **Product & Field Evidence** | A01/A02/A03 | HYPOTHESIS · SPEC ONLY | [roadmap](../product/product-field-evidence/roadmap.md) |
+| **Cyber / OT Change Assurance** | A10 | HYPOTHESIS · SPEC ONLY | [roadmap](../product/cyber-ot-change-assurance/roadmap.md) |
+| **Service & Configuration History** | A13 | HYPOTHESIS · SPEC ONLY | [roadmap](../product/service-configuration-history/roadmap.md) |
+| **Asset Monitoring** | A17 | HYPOTHESIS · SPEC ONLY | [roadmap](../product/asset-monitoring/roadmap.md) |
+| **Portfolio / Accumulation Intelligence** | A16 | DATA-DEPENDENT FUTURE · CONCEPT ONLY | [roadmap](../product/portfolio-accumulation-intelligence/roadmap.md) |
+| **Risk Intelligence** | A20 | LONG-TERM DATA FLYWHEEL · DO NOT BUILD NOW | [roadmap](../product/risk-intelligence/roadmap.md) |
+| **Component Health** | A13/A04/A05 | PILOT ENGINEERING · V0.4.3 VERIFIED_LOCAL / READY_FOR_FIELD | [roadmap](../product/component-health/roadmap.md) |
 
-## Registry
+A product requires actor, recurring decision, trigger, inputs, process, output, deterministic/AI role, human authority, shared truth and a real-world evidence gate.
 
-| Product System | Primary actor | Core job / decision | Product evidence | Demo state | Next validation |
-|---|---|---|---|---|---|
-| **Deployment Control** | Robotics Integrator / Deployer / RaaS | What is actually deployed, what evidence supports it, and what deserves review when it changes? | **PILOT / reference** | **LIVE reference** | Real Humandroid deployment + real artifacts + real change |
-| **Operational Readiness** | Enterprise Buyer / Operator / Procurement | Can we accept this system into operation, under what conditions, and what changed since acceptance? | HYPOTHESIS | Visual prototype | Interview buyer/operator; reconstruct last go-live gate |
-| **Safety Change Control** | Safety / EHS | What hazards, controls, tests and safety decisions deserve review after a change? | HYPOTHESIS | Visual prototype | Interview safety practitioner; inspect real hazard/change workflow |
-| **Evidence Review** | Test Lab / Certification / Independent Assurance | What is in assessment scope, what evidence supports it, what findings remain, and what changed? | HYPOTHESIS | Visual prototype | Interview assessor/reviewer; request real assessment artifact set |
-| **Placement Workspace** | Insurance Broker / PAS / Wholesale Broker | How do we build and maintain the technical risk submission and answer markets without rebuilding it? | HYPOTHESIS | **DEMO READY** | Show last robotics/autonomy placement; compare questions/artifacts |
-| **Underwriting Workspace** | Insurer / MGA / MGU / Underwriter | Do we understand the deployed exposure enough to make a human underwriting decision and know what later changes matter? | HYPOTHESIS | Concept prototype | Underwriter interview; identify actual decision-changing inputs |
-| **Incident Reconstruction** | Claims / Loss Adjuster / Forensic / Investigation | What happened, under which exact configuration, what changed before it, and what remains unknown? | HYPOTHESIS | Visual prototype | Claims/forensic interview using one real incident chronology |
-| **Product & Field Evidence** | OEM / Component / Software / Model Vendor | Which product/version is deployed where and who may be affected by a release/change/advisory? | HYPOTHESIS | Spec only | OEM/component vendor interview |
-| **Cyber / OT Change Assurance** | IT / Cyber / OT Security | What connectivity/software/access changed and what security review is required? | HYPOTHESIS | Spec only | OT/cyber interview around last robot/site onboarding |
-| **Service & Configuration History** | Maintenance / Repair / Field Service | What intervention occurred, what changed, and what must be checked before return to service? | HYPOTHESIS | Spec only | Field-service interview + work order artifacts |
-| **Asset Monitoring** | Leasing / Lender / Asset Finance / Economic Owner | What asset do we finance/own, what is its technical state, and what events threaten continuity/value? | HYPOTHESIS | Spec only | Asset-finance / RaaS capital interview |
-| **Portfolio / Accumulation Intelligence** | Carrier Portfolio Risk / Reinsurer / Capacity | Where are concentrations/common dependencies across many insured/deployed systems? | DATA-DEPENDENT FUTURE | Concept only | Requires real portfolio + exposure data first |
-| **Risk Intelligence** | Cross-market / Elaris internal intelligence | Can normalized exposure, controls, events and outcomes produce reusable benchmarks? | LONG-TERM DATA FLYWHEEL | Do not build now | Requires multi-customer outcome dataset |
-| **Component Health** | Humandroid Reliability / Service / Integrator | Which components deserve attention, why, and what happened after inspection/service/replacement? | **HYPOTHESIS — unvalidated** | **DEMO READY V0** | Humandroid session: 1 real robot + 1 real component + 1 real event + real data/tools/process |
+**Change Evidence** remains the deterministic core of Deployment Control/shared capability, not a separate product without a distinct actor/job/budget.
 
----
+Robot Adapter, Edge Collector, deterministic engines, provenance infrastructure, Scenario Domain/WorldModelProvider and platform shell are enabling capabilities.
 
-## Current focus
-
-Elaris should not build every registry item in parallel.
-
-The current active focus is intentionally narrow:
-
-### Humandroid — Component Health
-
-```text
-Humandroid
-   ↓
-Deployment Control
-   ↓
-real deployment truth
-   ↓
-test Component Health hypothesis
-```
-
-Goal:
-- deepen the real integrator/deployer workflow;
-- determine whether component degradation/failure prediction is a real problem;
-- learn what telemetry/history actually exists before designing ML.
-
-For the current execution window, other product tracks are paused. Component Health is the only active product wedge. Service, Change Impact and Return-to-Service appear only as parts of the same end-to-end reliability loop.
-
----
-
-## Product creation rule
-
-A new product should not enter the registry merely because a feature sounds useful.
-
-Before registration, define at minimum:
-
-1. one primary actor;
-2. one recurring job/decision;
-3. a trigger;
-4. real or hypothesized inputs;
-5. a beginning-to-end process;
-6. a concrete output;
-7. the AI/deterministic role;
-8. the human authority boundary;
-9. which shared Elaris truth it reuses;
-10. what real-world evidence would validate or kill it.
-
-If the proposal cannot satisfy these, it is probably:
-- a feature;
-- an integration;
-- a shared platform capability;
-- or an undeveloped idea.
-
----
-
-## Cross-product flywheel hypothesis
-
-The platform thesis is not only that products share infrastructure.
-
-The stronger long-term thesis is:
-
-```text
-Product A creates useful structured facts
-              ↓
-shared Elaris graph
-              ↓
-Product B can make a better workflow
-              ↓
-new decisions / events / outcomes
-              ↓
-shared Elaris graph becomes richer
-              ↓
-future products can become better
-```
-
-This is a hypothesis, not yet a demonstrated data moat.
-
-Do not describe it externally as proven until Elaris has multi-customer, cross-product evidence.
+See [Portfolio Planning System](../portfolio/README.md).
