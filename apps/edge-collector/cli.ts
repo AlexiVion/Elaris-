@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
@@ -15,6 +16,11 @@ import {
   loadFieldPhaseManifest,
   renderFieldEvidenceMarkdown,
 } from "@/lib/component-health/field-evidence";
+import {
+  analyzeComponentHealthEvidenceV03,
+  extractComponentHealthQualityV03,
+  renderComponentHealthEvidenceV03Markdown,
+} from "@/lib/component-health/evidence-engine-v03";
 import {
   CaptureSessionWriter,
   approveCaptureExport,
@@ -53,6 +59,9 @@ async function main() {
       return;
     case "health-report":
       await healthReport(args);
+      return;
+    case "health-report-v03":
+      await healthReportV03(args);
       return;
     case "approve-export":
       await approveExport(args);
@@ -610,6 +619,116 @@ async function healthReport(args: string[]) {
   );
 }
 
+async function healthReportV03(args: string[]) {
+  const passphrase = requirePassphrase();
+  const baselineDir = resolve(requiredPositional(args, 0, "baseline working session directory"));
+  const sessionDir = resolve(requiredPositional(args, 1, "observed working session directory"));
+  const phaseManifestPath = resolve(requiredFlag(args, "--phases"));
+
+  const salvageHashFlag = optionalFlag(args, "--salvage-hashes");
+  const sourceDirFlag = optionalFlag(args, "--source-dir");
+  const sourceHashFlag = optionalFlag(args, "--source-salvage-hashes");
+  const derivativeHashFlag = optionalFlag(args, "--derivative-hashes");
+
+  const baselineSourceDirFlag = optionalFlag(args, "--baseline-source-dir");
+  const baselineSourceHashFlag = optionalFlag(args, "--baseline-source-hashes");
+  const baselineDerivativeHashFlag = optionalFlag(args, "--baseline-derivative-hashes");
+
+  const phaseManifest = await loadFieldPhaseManifest(phaseManifestPath);
+  const report = await analyzeComponentHealthEvidenceV03({
+    baselineDir,
+    sessionDir,
+    passphrase,
+    phaseManifest,
+    salvageHashFile: salvageHashFlag ? resolve(salvageHashFlag) : null,
+    sourceSessionDir: sourceDirFlag ? resolve(sourceDirFlag) : null,
+    sourceSalvageHashFile: sourceHashFlag ? resolve(sourceHashFlag) : null,
+    derivativeHashFile: derivativeHashFlag ? resolve(derivativeHashFlag) : null,
+    baselineSourceDir: baselineSourceDirFlag ? resolve(baselineSourceDirFlag) : null,
+    baselineSourceHashFile: baselineSourceHashFlag ? resolve(baselineSourceHashFlag) : null,
+    baselineDerivativeHashFile: baselineDerivativeHashFlag
+      ? resolve(baselineDerivativeHashFlag)
+      : null,
+  });
+
+  const outputDir = resolve(
+    optionalFlag(args, "--out") ??
+      `derived/${report.run.analysisId.toLowerCase()}`
+  );
+  await mkdir(outputDir, { recursive: true });
+
+  const jsonPath = resolve(outputDir, "field-evidence-v03.json");
+  const markdownPath = resolve(outputDir, "field-evidence-v03.md");
+  const analysisRunPath = resolve(outputDir, "analysis-run.json");
+  const qualityPath = resolve(outputDir, "quality-v03.json");
+  const phaseSnapshotPath = resolve(outputDir, "phase-manifest.json");
+  const checksumsPath = resolve(outputDir, "checksums.sha256");
+
+  await writeFile(jsonPath, JSON.stringify(report, null, 2) + "\n", "utf8");
+  await writeFile(
+    markdownPath,
+    renderComponentHealthEvidenceV03Markdown(report) + "\n",
+    "utf8"
+  );
+  await writeFile(
+    analysisRunPath,
+    JSON.stringify(report.run, null, 2) + "\n",
+    "utf8"
+  );
+  await writeFile(
+    qualityPath,
+    JSON.stringify(extractComponentHealthQualityV03(report), null, 2) + "\n",
+    "utf8"
+  );
+  await writeFile(
+    phaseSnapshotPath,
+    JSON.stringify(phaseManifest, null, 2) + "\n",
+    "utf8"
+  );
+
+  const outputFiles = [
+    "field-evidence-v03.json",
+    "field-evidence-v03.md",
+    "analysis-run.json",
+    "quality-v03.json",
+    "phase-manifest.json",
+  ];
+
+  const checksumRows: string[] = [];
+  for (const file of outputFiles) {
+    const payload = await readFile(resolve(outputDir, file));
+    checksumRows.push(
+      `${createHash("sha256").update(payload).digest("hex")}  ${file}`
+    );
+  }
+  await writeFile(checksumsPath, checksumRows.join("\n") + "\n", "utf8");
+
+  console.log("ELARIS COMPONENT HEALTH — EVIDENCE ENGINE V0.3");
+  console.log("------------------------------------------------");
+  console.log(`Analysis ID: ${report.run.analysisId}`);
+  console.log(`Input fingerprint: ${report.run.inputFingerprint}`);
+  console.log(`Observed session: ${report.run.inputs.observed.sessionId}`);
+  console.log(`Historical baseline: ${report.run.inputs.historicalBaseline.sessionId}`);
+  console.log("Primary reference: SAME_SESSION_PHASE / IDLE_BASELINE");
+  console.log(`Phases: ${report.phases.length}`);
+  console.log(`Component slots per phase: ${report.robot.componentSlots}`);
+  console.log(`Max coverage: ${(report.quality.maxCoverage * 100).toFixed(1)}%`);
+  console.log(`Quality findings: ${report.quality.findings.length}`);
+  console.log(`Observed working copy: ${report.run.inputs.observed.workingCopyKind}`);
+  console.log(
+    `Historical baseline working copy: ${report.run.inputs.historicalBaseline.workingCopyKind}`
+  );
+  console.log("");
+  console.log("Generated:");
+  for (const file of [...outputFiles, "checksums.sha256"]) {
+    console.log(`  ${resolve(outputDir, file)}`);
+  }
+  console.log("");
+  console.log(
+    "Descriptive evidence only — no diagnosis, health score, failure probability, anomaly probability, damage score, or RUL."
+  );
+}
+
 async function approveExport(args: string[]) {
   const passphrase = requirePassphrase();
   const sessionDir = resolve(requiredPositional(args, 0, "session directory"));
@@ -733,6 +852,17 @@ Commands:
     [--source-dir <original-open-capture-dir> \
      --source-salvage-hashes <source-sha256.txt> \
      --derivative-hashes <working-copy-sha256.txt>] \
+    [--out <derived-output-dir>]
+
+  pnpm edge health-report-v03 <baseline-working-dir> <observed-working-dir> \
+    --phases <phase-manifest.json> \
+    [--salvage-hashes <observed-source-sha256.txt>] \
+    [--source-dir <observed-original-dir> \
+     --source-salvage-hashes <observed-source-sha256.txt> \
+     --derivative-hashes <observed-working-sha256.txt>] \
+    [--baseline-source-dir <baseline-original-dir> \
+     --baseline-source-hashes <baseline-source-sha256.txt> \
+     --baseline-derivative-hashes <baseline-working-sha256.txt>] \
     [--out <derived-output-dir>]
 
   pnpm edge approve-export <capture-dir> \\
