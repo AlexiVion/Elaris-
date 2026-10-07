@@ -115,6 +115,26 @@ export const operationalFingerprints = {
   ],
 } as const;
 
+export const operationalPhaseMetadata = {
+  LOCOMOTION_FORWARD_BACK: {
+    label: "Forward / backward",
+    context: "Locomotion",
+    description: "Relative torque signature during the human-confirmed forward/back locomotion phase.",
+  },
+  TURNING: {
+    label: "Turning",
+    context: "Locomotion",
+    description: "Relative torque signature during the human-confirmed left/right turning phase.",
+  },
+  MIXED_OPERATION: {
+    label: "Mixed operation",
+    context: "Locomotion",
+    description: "Relative torque signature during the human-confirmed mixed-operation phase.",
+  },
+} as const;
+
+export type OperationalPhaseId = keyof typeof operationalFingerprints;
+
 export const unresolvedObservation = {
   componentId: "joint-28-right-wrist-yaw",
   component: "Right wrist yaw",
@@ -133,10 +153,38 @@ export const evidenceBoundary = [
   "Raw telemetry and sensitive provenance remain outside this public demo dataset.",
 ] as const;
 
+export const publicDemoNotice =
+  "Real field evidence · Unitree G1 · Sanitized aggregates · Descriptive only";
+
 export function getFieldComponent(componentId: string) {
   return fieldComponents.find((component) => component.id === componentId) ?? null;
 }
 
 export function getProbeEvidence(componentId: string) {
   return controlledProbeEvidence.find((probe) => probe.componentId === componentId) ?? null;
+}
+
+export function getOperationalEvidence(oemIndex: number) {
+  const phases = Object.keys(operationalFingerprints) as OperationalPhaseId[];
+
+  return phases.flatMap((phaseId) => {
+    const row = operationalFingerprints[phaseId].find((item) => item.oemIndex === oemIndex);
+    if (!row) return [];
+
+    return [{
+      phaseId,
+      phaseLabel: operationalPhaseMetadata[phaseId].label,
+      phaseContext: operationalPhaseMetadata[phaseId].context,
+      component: row.component,
+      oemIndex: row.oemIndex,
+      idleTorque: row.idleTorque,
+      observedTorque: row.observedTorque,
+      ratio: row.ratio,
+    }];
+  });
+}
+
+export function humanizeSessionDisposition(value: typeof fieldRobot.sessionState) {
+  if (value === "SALVAGED_OPEN_VERIFIED") return "Salvaged capture · integrity verified";
+  return value.replaceAll("_", " ").toLowerCase();
 }
