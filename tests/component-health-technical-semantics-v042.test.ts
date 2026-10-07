@@ -5,6 +5,7 @@ import type {
 } from "@/lib/component-health/evidence-engine-v03";
 import {
   buildComponentHealthTechnicalVerification,
+  resolveUnitreeG1DofFromModeMachine,
 } from "@/lib/component-health/technical-semantics-v042";
 
 function rightWristComponent(
@@ -165,6 +166,71 @@ describe("Component Health Technical Semantics V0.4.2", () => {
     });
   });
 
+  it("resolves mode_machine 5 to a 29-DOF Unitree profile while keeping unresolved wrist telemetry open", () => {
+    const verification = buildComponentHealthTechnicalVerification(report(), {
+      modeMachine: 5,
+    });
+
+    expect(verification.context.effectiveDof).toBe(29);
+    expect(verification.context.configurationConflict).toBe(false);
+
+    expect(
+      verification.items.find(
+        (item) => item.key === "G1_PHYSICAL_CONFIGURATION"
+      )
+    ).toMatchObject({
+      status: "CONFIRMED_SUPPORTED",
+    });
+
+    expect(
+      verification.items.find(
+        (item) => item.key === "G1_RIGHT_WRIST_YAW_PHYSICAL_AVAILABILITY"
+      )
+    ).toMatchObject({
+      status: "STILL_UNRESOLVED",
+    });
+  });
+
+  it("resolves mode_machine 4 to 23-DOF and classifies wrist yaw as unsupported", () => {
+    const verification = buildComponentHealthTechnicalVerification(report(), {
+      modeMachine: 4,
+    });
+
+    expect(verification.context.effectiveDof).toBe(23);
+    expect(
+      verification.items.find(
+        (item) => item.key === "G1_RIGHT_WRIST_YAW_PHYSICAL_AVAILABILITY"
+      )
+    ).toMatchObject({
+      status: "CONFIRMED_UNSUPPORTED",
+    });
+  });
+
+  it("fails closed when declared DOF conflicts with mode_machine", () => {
+    const verification = buildComponentHealthTechnicalVerification(report(), {
+      modeMachine: 5,
+      declaredDof: 23,
+    });
+
+    expect(verification.context.configurationConflict).toBe(true);
+    expect(verification.context.effectiveDof).toBeNull();
+    expect(
+      verification.items.find(
+        (item) => item.key === "G1_PHYSICAL_CONFIGURATION"
+      )
+    ).toMatchObject({
+      status: "STILL_UNRESOLVED",
+    });
+  });
+
+  it("maps both legacy/rev1 and current Unitree mode_machine profiles", () => {
+    expect(resolveUnitreeG1DofFromModeMachine(4)?.dof).toBe(23);
+    expect(resolveUnitreeG1DofFromModeMachine(5)?.dof).toBe(29);
+    expect(resolveUnitreeG1DofFromModeMachine(10)?.dof).toBe(23);
+    expect(resolveUnitreeG1DofFromModeMachine(11)?.dof).toBe(29);
+    expect(resolveUnitreeG1DofFromModeMachine(255)).toBeNull();
+  });
+
   it("separates safe duplicate handling from the still-unknown source cause", () => {
     const verification = buildComponentHealthTechnicalVerification(report());
 
@@ -195,6 +261,8 @@ describe("Component Health Technical Semantics V0.4.2", () => {
 
     expect(ids).toContain("UNITREE_G1_JOINT_INDEX");
     expect(ids).toContain("UNITREE_G1_VARIANT_NOTE");
+    expect(ids).toContain("UNITREE_G1_MODE_MACHINE_REV1");
+    expect(ids).toContain("UNITREE_G1_MODE_MACHINE_CURRENT");
     expect(ids).toContain("UNITREE_HG_MOTORSTATE_SCHEMA");
     expect(ids).toContain("UNITREE_G1_TEMPERATURE_MEANING");
   });
