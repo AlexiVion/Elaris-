@@ -41,7 +41,7 @@ export default async function ComponentHealthHome() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Private analyses" value={catalogue.analyses.length} icon={Database} tone="blue" delta={null} />
         <KpiCard label="Operational phases" value={report.phases.length} icon={ClipboardCheck} tone="green" delta={null} />
-        <KpiCard label="Component slots" value={report.robot.componentSlots} icon={Bot} tone="gray" delta={null} />
+        <KpiCard label="Component slots" value={report.robot.componentSlots} icon={Bot} tone="slate" delta={null} />
         <KpiCard label="Quality warnings" value={warnings} icon={TriangleAlert} tone="red" delta={null} />
       </div>
 
