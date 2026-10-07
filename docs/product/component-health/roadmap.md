@@ -31,7 +31,7 @@ Ninguna capacidad M5/M6 se anuncia usando sólo evidencia M1/M2.
 | V0.2 | Demo real-data-derived | Navegación/Phase Explorer/fingerprints | `VERIFIED_LOCAL` | Tests y build del snapshot aportados |
 | **V0.2.1** | **Cierre correctivo** | Sin alertas inventadas, provenance fuente/derivada y quality metadata | `IMPLEMENTED_PENDING_VERIFICATION` | Tests+build+E2E+rerun real+data gate |
 | V0.3 | **Evidence Engine confiable** | Normalización de reportes privados y referencia intra-sesión como contrato | **`VERIFIED_LOCAL` · PR #17 draft** | Owner/data approval siguen separados; siguiente alcance: V0.4 |
-| V0.4 | **Audit Workbench** | Artifact-backed sessions/components/phases/quality/report; notes/persistencia a validar después del primer uso | **`IN_PROGRESS` · PR #18 draft** | Un operador completa audit desde V0.3 sin editar TypeScript; luego decidir persistencia mínima |
+| V0.4 | **Audit Workbench** | Artifact-backed sessions/components/phases/quality/report; notes/persistencia diferidas | **`VERIFIED_LOCAL` · PR #18 draft** | Workflow real Dataset #002 validado sin editar TypeScript; siguiente decisión: persistencia/review o V0.5 delivery |
 | V0.5 | **Delivery & Export** | Paquete aprobado, export versionado y handoff al cliente | `DRAFT` | Aprobación legal/datos + entrega verificable |
 | V0.6 | **Comparable Sessions** | Historial de sesiones sobre mismo robot/componente/config | `PROPOSED` | 2+ capturas comparables y caso real de comparación |
 | V0.7 | **Field Audit Operations** | intake, checklist, costos, reejecución, observaciones, PR/runbook | `PROPOSED` | 2 auditorías operadas repetidamente |
