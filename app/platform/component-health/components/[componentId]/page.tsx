@@ -105,7 +105,7 @@ export default async function FieldComponentDetailPage({
                             ? "NO RATIO"
                             : "×" + torque.absP95Ratio.toFixed(2)
                       }
-                      tone={phase.phaseId === report.reference.phaseId ? "blue" : "slate"}
+                      tone={phase.phaseId === report.reference.phaseId ? "blue" : "gray"}
                     />
                   </div>
 
@@ -188,7 +188,7 @@ export default async function FieldComponentDetailPage({
                       <div className="text-xs font-semibold">{group.code.replaceAll("_", " ")}</div>
                       <StatusPill
                         label={String(group.count)}
-                        tone={group.severity === "WARNING" ? "amber" : "slate"}
+                        tone={group.severity === "WARNING" ? "amber" : "gray"}
                       />
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">{group.phaseCount} phases</div>
