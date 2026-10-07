@@ -25,6 +25,7 @@ export type WorkbenchArtifact = {
   analysisId: string;
   inputFingerprintPrefix: string;
   reportSha256: string;
+  outputPackVerified: true;
   duplicateCopies: number;
   lastModifiedMs: number;
   report: ComponentHealthEvidenceV03;
@@ -323,6 +324,8 @@ async function loadArtifact(path: string): Promise<WorkbenchArtifact> {
     );
   }
 
+  await verifyV03OutputPack(resolve(absolute, ".."));
+
   const payload = await readFile(absolute, "utf8");
   const parsed = JSON.parse(payload) as unknown;
   assertV03Report(parsed);
@@ -331,6 +334,7 @@ async function loadArtifact(path: string): Promise<WorkbenchArtifact> {
     analysisId: parsed.run.analysisId,
     inputFingerprintPrefix: fingerprintPrefix(parsed.run.inputFingerprint),
     reportSha256: createHash("sha256").update(payload).digest("hex"),
+    outputPackVerified: true,
     duplicateCopies: 1,
     lastModifiedMs: info.mtimeMs,
     report: parsed,
@@ -388,6 +392,11 @@ function assertV03Report(
 }
 
 async function assertPrivatePath(path: string) {
+  const originalInfo = await lstat(path).catch(() => null);
+  if (originalInfo?.isSymbolicLink()) {
+    throw new Error("Refusing to load Component Health evidence through a symlink.");
+  }
+
   const repoRoot = await realpath(resolve(process.cwd())).catch(() =>
     resolve(process.cwd())
   );
@@ -399,9 +408,63 @@ async function assertPrivatePath(path: string) {
     );
   }
 
-  const targetInfo = await lstat(target).catch(() => null);
-  if (targetInfo?.isSymbolicLink()) {
-    throw new Error("Refusing to load Component Health evidence through a symlink.");
+}
+
+async function verifyV03OutputPack(directory: string) {
+  const registryPath = join(directory, "checksums.sha256");
+  const registry = await readFile(registryPath, "utf8").catch(() => {
+    throw new Error(
+      "Component Health V0.4 requires the V0.3 checksums.sha256 output registry."
+    );
+  });
+
+  const required = new Set([
+    "field-evidence-v03.json",
+    "field-evidence-v03.md",
+    "analysis-run.json",
+    "quality-v03.json",
+    "phase-manifest.json",
+  ]);
+  const verified = new Set<string>();
+
+  for (const rawLine of registry.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    const match = /^([a-fA-F0-9]{64})\s+(.+)$/.exec(line);
+    if (!match) {
+      throw new Error(`Invalid V0.3 output checksum row: ${line}`);
+    }
+
+    const expected = match[1]!.toLowerCase();
+    const file = match[2]!.trim();
+    if (
+      file !== basename(file) ||
+      file.includes("/") ||
+      file.includes("\\")
+    ) {
+      throw new Error(
+        `Unsafe V0.3 checksum registry path: ${file}`
+      );
+    }
+
+    const payload = await readFile(join(directory, file));
+    const actual = createHash("sha256").update(payload).digest("hex");
+    if (actual !== expected) {
+      throw new Error(
+        `V0.3 output integrity mismatch for ${file}: expected ${expected}, got ${actual}`
+      );
+    }
+
+    verified.add(file);
+  }
+
+  for (const file of required) {
+    if (!verified.has(file)) {
+      throw new Error(
+        `V0.3 output checksum registry does not cover required file: ${file}`
+      );
+    }
   }
 }
 
