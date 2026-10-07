@@ -69,10 +69,21 @@ related_prs: []
 **Gate:** revisión/CI, derechos de datos, permisos y criterios de versión.
 **Aprobado por:** —.
 
+### CH-DEC-20261007-07 — Autorización de implementación V0.3
+
+**Estado:** `APPROVED_FOR_IMPLEMENTATION` por Alexi Vion en conversación del proyecto (2026-10-07): «perfecto, implementalo».
+**Versión:** V0.3 Evidence Engine reproducible.
+**Rama/PR:** `feat/component-health-evidence-engine-v03` · PR #17 (draft).
+**Alcance aprobado:** motor reproducible, referencia primaria intra-sesión, 29×fases, lineage baseline+observado, quality y CLI privado.
+**Límites:** no aprobación de release, distribución externa, cambios físicos al robot, inferencias diagnósticas, prediction/RUL o integración pública de datasets. Aprobación de Juanma y titular de los datos aún pendientes donde corresponda.
+**Gate:** TypeScript, tests, build, 2 ejecuciones Dataset #002 idénticas con trazabilidad completa, revisión de claims y actualización del registro.
+**Fecha UTC de decisión:** 2026-10-07 (sin hora UTC firmada en GitHub; solicitud original en conversación).
+
 ## Registro histórico
 
 | Fecha UTC | ID | Cambio | Autor | Aprobación | Evidencia |
 |---|---|---|---|---|---|
-| 2026-10-06 | Inicio del registro | Decisiones y gates propuestos, ninguno ratificado aquí | Auditoría Elaris | PENDIENTE | Este PR |
+| 2026-10-06 | Inicio del registro | Decisiones y gates propuestos | Auditoría Elaris | PENDIENTE | Este PR |
+| 2026-10-07 | CH-DEC-20261007-07 | Inicio implementación V0.3 Evidence Engine | Alexi Vion | APPROVED_FOR_IMPLEMENTATION (no release ni datos) | PR #17 / solicitud explícita de implementación |
 
 **Editar al tomar una decisión:** copiar template, completar aprobador, fecha y referencia PR/comentario; actualizar el estado correspondiente en [version-registry.md](version-registry.md). No reemplazar silenciosamente la historia: añadir nueva decisión que supersede la anterior.
