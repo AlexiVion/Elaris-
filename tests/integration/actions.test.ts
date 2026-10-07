@@ -264,7 +264,7 @@ describe("full resolve + approve flow → new baseline (spec §6.4, §10)", () =
 
     // A baseline freezes the full deployment context needed to reconstruct
     // what was approved, rather than placeholder deployment IDs / empty JSON.
-    const taskState = JSON.parse(active!.taskSnapshot) as { name: string; parameters: Record<string, unknown> };
+    const taskState = JSON.parse(active!.taskSnapshot!) as { name: string; parameters: Record<string, unknown> };
     expect(taskState.name).toBe("Valve manipulation");
     expect(taskState.parameters).toMatchObject({ torqueLimitNm: 12 });
 
