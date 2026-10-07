@@ -1,6 +1,6 @@
 # Component Health — carpeta de producto y roadmap
 
-**Estado general:** `DRAFT` de estrategia / `V0.2 VERIFIED_LOCAL` de demo / `V0.2.1 VERIFIED_LOCAL` de cierre correctivo / `V0.3 VERIFIED_LOCAL` en PR #17 / `V0.4 IN_PROGRESS` en PR #18 / `DATA EXPORT NOT_APPROVED`.
+**Estado general:** `DRAFT` de estrategia / `V0.2 VERIFIED_LOCAL` de demo / `V0.2.1 VERIFIED_LOCAL` de cierre correctivo / `V0.3 VERIFIED_LOCAL` en PR #17 / `V0.4 VERIFIED_LOCAL` en PR #18 / `DATA EXPORT NOT_APPROVED`.
 
 Este directorio es el **punto de entrada en GitHub** para entender qué se probó, qué falta, qué se podría construir con los datos que ya existen y qué condiciones permitirían construir el producto ideal.
 
@@ -16,7 +16,7 @@ Este directorio es el **punto de entrada en GitHub** para entender qué se prob�
 | [Decision log](decision-log.md) | Aprobaciones humanas y decisiones ratificadas, distintas de recomendaciones |
 | [Cierre V0.2.1](v0.2.1-closeout.md) | Validación local realizada, gates de export y governance pendientes |
 | [Evidence Engine V0.3](v0.3-evidence-engine.md) | Implementado y verificado localmente en PR #17; owner/release/data export siguen pendientes |
-| Audit Workbench V0.4 | Implementación artifact-backed/read-only en PR #18; documentación en la rama del PR, tests y revisión de Dataset #002 en UI pendientes |
+| Audit Workbench V0.4 | Artifact-backed/read-only verificado localmente en PR #18; owner/release/data export y review persistence siguen pendientes |
 
 ## Referencias históricas (no borrar ni asumir actualizadas)
 
