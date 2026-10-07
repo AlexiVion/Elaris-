@@ -88,7 +88,23 @@ export const controlledProbeEvidence = [
   },
 ] as const;
 
-export const operationalFingerprints = {
+export type OperationalPhaseId =
+  | "LOCOMOTION_FORWARD_BACK"
+  | "TURNING"
+  | "MIXED_OPERATION";
+
+export type OperationalFingerprintRow = {
+  component: string;
+  oemIndex: number;
+  idleTorque: number;
+  observedTorque: number;
+  ratio: number;
+};
+
+export const operationalFingerprints: Record<
+  OperationalPhaseId,
+  readonly OperationalFingerprintRow[]
+> = {
   LOCOMOTION_FORWARD_BACK: [
     { component: "Left hip pitch", oemIndex: 0, idleTorque: 0.352, observedTorque: 1.705, ratio: 4.85 },
     { component: "Left ankle pitch", oemIndex: 4, idleTorque: 1.455, observedTorque: 6.653, ratio: 4.57 },
@@ -113,9 +129,12 @@ export const operationalFingerprints = {
     { component: "Waist pitch", oemIndex: 14, idleTorque: 0.314, observedTorque: 1.91, ratio: 6.09 },
     { component: "Left ankle roll", oemIndex: 5, idleTorque: 0.703, observedTorque: 3.639, ratio: 5.17 },
   ],
-} as const;
+};
 
-export const operationalPhaseMetadata = {
+export const operationalPhaseMetadata: Record<
+  OperationalPhaseId,
+  { label: string; context: string; description: string }
+> = {
   LOCOMOTION_FORWARD_BACK: {
     label: "Forward / backward",
     context: "Locomotion",
@@ -131,9 +150,7 @@ export const operationalPhaseMetadata = {
     context: "Locomotion",
     description: "Relative torque signature during the human-confirmed mixed-operation phase.",
   },
-} as const;
-
-export type OperationalPhaseId = keyof typeof operationalFingerprints;
+};
 
 export const unresolvedObservation = {
   componentId: "joint-28-right-wrist-yaw",
@@ -184,7 +201,7 @@ export function getOperationalEvidence(oemIndex: number) {
   });
 }
 
-export function humanizeSessionDisposition(value: typeof fieldRobot.sessionState) {
+export function humanizeSessionDisposition(value: string) {
   if (value === "SALVAGED_OPEN_VERIFIED") return "Salvaged capture · integrity verified";
   return value.replaceAll("_", " ").toLowerCase();
 }
