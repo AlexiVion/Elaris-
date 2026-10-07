@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { homedir } from "node:os";
 import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
+import { join, resolve, sep } from "node:path";
 import {
   ReplayTransport,
   UNITREE_G1_LOWSTATE_CHANNEL,
@@ -582,7 +583,7 @@ async function healthReport(args: string[]) {
   const markdownPath = resolve(outputDir, "field-evidence-report.md");
   const phaseSnapshotPath = resolve(outputDir, "phase-manifest.json");
 
-  await writeFile(jsonPath, JSON.stringify(report, null, 2) + "\n", "utf8");
+  await writeFile(jsonPath, JSON.stringify(report, null, 2) + "\n", { encoding: "utf8", mode: 0o600 });
   await writeFile(
     markdownPath,
     renderFieldEvidenceMarkdown(report) + "\n",
@@ -591,7 +592,7 @@ async function healthReport(args: string[]) {
   await writeFile(
     phaseSnapshotPath,
     JSON.stringify(phaseManifest, null, 2) + "\n",
-    "utf8"
+    { encoding: "utf8", mode: 0o600 }
   );
 
   console.log("ELARIS COMPONENT HEALTH — FIELD EVIDENCE REPORT");
@@ -620,6 +621,7 @@ async function healthReport(args: string[]) {
 }
 
 async function healthReportV03(args: string[]) {
+  process.umask(0o077);
   const passphrase = requirePassphrase();
   const baselineDir = resolve(requiredPositional(args, 0, "baseline working session directory"));
   const sessionDir = resolve(requiredPositional(args, 1, "observed working session directory"));
@@ -653,9 +655,17 @@ async function healthReportV03(args: string[]) {
 
   const outputDir = resolve(
     optionalFlag(args, "--out") ??
-      `derived/${report.run.analysisId.toLowerCase()}`
+      join(homedir(), "elaris-private", "component-health-v03", report.run.analysisId)
   );
-  await mkdir(outputDir, { recursive: true });
+  const workingTree = resolve(process.cwd());
+
+  if (outputDir === workingTree || outputDir.startsWith(workingTree + sep)) {
+    throw new Error(
+      "Refusing to write SENSITIVE V0.3 evidence into the Git working tree. Choose a private output directory outside the repository."
+    );
+  }
+
+  await mkdir(outputDir, { recursive: true, mode: 0o700 });
 
   const jsonPath = resolve(outputDir, "field-evidence-v03.json");
   const markdownPath = resolve(outputDir, "field-evidence-v03.md");
@@ -668,17 +678,17 @@ async function healthReportV03(args: string[]) {
   await writeFile(
     markdownPath,
     renderComponentHealthEvidenceV03Markdown(report) + "\n",
-    "utf8"
+    { encoding: "utf8", mode: 0o600 }
   );
   await writeFile(
     analysisRunPath,
     JSON.stringify(report.run, null, 2) + "\n",
-    "utf8"
+    { encoding: "utf8", mode: 0o600 }
   );
   await writeFile(
     qualityPath,
     JSON.stringify(extractComponentHealthQualityV03(report), null, 2) + "\n",
-    "utf8"
+    { encoding: "utf8", mode: 0o600 }
   );
   await writeFile(
     phaseSnapshotPath,
@@ -701,7 +711,7 @@ async function healthReportV03(args: string[]) {
       `${createHash("sha256").update(payload).digest("hex")}  ${file}`
     );
   }
-  await writeFile(checksumsPath, checksumRows.join("\n") + "\n", "utf8");
+  await writeFile(checksumsPath, checksumRows.join("\n") + "\n", { encoding: "utf8", mode: 0o600 });
 
   console.log("ELARIS COMPONENT HEALTH — EVIDENCE ENGINE V0.3");
   console.log("------------------------------------------------");
