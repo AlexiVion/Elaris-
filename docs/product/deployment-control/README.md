@@ -13,6 +13,12 @@
 - evidence or approval change
 - incident/service event
 
+## Selected first real case
+
+The first real reconciliation case is **the Humandroid Unitree G1 hosted at Universidad Siglo 21 under an institutional agreement**. It is not a task-specific production deployment. This case already exposed a domain-model gap: the current schema requires Customer + Site + Task, which would force invented semantics.
+
+See [Siglo 21 / Humandroid Institutional Placement V0](cases/siglo21-humandroid-institutional-placement-v0.md).
+
 ## Evidence today
 Reference application already implements versioned configuration snapshots, baselines, evidence/requirements/approvals, deterministic diff/impact/readiness/coverage, change workflow, incidents, reports, share view and audit. Humandroid is the first design/pilot partner. These engineering capabilities do not yet equal a repeated validated commercial workflow.
 
@@ -48,4 +54,4 @@ trigger → exact system/context → evidence/requirements → actor work
 - [Portfolio method](../../portfolio/planning-method.md)
 
 ## Next action
-Execute V0.5 with one real Humandroid deployment before adding new generic features.
+Execute V0.5 using the [real Siglo 21 / Humandroid institutional placement](cases/siglo21-humandroid-institutional-placement-v0.md). First correct the domain model so it does not require a fictional commercial Customer or production Task.

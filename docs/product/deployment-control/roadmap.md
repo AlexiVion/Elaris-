@@ -8,7 +8,7 @@
 | V0.2 | A | **Evidence + baseline graph** | Evidence, requirements, approvals and frozen baseline linked to deployment | `IMPLEMENTED_REFERENCE` | One coherent deployment package can be rendered from shared truth. |
 | V0.3 | A | **Change Evidence engine** | Before/after diff + deterministic impact items + review gating | `IMPLEMENTED_REFERENCE` | Golden deterministic change scenario remains reproducible. |
 | V0.4 | A | **Operator workbench + outputs** | Home/queues/details/reports/share/audit around reference workflow | `IMPLEMENTED_REFERENCE` | End-to-end demo is coherent; no claim of field validation. |
-| V0.5 | B | **Real Deployment Reconciliation** | Ingest/reconcile one real Humandroid deployment and artifact set | `PROPOSED_NEXT` | Real config, deployment, evidence and gaps are represented without invented facts. |
+| V0.5 | B | **Real Institutional Placement Reconciliation** | Represent the Humandroid Unitree G1 hosted at Universidad Siglo 21 under institutional agreement, with no invented customer/task | `CASE_SELECTED` | Real robot, provider, host/site, configuration, evidence and unknowns are represented without fake commercial/production semantics. |
 | V0.6 | B | **Real Change Case** | Reconstruct or observe one material change and its real human review | `PROPOSED` | Named reviewers confirm impact/re-test/re-approval workflow. |
 | V0.7 | B | **Source-system intake** | Target only repeated painful sources: Git/Drive/PLM/fleet/export | `DEFERRED_UNTIL_PAIN` | At least two repeated manual intake events justify an integration. |
 | V0.8 | B | **Cross-product evidence links** | Component Health/service/safety/readiness outputs attach to same deployment truth | `PROPOSED` | No duplicate system-of-record; links preserve provenance/authority. |
@@ -40,10 +40,25 @@
 
 
 ## Scope B — requires real actor/case/artifact
-### V0.5 — Real Deployment Reconciliation
-**Result:** Ingest/reconcile one real Humandroid deployment and artifact set  
-**Status:** `PROPOSED_NEXT`  
-**Gate:** Real config, deployment, evidence and gaps are represented without invented facts.
+### V0.5 — Real Institutional Placement Reconciliation
+**Selected case:** [Siglo 21 / Humandroid Institutional Placement](cases/siglo21-humandroid-institutional-placement-v0.md)  
+**Result:** Represent the real Humandroid Unitree G1 hosted at Universidad Siglo 21 without inventing a commercial customer or production task.  
+**Status:** `CASE_SELECTED`  
+**Gate:** provider/owner context, host institution/site, configuration, evidence and unknowns are representable without fake commercial/production semantics.
+
+**Known domain gap:** the current schema requires `Customer`, `Site.customerId` and `Task` for every `Deployment`. V0.5 must generalize placement context before importing the case.
+
+### V0.5.1 — Placement Context Semantics
+
+**Result:** Define and implement the smallest domain/schema generalization required by the Siglo 21 case: provider/host relationship, non-commercial placement, optional task/commercial context and explicit placement kind.  
+**Status:** `PLANNED_WITHIN_V0.5`  
+**Gate:** migration + deterministic tests prove both the existing commercial golden scenario and the institutional placement can coexist without semantic fiction.
+
+### V0.5.2 — Siglo 21 Real Baseline
+
+**Result:** Materialize the real placement/configuration baseline and attach authorized existing evidence references; unknown fields remain explicit.  
+**Status:** `PLANNED_WITHIN_V0.5`  
+**Gate:** baseline reconstructs the selected real case and does not imply production acceptance/safety/customer approval.
 
 ### V0.6 — Real Change Case
 **Result:** Reconstruct or observe one material change and its real human review  

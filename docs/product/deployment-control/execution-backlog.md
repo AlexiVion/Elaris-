@@ -8,7 +8,9 @@ Tasks are ordered by evidence dependency, not feature desirability.
 | DC-020 | V0.2 | Evidence + baseline graph | One coherent deployment package can be rendered from shared truth. | DC-010 |
 | DC-030 | V0.3 | Change Evidence engine | Golden deterministic change scenario remains reproducible. | DC-020 |
 | DC-040 | V0.4 | Operator workbench + outputs | End-to-end demo is coherent; no claim of field validation. | DC-030 |
-| DC-050 | V0.5 | Real Deployment Reconciliation | Real config, deployment, evidence and gaps are represented without invented facts. | DC-040 |
+| DC-050 | V0.5 | Siglo 21 / Humandroid institutional placement reconciliation | Selected real case documented; no fake Customer/Task semantics. | DC-040 |
+| DC-051 | V0.5.1 | Placement Context Semantics | Existing commercial golden scenario + institutional placement both fit the domain with migration/tests. | DC-050 |
+| DC-052 | V0.5.2 | Siglo 21 real baseline | Real placement/config baseline + authorized evidence refs + explicit unknowns are reproducible. | DC-051 |
 | DC-060 | V0.6 | Real Change Case | Named reviewers confirm impact/re-test/re-approval workflow. | DC-050 |
 | DC-070 | V0.7 | Source-system intake | At least two repeated manual intake events justify an integration. | DC-060 |
 | DC-080 | V0.8 | Cross-product evidence links | No duplicate system-of-record; links preserve provenance/authority. | DC-070 |
@@ -25,4 +27,4 @@ Tasks are ordered by evidence dependency, not feature desirability.
 - Shared primitives are reused; shared truth is never copied into actor silos.
 
 ## Immediate next
-Execute V0.5 with one real Humandroid deployment before adding new generic features.
+Use `DC-CASE-S21-HMND-001` as the V0.5 case. First implement DC-051 (Placement Context Semantics), then materialize DC-052 (Siglo 21 real baseline).
