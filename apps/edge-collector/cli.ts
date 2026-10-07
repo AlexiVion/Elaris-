@@ -583,7 +583,7 @@ async function healthReport(args: string[]) {
   const markdownPath = resolve(outputDir, "field-evidence-report.md");
   const phaseSnapshotPath = resolve(outputDir, "phase-manifest.json");
 
-  await writeFile(jsonPath, JSON.stringify(report, null, 2) + "\n", { encoding: "utf8", mode: 0o600 });
+  await writeFile(jsonPath, JSON.stringify(report, null, 2) + "\n", "utf8");
   await writeFile(
     markdownPath,
     renderFieldEvidenceMarkdown(report) + "\n",
@@ -592,7 +592,7 @@ async function healthReport(args: string[]) {
   await writeFile(
     phaseSnapshotPath,
     JSON.stringify(phaseManifest, null, 2) + "\n",
-    { encoding: "utf8", mode: 0o600 }
+    "utf8"
   );
 
   console.log("ELARIS COMPONENT HEALTH — FIELD EVIDENCE REPORT");
@@ -674,7 +674,7 @@ async function healthReportV03(args: string[]) {
   const phaseSnapshotPath = resolve(outputDir, "phase-manifest.json");
   const checksumsPath = resolve(outputDir, "checksums.sha256");
 
-  await writeFile(jsonPath, JSON.stringify(report, null, 2) + "\n", "utf8");
+  await writeFile(jsonPath, JSON.stringify(report, null, 2) + "\n", { encoding: "utf8", mode: 0o600 });
   await writeFile(
     markdownPath,
     renderComponentHealthEvidenceV03Markdown(report) + "\n",
@@ -693,7 +693,7 @@ async function healthReportV03(args: string[]) {
   await writeFile(
     phaseSnapshotPath,
     JSON.stringify(phaseManifest, null, 2) + "\n",
-    "utf8"
+    { encoding: "utf8", mode: 0o600 }
   );
 
   const outputFiles = [
