@@ -84,8 +84,6 @@ model Robot {
   deploymentRobots DeploymentRobot[]
   changes          Change[]
   incidents        Incident[]
-
-  @@index([providerOrganizationId])
 }
 
 model ConfigurationSnapshot {
@@ -157,6 +155,8 @@ model Deployment {
   approvals        Approval[]
   changes          Change[]
   incidents        Incident[]
+
+  @@index([providerOrganizationId])
 }
 
 // Explicit many-to-many (Postgres-clean).
