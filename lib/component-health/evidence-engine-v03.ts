@@ -405,7 +405,7 @@ export async function analyzeComponentHealthEvidenceV03(
             phaseId: sourcePhase.phase.id,
             componentId: descriptor.id,
             message:
-              "Physical signals are non-informative while the OEM state channel is non-zero; the slot remains unresolved.",
+              "Physical channels are absent or all constant zero; this slot is unresolved, regardless of OEM state-code meaning.",
           });
         }
 
@@ -900,13 +900,7 @@ function inferSlotStatus(
       (summary) => summary.min === 0 && summary.max === 0
     );
 
-  const state = observed.signals["motor.state_code"];
-  const hasNonZeroState =
-    state &&
-    "observedValues" in state &&
-    state.observedValues.some((value) => value !== 0);
-
-  if (allPhysicalConstantZero && hasNonZeroState) {
+  if (physical.length === 0 || allPhysicalConstantZero) {
     return "OBSERVED_UNRESOLVED_SLOT";
   }
 
