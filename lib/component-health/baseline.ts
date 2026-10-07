@@ -14,6 +14,8 @@ export type NumericSignalBaseline = {
   signal: string;
   unit: string | null;
   samples: number;
+  /** Unique timestamps in a phase summary (when available). Baseline V0 summaries may omit it. */
+  uniqueTimestamps?: number;
   coverage: number;
   quality: SignalQuality;
   min: number;
