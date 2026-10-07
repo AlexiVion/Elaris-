@@ -729,7 +729,10 @@ Commands:
 
   pnpm edge health-report <baseline-dir> <observed-session-dir> \
     --phases <phase-manifest.json> \
-    [--salvage-hashes <sha256.txt>] \
+    [--salvage-hashes <source-sha256.txt>] \
+    [--source-dir <original-open-capture-dir> \
+     --source-salvage-hashes <source-sha256.txt> \
+     --derivative-hashes <working-copy-sha256.txt>] \
     [--out <derived-output-dir>]
 
   pnpm edge approve-export <capture-dir> \\
