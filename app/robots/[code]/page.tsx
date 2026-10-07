@@ -40,7 +40,7 @@ export default async function RobotProfilePage({ params }: { params: { code: str
       <Card className="mb-6 p-5">
         <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-4">
           <Field icon={Bot} label="Model" value={robot.model} />
-          <Field label="Serial number" value={robot.serialNumber} mono />
+          <Field label="Serial number" value={robot.serialNumber ?? "Not recorded"} mono />
           <Field icon={Box} label="Active snapshot" value={activeSnapshotCode} />
           <Field label="Deployments" value={String(deployments.length)} />
         </div>
@@ -70,7 +70,7 @@ export default async function RobotProfilePage({ params }: { params: { code: str
               {deployments.map((d) => (
                 <li key={d.code}>
                   <Link href={`/deployments/${d.code}`} className="text-sm font-medium text-primary hover:underline">{d.name}</Link>
-                  <div className="text-xs text-muted-foreground">{d.customerName}</div>
+                  <div className="text-xs text-muted-foreground">{d.contextOrganizationName}</div>
                 </li>
               ))}
             </ul>
