@@ -9,6 +9,30 @@ import type {
 export type CaptureState = "OPEN" | "FINALIZED";
 export type ExportApprovalState = "NOT_APPROVED" | "APPROVED";
 
+export type CaptureLifecycle = {
+  collectorStartedAt?: string | null;
+  transportReadyAt?: string | null;
+  captureRequestedStartAt?: string | null;
+  firstFrameAt?: string | null;
+  lastFrameAt?: string | null;
+  captureRequestedEndAt?: string | null;
+  unsubscribeRequestedAt?: string | null;
+  unsubscribeCompletedAt?: string | null;
+  finalizeStartedAt?: string | null;
+  finalizedAt?: string | null;
+};
+
+export type CaptureFrameProvenance = {
+  bridgeObservedAtUnixNs?: string | null;
+  bridgeObservedMonotonicNs?: string | null;
+  callbackSequence?: number | null;
+  emittedSequence?: number | null;
+  receivedAt?: string | null;
+  normalizedAt?: string | null;
+  persistedAt?: string | null;
+  sourceTick?: number | null;
+};
+
 export type CaptureSessionSummary = {
   version: 1;
   sessionId: string;
@@ -40,6 +64,7 @@ export type CaptureManifest = {
   endedAt?: string | null;
   readableChannels: ReadableRobotChannel[];
   discoveryNotes: string[];
+  lifecycle?: CaptureLifecycle;
   rawFrameRetention: true;
   normalizedTelemetryRetention: true;
   collectionPolicy: {
@@ -63,6 +88,7 @@ export type CapturedRawFrame = {
   timestamp: string;
   channel: string;
   payload: unknown;
+  provenance?: CaptureFrameProvenance;
 };
 
 export type ExportApprovalRecord = {
@@ -83,6 +109,7 @@ export type CaptureCreateInput = {
   transportKind: RobotTransportKind;
   configurationId?: string | null;
   discovery: RobotDiscoveryResult;
+  lifecycle?: CaptureLifecycle;
 };
 
 export type CaptureAppendInput = {

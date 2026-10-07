@@ -17,6 +17,8 @@ import {
   loadFieldPhaseManifest,
   renderFieldEvidenceMarkdown,
 } from "@/lib/component-health/field-evidence";
+import { analyzeCaptureDiagnosticsV043 } from "@/lib/component-health/capture-diagnostics-v043";
+import { analyzeComponentProbeV043 } from "@/lib/component-health/component-probe-v043";
 import {
   analyzeComponentHealthEvidenceV03,
   extractComponentHealthQualityV03,
@@ -25,6 +27,7 @@ import {
 import {
   CaptureSessionWriter,
   approveCaptureExport,
+  decryptRawFrames,
   decryptTelemetrySample,
   readCaptureManifest,
   readCaptureSummary,
@@ -33,7 +36,11 @@ import {
 type ReplayFixture = {
   robot: RobotIdentity;
   channels: ReadableRobotChannel[];
-  frames: Array<{ channel: string; payload: unknown }>;
+  frames: Array<{
+    channel: string;
+    payload: unknown;
+    metadata?: import("@/lib/robot-adapters").RobotFrameMetadata;
+  }>;
 };
 
 async function main() {
@@ -48,6 +55,12 @@ async function main() {
       return;
     case "capture-unitree":
       await captureUnitree(args);
+      return;
+    case "probe-unitree-component":
+      await probeUnitreeComponent(args);
+      return;
+    case "diagnose-capture":
+      await diagnoseCapture(args);
       return;
     case "capture-replay":
       await captureReplay(args);
@@ -213,6 +226,7 @@ async function inspectUnitree(args: string[]) {
 }
 
 async function captureUnitree(args: string[]) {
+  const collectorStartedAt = new Date().toISOString();
   const passphrase = requirePassphrase();
   const networkInterface = requiredFlag(args, "--interface");
   const robotId = requiredFlag(args, "--robot-id");
@@ -231,6 +245,7 @@ async function captureUnitree(args: string[]) {
 
   try {
     await transport.connect();
+    const transportReadyAt = new Date().toISOString();
     const discovery = await adapter.discover(transport, {
       manufacturer: "Unitree",
       model: "G1",
@@ -253,13 +268,20 @@ async function captureUnitree(args: string[]) {
       transportKind: transport.kind,
       configurationId,
       discovery,
+      lifecycle: {
+        collectorStartedAt,
+        transportReadyAt,
+        captureRequestedStartAt: new Date().toISOString(),
+      },
     });
 
     let writeChain: Promise<unknown> = Promise.resolve();
     const subscription = await transport.subscribe(
       UNITREE_G1_LOWSTATE_CHANNEL,
-      (payload, channel) => {
-        const timestamp = new Date().toISOString();
+      (payload, channel, metadata) => {
+        const receivedAt = metadata?.receivedAt ?? new Date().toISOString();
+        const normalizedAt = new Date().toISOString();
+        const timestamp = receivedAt;
         const events = adapter.normalize(channel, payload, {
           robotId,
           configurationId,
@@ -274,6 +296,15 @@ async function captureUnitree(args: string[]) {
               timestamp,
               channel: channel.name,
               payload,
+              provenance: {
+                bridgeObservedAtUnixNs: metadata?.bridgeObservedAtUnixNs ?? null,
+                bridgeObservedMonotonicNs: metadata?.bridgeObservedMonotonicNs ?? null,
+                callbackSequence: metadata?.callbackSequence ?? null,
+                emittedSequence: metadata?.emittedSequence ?? null,
+                receivedAt,
+                normalizedAt,
+                sourceTick: readSourceTick(payload),
+              },
             },
             events,
           })
@@ -289,8 +320,16 @@ async function captureUnitree(args: string[]) {
     console.log(`Local encrypted session: ${writer.sessionDir}`);
 
     await sleep(durationSeconds * 1000);
+    const captureRequestedEndAt = new Date().toISOString();
+    await writer.markLifecycle({
+      captureRequestedEndAt,
+      unsubscribeRequestedAt: new Date().toISOString(),
+    });
     await subscription.unsubscribe();
     await writeChain;
+    await writer.markLifecycle({
+      unsubscribeCompletedAt: new Date().toISOString(),
+    });
 
     const result = await writer.finalize();
     console.log("");
@@ -301,6 +340,99 @@ async function captureUnitree(args: string[]) {
   } finally {
     await transport.close();
   }
+}
+
+async function probeUnitreeComponent(args: string[]) {
+  const networkInterface = requiredFlag(args, "--interface");
+  const requestedComponent = requiredFlag(args, "--component");
+  const durationSeconds = numberFlag(args, "--duration", 30);
+  const sampleHz = numberFlag(args, "--hz", 20);
+
+  if (durationSeconds <= 0 || durationSeconds > 300) {
+    throw new Error("--duration must be > 0 and <= 300 seconds");
+  }
+
+  const transport = new UnitreeG1Sdk2ReadOnlyTransport(networkInterface, sampleHz);
+  const adapter = new UnitreeG1Adapter();
+  const component = adapter.components().find(
+    (candidate) =>
+      candidate.id === requestedComponent ||
+      candidate.id.includes(requestedComponent.toLowerCase()) ||
+      candidate.name.toLowerCase().includes(requestedComponent.toLowerCase())
+  );
+
+  if (!component) {
+    throw new Error(`Unknown Unitree G1 component: ${requestedComponent}`);
+  }
+
+  const events: import("@/lib/robot-adapters").NormalizedTelemetryEvent[] = [];
+
+  try {
+    await transport.connect();
+    const subscription = await transport.subscribe(
+      UNITREE_G1_LOWSTATE_CHANNEL,
+      (payload, channel, metadata) => {
+        const timestamp = metadata?.receivedAt ?? new Date().toISOString();
+        events.push(
+          ...adapter.normalize(channel, payload, {
+            robotId: "PROBE-ONLY",
+            captureSessionId: "PROBE-ONLY",
+            timestamp,
+            transportKind: "dds",
+          })
+        );
+      }
+    );
+
+    console.log("ELARIS UNITREE COMPONENT PROBE");
+    console.log("------------------------------");
+    console.log("Mode: READ ONLY");
+    console.log(`Component: ${component.name}`);
+    console.log(`OEM index: ${component.oemIndex ?? "n/a"}`);
+    console.log(`Duration: ${durationSeconds}s @ <= ${sampleHz} Hz`);
+    console.log("No robot command will be sent.");
+
+    await sleep(durationSeconds * 1000);
+    await subscription.unsubscribe();
+
+    const report = analyzeComponentProbeV043(events, component.id);
+    console.log("");
+    console.log(`mode_machine: ${report.modeMachine ?? "NOT_OBSERVED"}`);
+    console.log(`Disposition: ${report.disposition}`);
+    for (const signal of report.signals) {
+      console.log(
+        `  ${signal.signal}: n=${signal.samples} min=${fmtNullable(signal.min)} max=${fmtNullable(signal.max)} range=${fmtNullable(signal.range)} distinct=${signal.distinctValues}`
+      );
+    }
+    console.log(`Interpretation: ${report.interpretation}`);
+  } finally {
+    await transport.close();
+  }
+}
+
+async function diagnoseCapture(args: string[]) {
+  const passphrase = requirePassphrase();
+  const sessionDir = resolve(requiredPositional(args, 0, "session directory"));
+  const [manifest, frames] = await Promise.all([
+    readCaptureManifest(sessionDir, passphrase),
+    decryptRawFrames(sessionDir, passphrase),
+  ]);
+  const report = analyzeCaptureDiagnosticsV043(frames, manifest);
+
+  console.log("ELARIS COMPONENT HEALTH — CAPTURE DIAGNOSTICS V0.4.3");
+  console.log("-----------------------------------------------------");
+  console.log(`Frames: ${report.frameCount}`);
+  console.log(`Duplicate capture timestamps: ${report.duplicateCaptureTimestampCount}`);
+  console.log(`Duplicate source ticks: ${report.duplicateSourceTickCount}`);
+  console.log(`Duplicate emitted sequences: ${report.duplicateEmittedSequenceCount}`);
+  console.log(`Callback sequence regressions: ${report.callbackSequenceRegressions}`);
+  console.log(`Emitted sequence regressions: ${report.emittedSequenceRegressions}`);
+  console.log(`Emitted sequence gaps: ${report.emittedSequenceGapCount}`);
+  console.log(`Lifecycle status: ${report.lifecycle.status}`);
+  console.log(
+    `Last-frame to requested-end gap: ${report.lifecycle.lastFrameToRequestedEndMs ?? "NOT_RECORDED"} ms`
+  );
+  console.log(`Interpretation: ${report.interpretation}`);
 }
 
 async function captureReplay(args: string[]) {
@@ -338,8 +470,9 @@ async function captureReplay(args: string[]) {
 
     for (const channel of discovery.readableChannels) {
       subscriptions.push(
-        await transport.subscribe(channel.name, (payload, readableChannel) => {
-          const timestamp = new Date().toISOString();
+        await transport.subscribe(channel.name, (payload, readableChannel, metadata) => {
+          const timestamp = metadata?.receivedAt ?? new Date().toISOString();
+          const normalizedAt = new Date().toISOString();
           const events = adapter.normalize(readableChannel, payload, {
             robotId,
             configurationId,
@@ -354,6 +487,15 @@ async function captureReplay(args: string[]) {
                 timestamp,
                 channel: readableChannel.name,
                 payload,
+                provenance: {
+                  bridgeObservedAtUnixNs: metadata?.bridgeObservedAtUnixNs ?? null,
+                  bridgeObservedMonotonicNs: metadata?.bridgeObservedMonotonicNs ?? null,
+                  callbackSequence: metadata?.callbackSequence ?? null,
+                  emittedSequence: metadata?.emittedSequence ?? null,
+                  receivedAt: metadata?.receivedAt ?? timestamp,
+                  normalizedAt,
+                  sourceTick: readSourceTick(payload),
+                },
               },
               events,
             })
@@ -539,6 +681,16 @@ function printSignal(
   console.log(
     `${label}: mean=${fmt(signal.mean)}${unit} | n=${signal.samples} | coverage=${percent(signal.coverage)}`
   );
+}
+
+function fmtNullable(value: number | null) {
+  return value === null ? "n/a" : fmt(value);
+}
+
+function readSourceTick(payload: unknown) {
+  if (!payload || typeof payload !== "object") return null;
+  const tick = (payload as Record<string, unknown>).tick;
+  return typeof tick === "number" && Number.isFinite(tick) ? tick : null;
 }
 
 function fmt(value: number) {
@@ -845,6 +997,13 @@ Commands:
     --robot-id <id> \\
     --purpose <purpose> \\
     [--duration 60] [--hz 20] [--configuration <id>] [--root captures]
+
+  pnpm edge probe-unitree-component \\
+    --interface <iface> \\
+    --component <id-or-name> \\
+    [--duration 30] [--hz 20]
+
+  pnpm edge diagnose-capture <capture-dir>
 
   pnpm edge capture-replay \\
     --fixture <json> \\

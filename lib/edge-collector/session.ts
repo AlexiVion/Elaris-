@@ -76,6 +76,7 @@ export class CaptureSessionWriter {
       startedAt,
       readableChannels: input.discovery.readableChannels,
       discoveryNotes: input.discovery.notes,
+      lifecycle: input.lifecycle,
       rawFrameRetention: true,
       normalizedTelemetryRetention: true,
       collectionPolicy: {
@@ -98,7 +99,29 @@ export class CaptureSessionWriter {
   async append(input: CaptureAppendInput) {
     this.assertOpen();
 
-    const rawLine = JSON.stringify(this.crypto.encryptJson(input.rawFrame)) + "\n";
+    const persistedAt = new Date().toISOString();
+    const rawFrame = {
+      ...input.rawFrame,
+      provenance: {
+        ...input.rawFrame.provenance,
+        persistedAt,
+      },
+    };
+
+    const frameAt =
+      rawFrame.provenance?.receivedAt ??
+      rawFrame.timestamp;
+
+    this.manifest = {
+      ...this.manifest,
+      lifecycle: {
+        ...this.manifest.lifecycle,
+        firstFrameAt: this.manifest.lifecycle?.firstFrameAt ?? frameAt,
+        lastFrameAt: frameAt,
+      },
+    };
+
+    const rawLine = JSON.stringify(this.crypto.encryptJson(rawFrame)) + "\n";
     await appendFile(join(this.sessionDir, RAW_FILE), rawLine, { encoding: "utf8" });
     this.frameCount += 1;
 
@@ -116,6 +139,23 @@ export class CaptureSessionWriter {
     }
   }
 
+  async markLifecycle(
+    patch: Partial<NonNullable<CaptureManifest["lifecycle"]>>
+  ) {
+    this.assertOpen();
+    this.manifest = {
+      ...this.manifest,
+      lifecycle: {
+        ...this.manifest.lifecycle,
+        ...patch,
+      },
+    };
+    await writeEncryptedJson(
+      join(this.sessionDir, MANIFEST_FILE),
+      this.crypto.encryptJson(this.manifest)
+    );
+  }
+
   async finalize() {
     this.assertOpen();
     const endedAt = new Date().toISOString();
@@ -131,6 +171,11 @@ export class CaptureSessionWriter {
     this.manifest = {
       ...this.manifest,
       endedAt,
+      lifecycle: {
+        ...this.manifest.lifecycle,
+        finalizeStartedAt: this.manifest.lifecycle?.finalizeStartedAt ?? endedAt,
+        finalizedAt: endedAt,
+      },
     };
 
     await writeJson(join(this.sessionDir, SUMMARY_FILE), this.summary);
@@ -224,6 +269,30 @@ export async function approveCaptureExport(
   ]);
 
   return nextSummary;
+}
+
+export async function decryptRawFrames(
+  sessionDir: string,
+  passphrase: string
+) {
+  const summary = await readCaptureSummary(sessionDir);
+  const crypto = SessionCrypto.fromPassphrase(
+    passphrase,
+    summary.crypto.saltBase64
+  );
+
+  const content = await readFile(join(sessionDir, RAW_FILE), "utf8");
+  const lines = content.split(/\r?\n/).filter(Boolean);
+  const frames = [];
+
+  for (const line of lines) {
+    const envelope = JSON.parse(line) as EncryptedEnvelope;
+    frames.push(
+      crypto.decryptJson<import("./types").CapturedRawFrame>(envelope)
+    );
+  }
+
+  return frames;
 }
 
 export async function decryptTelemetrySample(

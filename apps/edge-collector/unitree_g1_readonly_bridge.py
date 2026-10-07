@@ -24,6 +24,8 @@ CHANNEL = "rt/lowstate"
 RUNNING = True
 MIN_INTERVAL_NS = 50_000_000
 LAST_EMIT_NS = 0
+CALLBACK_SEQUENCE = 0
+EMITTED_SEQUENCE = 0
 
 
 def safe_list(value):
@@ -69,12 +71,15 @@ def emit(message):
 
 
 def handle_lowstate(msg):
-    global LAST_EMIT_NS
+    global LAST_EMIT_NS, CALLBACK_SEQUENCE, EMITTED_SEQUENCE
 
-    now_ns = time.time_ns()
-    if now_ns - LAST_EMIT_NS < MIN_INTERVAL_NS:
+    CALLBACK_SEQUENCE += 1
+    observed_unix_ns = time.time_ns()
+    observed_monotonic_ns = time.monotonic_ns()
+    if observed_monotonic_ns - LAST_EMIT_NS < MIN_INTERVAL_NS:
         return
-    LAST_EMIT_NS = now_ns
+    LAST_EMIT_NS = observed_monotonic_ns
+    EMITTED_SEQUENCE += 1
 
     payload = {
         "mode_pr": scalar(getattr(msg, "mode_pr", 0), 0),
@@ -90,7 +95,11 @@ def handle_lowstate(msg):
     emit({
         "type": "frame",
         "channel": CHANNEL,
-        "timestamp": now_ns,
+        "timestamp": str(observed_unix_ns),
+        "observedAtUnixNs": str(observed_unix_ns),
+        "observedAtMonotonicNs": str(observed_monotonic_ns),
+        "callbackSequence": CALLBACK_SEQUENCE,
+        "emittedSequence": EMITTED_SEQUENCE,
         "payload": payload,
     })
 

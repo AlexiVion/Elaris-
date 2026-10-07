@@ -2,6 +2,7 @@ import type {
   ReadableRobotChannel,
   ReadOnlyRobotTransport,
   RobotFrameHandler,
+  RobotFrameMetadata,
   RobotSubscription,
 } from "./types";
 import { assertReadOnlyChannel } from "./security";
@@ -9,6 +10,7 @@ import { assertReadOnlyChannel } from "./security";
 type ReplayFrame = {
   channel: string;
   payload: unknown;
+  metadata?: RobotFrameMetadata;
 };
 
 export class ReplayTransport implements ReadOnlyRobotTransport {
@@ -60,11 +62,11 @@ export class ReplayTransport implements ReadOnlyRobotTransport {
     this.assertConnected();
 
     for (const frame of this.frames) {
-      await this.emit(frame.channel, frame.payload);
+      await this.emit(frame.channel, frame.payload, frame.metadata);
     }
   }
 
-  async emit(channelName: string, payload: unknown) {
+  async emit(channelName: string, payload: unknown, metadata?: RobotFrameMetadata) {
     this.assertConnected();
     assertReadOnlyChannel(channelName);
 
@@ -74,7 +76,7 @@ export class ReplayTransport implements ReadOnlyRobotTransport {
     }
 
     for (const handler of this.handlers.get(channelName) ?? []) {
-      await handler(payload, channel);
+      await handler(payload, channel, metadata);
     }
   }
 

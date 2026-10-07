@@ -102,7 +102,24 @@ export type RobotAdapterSecurityProfile = {
   telemetrySensitivity: "SENSITIVE_BY_DEFAULT";
 };
 
-export type RobotFrameHandler = (payload: unknown, channel: ReadableRobotChannel) => void | Promise<void>;
+export type RobotFrameMetadata = {
+  /** Wall-clock time captured by the local SDK bridge callback. */
+  bridgeObservedAtUnixNs?: string | null;
+  /** Monotonic bridge clock useful for ordering/gap diagnostics. */
+  bridgeObservedMonotonicNs?: string | null;
+  /** SDK callbacks observed, including callbacks skipped by the sampling cap. */
+  callbackSequence?: number | null;
+  /** Frames emitted after the bridge sampling cap. */
+  emittedSequence?: number | null;
+  /** Time the Node transport parsed the bridge frame. */
+  receivedAt?: string | null;
+};
+
+export type RobotFrameHandler = (
+  payload: unknown,
+  channel: ReadableRobotChannel,
+  metadata?: RobotFrameMetadata
+) => void | Promise<void>;
 
 export type RobotSubscription = {
   unsubscribe(): Promise<void>;
