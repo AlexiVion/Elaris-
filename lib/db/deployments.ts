@@ -4,8 +4,9 @@ import { parseJson } from "@/lib/domain/json";
 import type { DiffEntry } from "@/lib/domain/types";
 
 const deploymentInclude = {
+  providerOrganization: true,
   customer: true,
-  site: true,
+  site: { include: { hostOrganization: true } },
   task: true,
   deploymentRobots: { include: { robot: true } },
   activeBaseline: { include: { snapshot: { include: { items: true } } } },
@@ -29,7 +30,9 @@ function hasPendingChange(changes: { status: string }[]): boolean {
 
 function metricInputs(dep: NonNullable<DeploymentFull>) {
   const robots = dep.deploymentRobots.map((dr) => dr.robot);
-  const hasSerial = robots.length > 0 && robots.every((r) => r.serialNumber.trim().length > 0);
+  const hasSerial =
+    robots.length > 0 &&
+    robots.every((r) => typeof r.serialNumber === "string" && r.serialNumber.trim().length > 0);
   // Active baseline is frozen over its snapshot, so the identity hash matches by
   // construction (spec §6.5). A newer unapproved snapshot is a pending change.
   const activeHashMatchesBaseline = !!dep.activeBaseline;
@@ -45,10 +48,15 @@ function metricInputs(dep: NonNullable<DeploymentFull>) {
 export interface DeploymentSummary {
   code: string;
   name: string;
-  customerName: string;
+  contextKind: string;
+  contextOrganizationName: string;
+  customerName: string | null;
+  providerOrganizationName: string | null;
+  hostOrganizationName: string | null;
+  siteName: string;
   siteCity: string;
   siteCountry: string;
-  lifecycle: string;
+  lifecycle: string | null;
   operationalState: string;
   readinessPercent: number;
 }
@@ -58,7 +66,16 @@ function toSummary(dep: NonNullable<DeploymentFull>): DeploymentSummary {
   return {
     code: dep.code,
     name: dep.name,
-    customerName: dep.customer.name,
+    contextKind: dep.contextKind,
+    contextOrganizationName:
+      dep.customer?.name ??
+      dep.site.hostOrganization?.name ??
+      dep.providerOrganization?.name ??
+      "—",
+    customerName: dep.customer?.name ?? null,
+    providerOrganizationName: dep.providerOrganization?.name ?? null,
+    hostOrganizationName: dep.site.hostOrganization?.name ?? null,
+    siteName: dep.site.name,
     siteCity: dep.site.city,
     siteCountry: dep.site.country,
     lifecycle: dep.lifecycle,
