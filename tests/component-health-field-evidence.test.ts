@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import {
   cp,
+  mkdir,
   mkdtemp,
   readFile,
   rm,
@@ -94,6 +95,7 @@ describe("Component Health field evidence", () => {
     const fixture = await createFixture();
     const sourceHashes = await writeSalvageHashes(fixture.observedDir);
     const derivativeDir = join(dirname(dirname(fixture.observedDir)), "derivative", basename(fixture.observedDir));
+    await mkdir(dirname(derivativeDir), { recursive: true });
     await cp(fixture.observedDir, derivativeDir, { recursive: true });
     const derivativeHashes = await writeSalvageHashes(derivativeDir);
 
@@ -137,6 +139,7 @@ describe("Component Health field evidence", () => {
     const fixture = await createFixture();
     const sourceHashes = await writeSalvageHashes(fixture.observedDir);
     const derivativeDir = join(dirname(dirname(fixture.observedDir)), "derivative2", basename(fixture.observedDir));
+    await mkdir(dirname(derivativeDir), { recursive: true });
     await cp(fixture.observedDir, derivativeDir, { recursive: true });
     const derivativeHashes = await writeSalvageHashes(derivativeDir);
     await writeFile(join(fixture.observedDir, "raw.ndjson.enc"), "\n", { flag: "a" });
