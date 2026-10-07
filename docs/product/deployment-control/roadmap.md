@@ -50,6 +50,8 @@
 
 ### V0.5.1 — Placement Context Semantics
 
+**Technical plan:** [v0.5.1-placement-context-semantics.md](v0.5.1-placement-context-semantics.md)
+
 **Result:** Define and implement the smallest domain/schema generalization required by the Siglo 21 case: provider/host relationship, non-commercial placement, optional task/commercial context and explicit placement kind.  
 **Status:** `PLANNED_WITHIN_V0.5`  
 **Gate:** migration + deterministic tests prove both the existing commercial golden scenario and the institutional placement can coexist without semantic fiction.
