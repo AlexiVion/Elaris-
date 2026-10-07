@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { basename, join } from "node:path";
+import { basename, join, resolve } from "node:path";
 import { createInterface } from "node:readline";
 import {
   analyzeComponentHealthBaseline,
@@ -65,6 +65,8 @@ export type ComponentPhaseEvidence = {
 export type PhaseEvidence = {
   phase: FieldPhase;
   frameCount: number;
+  observedTelemetryStart: string | null;
+  observedTelemetryEnd: string | null;
   jointEventCount: number;
   componentCount: number;
   components: ComponentPhaseEvidence[];
@@ -82,8 +84,17 @@ export type FieldEvidencePack = {
   disposition: "FINALIZED" | "SALVAGED_OPEN_VERIFIED";
   integrity: {
     verified: boolean;
-    method: "FINALIZED_CAPTURE" | "SALVAGE_SHA256_REGISTRY";
+    method: "FINALIZED_SHA256_REGISTRY" | "SALVAGE_SHA256_REGISTRY" | "DERIVATIVE_SHA256_REGISTRY";
     verifiedFiles: string[];
+  };
+  provenance: {
+    sourceIntegrity: {
+      verified: boolean;
+      method: "FINALIZED_SHA256_REGISTRY" | "SOURCE_SALVAGE_SHA256_REGISTRY";
+      verifiedFiles: string[];
+    };
+    workingCopyKind: "ORIGINAL_CAPTURE" | "REKEYED_DERIVATIVE";
+    plaintextEquivalence: "NOT_APPLICABLE" | "NOT_INDEPENDENTLY_VERIFIED";
   };
   phases: PhaseEvidence[];
   limitations: string[];
@@ -92,6 +103,7 @@ export type FieldEvidencePack = {
 type Accumulator = {
   unit: string | null;
   values: number[];
+  sampleTimestamps: Set<string>;
   stateValues: Set<number>;
   transitions: number;
   previousState: number | null;
@@ -99,6 +111,8 @@ type Accumulator = {
 
 type PhaseAccumulator = {
   frameTimestamps: Set<string>;
+  observedStartMs: number | null;
+  observedEndMs: number | null;
   eventCount: number;
   components: Map<string, Map<string, Accumulator>>;
 };
@@ -119,6 +133,10 @@ export async function analyzeComponentHealthFieldEvidence(input: {
   passphrase: string;
   phaseManifest: FieldPhaseManifest;
   salvageHashFile?: string | null;
+  /** Required together to attribute integrity separately to an original OPEN capture and a rekeyed working copy. */
+  sourceSessionDir?: string | null;
+  sourceSalvageHashFile?: string | null;
+  derivativeHashFile?: string | null;
 }): Promise<FieldEvidencePack> {
   const baseline = await analyzeComponentHealthBaseline(
     input.baselineDir,
@@ -133,13 +151,79 @@ export async function analyzeComponentHealthFieldEvidence(input: {
 
   let disposition: FieldEvidencePack["disposition"];
   let integrity: FieldEvidencePack["integrity"];
+  let provenance: FieldEvidencePack["provenance"];
 
-  if (summary.state === "FINALIZED") {
+  const derivativeRequested = Boolean(
+    input.sourceSessionDir || input.sourceSalvageHashFile || input.derivativeHashFile
+  );
+
+  if (derivativeRequested) {
+    if (
+      summary.state !== "OPEN" ||
+      !input.sourceSessionDir ||
+      !input.sourceSalvageHashFile ||
+      !input.derivativeHashFile ||
+      input.salvageHashFile
+    ) {
+      throw new Error(
+        "Rekeyed OPEN derivative requires --source-dir, --source-salvage-hashes and --derivative-hashes; do not combine with --salvage-hashes"
+      );
+    }
+
+    if (resolve(input.sourceSessionDir) === resolve(input.sessionDir)) {
+      throw new Error("Source and derivative must be separate capture directories");
+    }
+
+    const sourceSummary = await readJson<CaptureSessionSummary>(
+      join(input.sourceSessionDir, "session.public.json")
+    );
+    if (sourceSummary.sessionId !== summary.sessionId || sourceSummary.state !== "OPEN") {
+      throw new Error("Source capture identity/state does not match OPEN derivative");
+    }
+
+    const sourceVerifiedFiles = await verifySalvagedCaptureIntegrity(
+      input.sourceSessionDir,
+      input.sourceSalvageHashFile
+    );
+    const derivativeVerifiedFiles = await verifySalvagedCaptureIntegrity(
+      input.sessionDir,
+      input.derivativeHashFile
+    );
+
+    disposition = "SALVAGED_OPEN_VERIFIED";
+    integrity = {
+      verified: true,
+      method: "DERIVATIVE_SHA256_REGISTRY",
+      verifiedFiles: derivativeVerifiedFiles,
+    };
+    provenance = {
+      sourceIntegrity: {
+        verified: true,
+        method: "SOURCE_SALVAGE_SHA256_REGISTRY",
+        verifiedFiles: sourceVerifiedFiles,
+      },
+      workingCopyKind: "REKEYED_DERIVATIVE",
+      plaintextEquivalence: "NOT_INDEPENDENTLY_VERIFIED",
+    };
+  } else if (summary.state === "FINALIZED") {
+    const verifiedFiles = await verifySalvagedCaptureIntegrity(
+      input.sessionDir,
+      join(input.sessionDir, "checksums.sha256")
+    );
     disposition = "FINALIZED";
     integrity = {
       verified: true,
-      method: "FINALIZED_CAPTURE",
-      verifiedFiles: [],
+      method: "FINALIZED_SHA256_REGISTRY",
+      verifiedFiles,
+    };
+    provenance = {
+      sourceIntegrity: {
+        verified: true,
+        method: "FINALIZED_SHA256_REGISTRY",
+        verifiedFiles,
+      },
+      workingCopyKind: "ORIGINAL_CAPTURE",
+      plaintextEquivalence: "NOT_APPLICABLE",
     };
   } else {
     if (!input.salvageHashFile) {
@@ -159,6 +243,15 @@ export async function analyzeComponentHealthFieldEvidence(input: {
       method: "SALVAGE_SHA256_REGISTRY",
       verifiedFiles,
     };
+    provenance = {
+      sourceIntegrity: {
+        verified: true,
+        method: "SOURCE_SALVAGE_SHA256_REGISTRY",
+        verifiedFiles,
+      },
+      workingCopyKind: "ORIGINAL_CAPTURE",
+      plaintextEquivalence: "NOT_APPLICABLE",
+    };
   }
 
   const crypto = SessionCrypto.fromPassphrase(
@@ -177,6 +270,8 @@ export async function analyzeComponentHealthFieldEvidence(input: {
       phase.id,
       {
         frameTimestamps: new Set<string>(),
+        observedStartMs: null,
+        observedEndMs: null,
         eventCount: 0,
         components: new Map(),
       },
@@ -209,6 +304,12 @@ export async function analyzeComponentHealthFieldEvidence(input: {
 
       const phaseAcc = accumulators.get(window.phase.id)!;
       phaseAcc.frameTimestamps.add(event.timestamp);
+      phaseAcc.observedStartMs = phaseAcc.observedStartMs === null
+        ? eventMs
+        : Math.min(phaseAcc.observedStartMs, eventMs);
+      phaseAcc.observedEndMs = phaseAcc.observedEndMs === null
+        ? eventMs
+        : Math.max(phaseAcc.observedEndMs, eventMs);
       phaseAcc.eventCount += 1;
 
       let component = phaseAcc.components.get(event.componentId);
@@ -222,6 +323,7 @@ export async function analyzeComponentHealthFieldEvidence(input: {
         acc = {
           unit: event.unit ?? null,
           values: [],
+          sampleTimestamps: new Set<string>(),
           stateValues: new Set<number>(),
           transitions: 0,
           previousState: null,
@@ -230,6 +332,7 @@ export async function analyzeComponentHealthFieldEvidence(input: {
       }
 
       acc.values.push(event.value);
+      acc.sampleTimestamps.add(event.timestamp);
 
       if (event.signal === "motor.state_code") {
         acc.stateValues.add(event.value);
@@ -308,6 +411,10 @@ export async function analyzeComponentHealthFieldEvidence(input: {
     return {
       phase,
       frameCount,
+      observedTelemetryStart: phaseAcc.observedStartMs === null
+        ? null : new Date(phaseAcc.observedStartMs).toISOString(),
+      observedTelemetryEnd: phaseAcc.observedEndMs === null
+        ? null : new Date(phaseAcc.observedEndMs).toISOString(),
       jointEventCount: phaseAcc.eventCount,
       componentCount: components.length,
       components,
@@ -325,6 +432,7 @@ export async function analyzeComponentHealthFieldEvidence(input: {
     sessionState: summary.state,
     disposition,
     integrity,
+    provenance,
     phases,
     limitations: [
       "This report compares observed telemetry distributions; it is not a diagnosis.",
@@ -335,6 +443,9 @@ export async function analyzeComponentHealthFieldEvidence(input: {
       "A salvaged OPEN capture remains OPEN and is never rewritten as FINALIZED.",
       "Signal semantics such as temperature channel meaning and voltage units remain subject to OEM schema validation.",
       "Export approval and data sensitivity remain governed independently from local analysis.",
+      "SHA-256 verifies registry-matched bytes, not authorship or semantic correctness.",
+      "For a rekeyed working copy, original-source hashes and derivative hashes are verified separately; plaintext equivalence is NOT_INDEPENDENTLY_VERIFIED.",
+      "The baseline capture working-copy lineage must be assessed separately.",
     ],
   };
 }
@@ -406,8 +517,11 @@ export function renderFieldEvidenceMarkdown(pack: FieldEvidencePack) {
   rows.push(`- Session state: \`${pack.sessionState}\``);
   rows.push(`- Disposition: \`${pack.disposition}\``);
   rows.push(
-    `- Integrity: \`${pack.integrity.verified ? "VERIFIED" : "NOT_VERIFIED"}\` via \`${pack.integrity.method}\``
+    `- Analyzed working-copy integrity: \`${pack.integrity.verified ? "VERIFIED" : "NOT_VERIFIED"}\` via \`${pack.integrity.method}\``
   );
+  rows.push(`- Source integrity: \`${pack.provenance.sourceIntegrity.method}\``);
+  rows.push(`- Working-copy kind: \`${pack.provenance.workingCopyKind}\``);
+  rows.push(`- Plaintext equivalence: \`${pack.provenance.plaintextEquivalence}\``);
   rows.push("");
   rows.push(
     "> Descriptive telemetry comparison only. No diagnosis, health score, failure probability or RUL is produced."
@@ -415,12 +529,12 @@ export function renderFieldEvidenceMarkdown(pack: FieldEvidencePack) {
   rows.push("");
   rows.push("## Phase overview");
   rows.push("");
-  rows.push("| Phase | Start | End | Frames | Joint numeric events | Components |");
-  rows.push("|---|---|---|---:|---:|---:|");
+  rows.push("| Phase | Declared start | Declared end | Observed telemetry start | Observed telemetry end | Frames | Joint numeric events | Components |");
+  rows.push("|---|---|---|---|---|---:|---:|---:|");
 
   for (const phase of pack.phases) {
     rows.push(
-      `| ${phase.phase.label} | ${phase.phase.start} | ${phase.phase.end} | ${phase.frameCount} | ${phase.jointEventCount} | ${phase.componentCount} |`
+      `| ${phase.phase.label} | ${phase.phase.start} | ${phase.phase.end} | ${phase.observedTelemetryStart ?? "—"} | ${phase.observedTelemetryEnd ?? "—"} | ${phase.frameCount} | ${phase.jointEventCount} | ${phase.componentCount} |`
     );
   }
 
@@ -472,7 +586,7 @@ function summarizeSignal(
     signal,
     unit: acc.unit,
     samples: acc.values.length,
-    coverage: frameCount > 0 ? acc.values.length / frameCount : 0,
+    coverage: frameCount > 0 ? acc.sampleTimestamps.size / frameCount : 0,
     quality: signalQuality(min, max),
     min,
     p05: percentile(sorted, 0.05),

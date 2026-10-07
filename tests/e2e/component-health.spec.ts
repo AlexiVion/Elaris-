@@ -1,26 +1,34 @@
 import { expect, test } from "@playwright/test";
 
-test("Component Health V0 completes the synthetic reliability loop", async ({ page }) => {
+test("Component Health V0.2.1 navigates real field evidence without synthetic health claims", async ({ page }) => {
   await page.goto("/platform/component-health");
 
-  await expect(page.getByRole("heading", { name: "Fleet Health" })).toBeVisible();
-  await expect(page.getByText(/SYNTHETIC DEMO DATA/)).toBeVisible();
-  await expect(page.getByText("HMND-0002").first()).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /Component Health · Field Evidence/ })
+  ).toBeVisible();
+  await expect(page.getByText(/Real field evidence · Unitree G1/)).toBeVisible();
 
-  await page.getByRole("link", { name: /HMND-0002 · Unitree G1/ }).click();
-  await expect(page).toHaveURL(/component-health\/robots\/HMND-0002/);
-  await expect(page.getByText("Left knee actuator").first()).toBeVisible();
+  // Zero unvalidated health alerts in the real-data demo shell.
+  await expect(page.getByRole("button", { name: "Attention required: 0" })).toBeVisible();
 
-  await page.getByRole("link", { name: "Left knee actuator" }).click();
-  await expect(page).toHaveURL(/component-health\/components\/CMP-KNEE-L-002/);
-  await expect(page.getByRole("heading", { name: "Why Elaris is flagging this" })).toBeVisible();
-  await expect(page.getByText("+11.8% vs own synthetic baseline")).toBeVisible();
+  await page.getByRole("link", { name: "Phases", exact: true }).click();
+  await expect(page).toHaveURL(/component-health\/phases/);
 
-  await page.getByRole("link", { name: /Open service case SV-0014/ }).click();
-  await expect(page).toHaveURL(/component-health\/service\/SV-0014/);
-  await expect(page.getByRole("heading", { name: "Synthetic replacement scenario" })).toBeVisible();
+  await page.getByRole("button", { name: "Turning" }).click();
+  await expect(page.getByText("×27.10").first()).toBeVisible();
 
-  await page.getByRole("link", { name: "Continue to Return-to-Service" }).click();
-  await expect(page).toHaveURL(/component-health\/return-to-service\/RTS-0007/);
-  await expect(page.getByText(/does not declare the robot safe, certified or compliant/)).toBeVisible();
+  await page.getByRole("button", { name: "Mixed operation" }).click();
+  await expect(page.getByText("×20.25").first()).toBeVisible();
+
+  await page.goto("/platform/component-health/components/joint-00-left-hip-pitch");
+  await expect(page.getByRole("heading", { name: /Left hip pitch/ })).toBeVisible();
+  await expect(page.getByText("Operational signature across phases")).toBeVisible();
+  await expect(page.getByText("9.527 N·m")).toBeVisible();
+
+  await page.goto("/platform/component-health/components/joint-28-right-wrist-yaw");
+  await expect(page.getByText("UNRESOLVED").first()).toBeVisible();
+
+  // Old synthetic routes do not present fictional health evidence as observations.
+  await page.goto("/platform/component-health/components/CMP-KNEE-L-002");
+  await expect(page).toHaveURL(/\/platform\/component-health\/components$/);
 });

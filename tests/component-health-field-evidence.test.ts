@@ -1,12 +1,14 @@
 import { createHash } from "node:crypto";
 import {
+  cp,
+  mkdir,
   mkdtemp,
   readFile,
   rm,
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   analyzeComponentHealthFieldEvidence,
@@ -70,6 +72,13 @@ describe("Component Health field evidence", () => {
     expect(report.phases[0]).toMatchObject({
       frameCount: 20,
       componentCount: 1,
+      observedTelemetryStart: iso(0),
+      observedTelemetryEnd: iso(19),
+    });
+    expect(report.provenance).toMatchObject({
+      workingCopyKind: "ORIGINAL_CAPTURE",
+      plaintextEquivalence: "NOT_APPLICABLE",
+      sourceIntegrity: { method: "SOURCE_SALVAGE_SHA256_REGISTRY", verified: true },
     });
 
     const component = report.phases[0]!.components[0]!;
@@ -80,6 +89,72 @@ describe("Component Health field evidence", () => {
     expect(torque!.baselineAbsP95).toBe(10);
     expect(torque!.observedAbsP95).toBe(20);
     expect(torque!.absP95Ratio).toBe(2);
+  });
+
+  it("distinguishes original salvage integrity from a rekeyed working-copy registry", async () => {
+    const fixture = await createFixture();
+    const sourceHashes = await writeSalvageHashes(fixture.observedDir);
+    const derivativeDir = join(dirname(dirname(fixture.observedDir)), "derivative", basename(fixture.observedDir));
+    await mkdir(dirname(derivativeDir), { recursive: true });
+    await cp(fixture.observedDir, derivativeDir, { recursive: true });
+    const derivativeHashes = await writeSalvageHashes(derivativeDir);
+
+    const report = await analyzeComponentHealthFieldEvidence({
+      baselineDir: fixture.baselineDir,
+      sessionDir: derivativeDir,
+      passphrase: PASSPHRASE,
+      phaseManifest: fixture.phaseManifest,
+      sourceSessionDir: fixture.observedDir,
+      sourceSalvageHashFile: sourceHashes,
+      derivativeHashFile: derivativeHashes,
+    });
+
+    expect(report.integrity.method).toBe("DERIVATIVE_SHA256_REGISTRY");
+    expect(report.provenance).toMatchObject({
+      workingCopyKind: "REKEYED_DERIVATIVE",
+      plaintextEquivalence: "NOT_INDEPENDENTLY_VERIFIED",
+      sourceIntegrity: {
+        verified: true,
+        method: "SOURCE_SALVAGE_SHA256_REGISTRY",
+      },
+    });
+  });
+
+  it("fails closed if derivative provenance flags are incomplete", async () => {
+    const fixture = await createFixture();
+    const sourceHashes = await writeSalvageHashes(fixture.observedDir);
+
+    await expect(
+      analyzeComponentHealthFieldEvidence({
+        baselineDir: fixture.baselineDir,
+        sessionDir: fixture.observedDir,
+        passphrase: PASSPHRASE,
+        phaseManifest: fixture.phaseManifest,
+        sourceSalvageHashFile: sourceHashes,
+      })
+    ).rejects.toThrow("Rekeyed OPEN derivative requires");
+  });
+
+  it("rejects an altered source even when the derivative matches its own registry", async () => {
+    const fixture = await createFixture();
+    const sourceHashes = await writeSalvageHashes(fixture.observedDir);
+    const derivativeDir = join(dirname(dirname(fixture.observedDir)), "derivative2", basename(fixture.observedDir));
+    await mkdir(dirname(derivativeDir), { recursive: true });
+    await cp(fixture.observedDir, derivativeDir, { recursive: true });
+    const derivativeHashes = await writeSalvageHashes(derivativeDir);
+    await writeFile(join(fixture.observedDir, "raw.ndjson.enc"), "\n", { flag: "a" });
+
+    await expect(
+      analyzeComponentHealthFieldEvidence({
+        baselineDir: fixture.baselineDir,
+        sessionDir: derivativeDir,
+        passphrase: PASSPHRASE,
+        phaseManifest: fixture.phaseManifest,
+        sourceSessionDir: fixture.observedDir,
+        sourceSalvageHashFile: sourceHashes,
+        derivativeHashFile: derivativeHashes,
+      })
+    ).rejects.toThrow("Salvage integrity mismatch");
   });
 
   it("fails closed when a salvaged capture file changes after hashing", async () => {

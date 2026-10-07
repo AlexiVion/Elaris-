@@ -16,7 +16,7 @@ export default function ComponentHealthLayout({ children }: { children: React.Re
       subtitle="Field Evidence Audit"
       organization="Elaris Field Validation"
       persona="Reliability Lead"
-      attentionCount={1}
+      attentionCount={0}
       nav={nav}
       demoDataNotice={publicDemoNotice}
       demoNoticeTone="slate"

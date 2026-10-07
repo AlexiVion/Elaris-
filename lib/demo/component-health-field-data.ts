@@ -171,7 +171,7 @@ export const evidenceBoundary = [
 ] as const;
 
 export const publicDemoNotice =
-  "Real field evidence · Unitree G1 · Sanitized aggregates · Descriptive only";
+  "Real field evidence · Unitree G1 · Internal validation demo · Export NOT APPROVED";
 
 export function getFieldComponent(componentId: string) {
   return fieldComponents.find((component) => component.id === componentId) ?? null;
