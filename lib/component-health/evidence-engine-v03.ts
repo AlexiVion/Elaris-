@@ -136,6 +136,8 @@ export type QualityFindingV03 = {
     | "PHASE_OBSERVATION_ENDS_BEFORE_DECLARED_END"
     | "MISSING_COMPONENT_SLOTS"
     | "LOW_SIGNAL_COVERAGE"
+    | "DUPLICATE_SIGNAL_TIMESTAMP"
+    | "TELEMETRY_FRAME_GAP"
     | "CONSTANT_ZERO_SIGNAL"
     | "UNRESOLVED_COMPONENT_SLOT"
     | "OEM_SEMANTICS_UNCONFIRMED";
@@ -155,7 +157,10 @@ export type PhaseQualityV03 = {
   observedEndGapMs: number | null;
   missingComponentSlots: number;
   lowCoverageSignalCount: number;
+  duplicateSignalSampleCount: number;
   maxCoverage: number;
+  maxInterFrameGapMs: number | null;
+  medianInterFrameGapMs: number | null;
 };
 
 export type ComponentHealthEvidenceV03 = {
@@ -294,6 +299,7 @@ export async function analyzeComponentHealthEvidenceV03(
     );
 
     let lowCoverageSignalCount = 0;
+    let duplicateSignalSampleCount = 0;
     let phaseMaxCoverage = 0;
     const missingSlots: string[] = [];
 
@@ -315,6 +321,22 @@ export async function analyzeComponentHealthEvidenceV03(
                 throw new Error(
                   `Signal coverage exceeds 100%: ${sourcePhase.phase.id} / ${descriptor.id} / ${signal} = ${summary.coverage}`
                 );
+              }
+
+              const duplicateSamples =
+                summary.samples - (summary.uniqueTimestamps ?? summary.samples);
+              if (duplicateSamples > 0) {
+                duplicateSignalSampleCount += duplicateSamples;
+                findings.push({
+                  code: "DUPLICATE_SIGNAL_TIMESTAMP",
+                  severity: "INFO",
+                  phaseId: sourcePhase.phase.id,
+                  componentId: descriptor.id,
+                  signal,
+                  message:
+                    "More than one sample for this component/signal shares an identical timestamp; duplicates are counted separately from coverage.",
+                  details: { duplicateSamples },
+                });
               }
 
               if (summary.coverage < 0.95) {
@@ -479,6 +501,26 @@ export async function analyzeComponentHealthEvidenceV03(
       });
     }
 
+    const maxFrameGap = sourcePhase.maxInterFrameGapMs;
+    const medianFrameGap = sourcePhase.medianInterFrameGapMs;
+    if (
+      maxFrameGap !== null &&
+      medianFrameGap !== null &&
+      maxFrameGap > Math.max(1_000, medianFrameGap * 10)
+    ) {
+      findings.push({
+        code: "TELEMETRY_FRAME_GAP",
+        severity: "INFO",
+        phaseId: sourcePhase.phase.id,
+        message:
+          "A timestamp interval between observed joint frames is substantially larger than typical cadence in this phase.",
+        details: {
+          maxInterFrameGapMs: maxFrameGap,
+          medianInterFrameGapMs: medianFrameGap,
+        },
+      });
+    }
+
     phaseQuality.push({
       phaseId: sourcePhase.phase.id,
       declaredDurationMs: declaredEndMs - declaredStartMs,
@@ -490,7 +532,10 @@ export async function analyzeComponentHealthEvidenceV03(
       observedEndGapMs: endGap,
       missingComponentSlots: missingSlots.length,
       lowCoverageSignalCount,
+      duplicateSignalSampleCount,
       maxCoverage: phaseMaxCoverage,
+      maxInterFrameGapMs: maxFrameGap,
+      medianInterFrameGapMs: medianFrameGap,
     });
 
     return {
