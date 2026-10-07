@@ -55,6 +55,23 @@ export type QualityFindingGroup = {
 };
 
 export async function loadComponentHealthWorkbench(): Promise<WorkbenchCatalogue> {
+  // Prevent accidental public production deployments from serving
+  // SENSITIVE V0.3 aggregates without an explicit operator opt-in.
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.ELARIS_COMPONENT_HEALTH_ALLOW_PRODUCTION_PRIVATE_EVIDENCE !== "1"
+  ) {
+    return {
+      sourceMode: "PRIVATE_ROOT",
+      root: "DISABLED_IN_PRODUCTION",
+      activeAnalysisId: null,
+      analyses: [],
+      warnings: [
+        "Private Component Health evidence is disabled in production unless explicitly authorized. This flag does not replace authentication, network isolation or data-owner export approval.",
+      ],
+    };
+  }
+
   const explicitReport = cleanEnv(process.env.ELARIS_COMPONENT_HEALTH_V03_REPORT);
   const configuredRoot = cleanEnv(process.env.ELARIS_COMPONENT_HEALTH_V03_ROOT);
   const activeRequested = cleanEnv(
