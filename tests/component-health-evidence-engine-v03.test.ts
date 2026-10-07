@@ -103,6 +103,7 @@ describe("Component Health Evidence Engine V0.3", () => {
 
     expect(second.run.analysisId).toBe(first.run.analysisId);
     expect(second.run.inputFingerprint).toBe(first.run.inputFingerprint);
+    expect(second).toEqual(first);
   });
 
   it("separates source and derivative lineage for the historical baseline", async () => {
