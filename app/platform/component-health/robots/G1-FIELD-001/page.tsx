@@ -8,6 +8,7 @@ import {
   fieldComponents,
   fieldPhases,
   fieldRobot,
+  humanizeSessionDisposition,
   unresolvedObservation,
 } from "@/lib/demo/component-health-field-data";
 
@@ -21,10 +22,10 @@ export default function G1FieldRobotPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Info label="Acquisition" value={fieldRobot.captureMode} icon={ShieldCheck} />
+        <Info label="Acquisition" value="Read-only" icon={ShieldCheck} />
         <Info label="Observed slots" value={String(fieldRobot.componentSlots)} icon={Bot} />
         <Info label="Operational phases" value={String(fieldRobot.observedPhases)} icon={Activity} />
-        <Info label="Disposition" value={fieldRobot.sessionState} icon={FileText} />
+        <Info label="Session" value={humanizeSessionDisposition(fieldRobot.sessionState)} icon={FileText} />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
@@ -45,7 +46,16 @@ export default function G1FieldRobotPage() {
                       <div className="font-medium">{phase.label}</div>
                       <div className="mt-1 font-mono text-[11px] text-muted-foreground">{phase.id}</div>
                     </td>
-                    <td className="px-3 py-3"><StatusPill label={phase.kind.replaceAll("_", " ")} tone={phase.kind === "REFERENCE" ? "blue" : "gray"} /></td>
+                    <td className="px-3 py-3">
+                      <StatusPill
+                        label={
+                          phase.kind === "CONTROLLED_PROBE"
+                            ? "CONTROLLED PROBE"
+                            : phase.kind.charAt(0) + phase.kind.slice(1).toLowerCase()
+                        }
+                        tone={phase.kind === "REFERENCE" ? "blue" : "gray"}
+                      />
+                    </td>
                     <td className="px-3 py-3">{phase.frames.toLocaleString()}</td>
                     <td className="px-3 py-3">{phase.jointEvents.toLocaleString()}</td>
                   </tr>
@@ -58,13 +68,23 @@ export default function G1FieldRobotPage() {
         <div className="space-y-6">
           <SectionCard title="Evidence context" icon={ShieldCheck}>
             <dl className="space-y-3 text-sm">
-              <Row label="Evidence class" value={fieldRobot.evidenceClass} />
-              <Row label="Context evidence" value={fieldRobot.contextEvidence} />
+              <Row label="Evidence" value="Observed telemetry" />
+              <Row label="Context" value="Human-confirmed phases" />
               <Row label="Historical baseline" value={fieldRobot.baselineFrames + " frames"} />
               <Row label="Baseline events" value={fieldRobot.baselineEvents.toLocaleString()} />
               <Row label="Usable components" value={String(fieldRobot.usableComponents)} />
               <Row label="Unresolved slots" value={String(fieldRobot.unresolvedComponents)} />
             </dl>
+
+            <details className="mt-5 rounded-lg border border-border p-3">
+              <summary className="cursor-pointer text-xs font-medium text-muted-foreground">Technical metadata</summary>
+              <dl className="mt-3 space-y-2 font-mono text-[11px]">
+                <Row label="capture_mode" value={fieldRobot.captureMode} />
+                <Row label="evidence_class" value={fieldRobot.evidenceClass} />
+                <Row label="context_evidence" value={fieldRobot.contextEvidence} />
+                <Row label="source_disposition" value={fieldRobot.sessionState} />
+              </dl>
+            </details>
           </SectionCard>
 
           <SectionCard title="Data quality" icon={FileText}>
@@ -75,6 +95,9 @@ export default function G1FieldRobotPage() {
           <div className="grid gap-3">
             <Link href="/platform/component-health/components" className="rounded-lg border border-border p-4 text-sm font-medium hover:bg-muted/40">
               Browse all {fieldComponents.length} component slots →
+            </Link>
+            <Link href="/platform/component-health/phases" className="rounded-lg border border-border p-4 text-sm font-medium hover:bg-muted/40">
+              Explore operational phases →
             </Link>
             <Link href="/platform/component-health/reports/field-evidence" className="rounded-lg border border-border p-4 text-sm font-medium hover:bg-muted/40">
               Open field evidence report →
