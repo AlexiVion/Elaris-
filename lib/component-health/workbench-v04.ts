@@ -7,7 +7,7 @@ import {
   stat,
 } from "node:fs/promises";
 import { homedir } from "node:os";
-import { basename, join, relative, resolve, sep } from "node:path";
+import { basename, isAbsolute, join, relative, resolve, sep } from "node:path";
 import type {
   ComponentHealthEvidenceV03,
   PhaseComponentEvidenceV03,
@@ -407,7 +407,12 @@ async function assertPrivatePath(path: string) {
 
 function isInside(parent: string, child: string) {
   const rel = relative(parent, child);
-  return rel !== "" && !rel.startsWith("..") && !resolve(rel).startsWith(sep);
+  return (
+    rel !== "" &&
+    rel !== ".." &&
+    !rel.startsWith(".." + sep) &&
+    !isAbsolute(rel)
+  );
 }
 
 async function safeStat(path: string) {
