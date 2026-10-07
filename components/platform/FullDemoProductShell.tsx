@@ -32,6 +32,7 @@ type NavIcon =
   | "reports"
   | "robots"
   | "attention"
+  | "phases"
   | "service"
   | "return";
 
@@ -45,9 +46,16 @@ const iconMap = {
   reports: FileText,
   robots: Bot,
   attention: Activity,
+  phases: Activity,
   service: Wrench,
   return: ClipboardCheck,
 };
+
+const noticeToneClasses = {
+  amber: "border-amber-200 bg-amber-50 text-amber-800",
+  slate: "border-slate-200 bg-slate-50 text-slate-600",
+  blue: "border-blue-200 bg-blue-50 text-blue-700",
+} as const;
 
 export function FullDemoProductShell({
   product,
@@ -57,6 +65,7 @@ export function FullDemoProductShell({
   attentionCount,
   nav,
   demoDataNotice,
+  demoNoticeTone = "amber",
   children,
 }: {
   product: string;
@@ -66,6 +75,7 @@ export function FullDemoProductShell({
   attentionCount: number;
   nav: Array<{ href: string; label: string; icon: NavIcon; exact?: boolean }>;
   demoDataNotice?: string;
+  demoNoticeTone?: keyof typeof noticeToneClasses;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -116,13 +126,13 @@ export function FullDemoProductShell({
               {attentionCount > 0 && <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-semibold text-destructive-foreground">{attentionCount}</span>}
             </button>
             <div className="flex items-center gap-2">
-              <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{persona.split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase()}</span>
+              <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{persona.split(/s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase()}</span>
               <div className="hidden text-sm md:block"><div className="font-medium leading-tight">{persona}</div><div className="text-xs text-muted-foreground">Demo persona</div></div>
             </div>
           </div>
         </header>
 
-        <div className="border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-center text-xs font-medium text-amber-800 md:px-6">
+        <div className={cn("border-b px-4 py-1.5 text-center text-xs font-medium md:px-6", noticeToneClasses[demoNoticeTone])}>
           {demoDataNotice ?? "Demo data — insurance workflow objects and organizations are fictional. Shared deployment/configuration data comes from the Elaris demo substrate."}
         </div>
 
