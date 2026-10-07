@@ -70,9 +70,15 @@ export default async function DeploymentOverviewPage({
         title={dep.name}
         actions={
           <>
-            <Button variant="outline" asChild>
-              <Link href={`/deployments/${dep.code}/changes/new`}><GitBranch className="size-4" /> New change</Link>
-            </Button>
+            {dep.humanExposure ? (
+              <Button variant="outline" asChild>
+                <Link href={`/deployments/${dep.code}/changes/new`}><GitBranch className="size-4" /> New change</Link>
+              </Button>
+            ) : (
+              <Button variant="outline" disabled title="Human exposure context is required before change-impact analysis">
+                <GitBranch className="size-4" /> Change impact blocked
+              </Button>
+            )}
             <Button variant="outline" asChild>
               <Link href={`/reports/readiness/${dep.code}`}><Share2 className="size-4" /> Share View</Link>
             </Button>
