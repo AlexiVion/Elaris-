@@ -54,7 +54,7 @@ La aprobación para exportar un extracto no convierte el capture fuente en `PUBL
 | V0.1-baseline | Datos reales Dataset #001; baseline observado | `VERIFIED_LOCAL` limitado | tests 2/2 + baseline real reportado | **NOT_APPROVED** | UNTESTED | PR #12 draft | no registrado |
 | V0.1-field-evidence | Dataset #002 OPEN salvage y Field Evidence | `VERIFIED_LOCAL` limitado | tests 3/3; reporte real ejecutado y hash local | **NOT_APPROVED** | UNTESTED | PR #13 draft | no registrado |
 | V0.2 | Demo real-data-derived Component Health | `VERIFIED_LOCAL` | 5/5 tests, typecheck/build PASS y UI HTTP 200 en commit `41a8cce` | **NOT_APPROVED** | UNTESTED | PR #14 draft | no registrado |
-| **V0.2.1** | Correcciones de integridad, metadata, legacy y E2E | **`IMPLEMENTED` / verificación real pendiente** | **PARTIAL PASS: typecheck, 8/8 tests, build 52/52, E2E 1/1 informados por operador; Dataset #002 rerun PENDING** | **NOT_APPROVED** | UNTESTED | PR #15 draft | no registrado |
+| **V0.2.1** | Correcciones de integridad, metadata, legacy y E2E | **`VERIFIED_LOCAL`** | **PASS informado por operador: typecheck, 8/8 tests, build 52/52, E2E 1/1 y Dataset #002 real rerun con provenance separada; output sellado SHA-256** | **NOT_APPROVED** | UNTESTED | PR #15 draft | no registrado |
 | V0.3 | Evidence Engine reproducible | `DRAFT` | NOT_RUN | NOT_APPROVED | DISCOVERY | CH-030… | — |
 | V0.4 | Audit Workbench con entidades persistidas | `DRAFT` | NOT_RUN | NOT_APPROVED | DISCOVERY | CH-040… | — |
 | V0.5 | Human-approved export / client delivery | `DRAFT` | NOT_RUN | NOT_APPROVED | DISCOVERY | CH-050… | — |
@@ -70,7 +70,7 @@ La aprobación para exportar un extracto no convierte el capture fuente en `PUBL
 
 ### Aclaraciones de snapshot
 
-El PASS de V0.2 **no** implica PASS para commits posteriores de PR #15. El operador informó posteriormente resultados positivos de V0.2.1: typecheck PASS, 8/8 unit tests, build PASS (52/52 páginas) y E2E Playwright 1/1 después de instalar Chromium y librerías de sistema. Ver comentario de verificación en PR #15. Este registro los marca **PARTIAL PASS**, porque la regeneración real del reporte Dataset #002 con la nueva procedencia sigue pendiente. Los resultados provienen del operador, no de CI independiente.
+El PASS de V0.2 **no** implica PASS para commits posteriores de PR #15. Para V0.2.1 el operador informó typecheck PASS, 8/8 tests, build PASS (52/52 páginas), E2E Playwright 1/1 y regeneración real de Dataset #002 con source/derivative hash registries separados. El reporte conservó `OPEN`, informó `DERIVATIVE_SHA256_REGISTRY`, `SOURCE_SALVAGE_SHA256_REGISTRY`, `REKEYED_DERIVATIVE`, `NOT_INDEPENDENTLY_VERIFIED`, `RECOVERY_IDLE.observedTelemetryEnd=2026-10-06T15:45:55.399Z` y máxima cobertura `1`. Los artefactos fueron sellados localmente con SHA-256. Por eso el estado técnico pasa a **VERIFIED_LOCAL**. Los resultados provienen del operador, no de CI independiente; exportación y owner approval siguen separados.
 
 Los datos originales y derivados de la sesión de campo siguen con **clasificación sensible** y **aprobación de export pendiente**. El repo de trabajo es público; requiere decisión formal sobre agregados derivados ya incluidos. Publicar un repo público no constituye consentimiento institucional.
 
