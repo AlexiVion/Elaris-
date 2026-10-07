@@ -30,7 +30,7 @@ Ninguna capacidad M5/M6 se anuncia usando sólo evidencia M1/M2.
 | V0.1 | Baseline + Field Evidence | Captura real y reporte técnico | `VERIFIED_LOCAL` (scope limitado) | Procedencia formal/QA pendientes |
 | V0.2 | Demo real-data-derived | Navegación/Phase Explorer/fingerprints | `VERIFIED_LOCAL` | Tests y build del snapshot aportados |
 | **V0.2.1** | **Cierre correctivo** | Sin alertas inventadas, provenance fuente/derivada y quality metadata | `IMPLEMENTED_PENDING_VERIFICATION` | Tests+build+E2E+rerun real+data gate |
-| V0.3 | **Evidence Engine confiable** | Normalización de reportes privados y referencia intra-sesión como contrato | **`IN_PROGRESS` · PR #17 draft** | Reproducibilidad real 2× + seguridad |
+| V0.3 | **Evidence Engine confiable** | Normalización de reportes privados y referencia intra-sesión como contrato | **`VERIFIED_LOCAL` · PR #17 draft** | Owner/data approval siguen separados; siguiente alcance: V0.4 |
 | V0.4 | **Audit Workbench** | Sesiones, fases, componentes, quality review y notas humanas navegables, persistencia mínima | `DRAFT` | Un operador completa audit sin scripts ad hoc |
 | V0.5 | **Delivery & Export** | Paquete aprobado, export versionado y handoff al cliente | `DRAFT` | Aprobación legal/datos + entrega verificable |
 | V0.6 | **Comparable Sessions** | Historial de sesiones sobre mismo robot/componente/config | `PROPOSED` | 2+ capturas comparables y caso real de comparación |
