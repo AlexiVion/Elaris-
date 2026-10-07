@@ -36,7 +36,11 @@ import {
 type ReplayFixture = {
   robot: RobotIdentity;
   channels: ReadableRobotChannel[];
-  frames: Array<{ channel: string; payload: unknown }>;
+  frames: Array<{
+    channel: string;
+    payload: unknown;
+    metadata?: import("@/lib/robot-adapters").RobotFrameMetadata;
+  }>;
 };
 
 async function main() {
@@ -166,7 +170,6 @@ async function inspectUnitree(args: string[]) {
 
   try {
     await transport.connect();
-    const transportReadyAt = new Date().toISOString();
     const discovery = await adapter.discover(transport, {
       manufacturer: "Unitree",
       model: "G1",
@@ -242,6 +245,7 @@ async function captureUnitree(args: string[]) {
 
   try {
     await transport.connect();
+    const transportReadyAt = new Date().toISOString();
     const discovery = await adapter.discover(transport, {
       manufacturer: "Unitree",
       model: "G1",
@@ -467,7 +471,8 @@ async function captureReplay(args: string[]) {
     for (const channel of discovery.readableChannels) {
       subscriptions.push(
         await transport.subscribe(channel.name, (payload, readableChannel, metadata) => {
-          const timestamp = new Date().toISOString();
+          const timestamp = metadata?.receivedAt ?? new Date().toISOString();
+          const normalizedAt = new Date().toISOString();
           const events = adapter.normalize(readableChannel, payload, {
             robotId,
             configurationId,
@@ -482,6 +487,15 @@ async function captureReplay(args: string[]) {
                 timestamp,
                 channel: readableChannel.name,
                 payload,
+                provenance: {
+                  bridgeObservedAtUnixNs: metadata?.bridgeObservedAtUnixNs ?? null,
+                  bridgeObservedMonotonicNs: metadata?.bridgeObservedMonotonicNs ?? null,
+                  callbackSequence: metadata?.callbackSequence ?? null,
+                  emittedSequence: metadata?.emittedSequence ?? null,
+                  receivedAt: metadata?.receivedAt ?? timestamp,
+                  normalizedAt,
+                  sourceTick: readSourceTick(payload),
+                },
               },
               events,
             })
