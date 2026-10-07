@@ -41,7 +41,7 @@ export default async function ComponentHealthHome() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Private analyses" value={catalogue.analyses.length} icon={Database} tone="blue" delta={null} />
         <KpiCard label="Operational phases" value={report.phases.length} icon={ClipboardCheck} tone="green" delta={null} />
-        <KpiCard label="Component slots" value={report.robot.componentSlots} icon={Bot} tone="slate" delta={null} />
+        <KpiCard label="Component slots" value={report.robot.componentSlots} icon={Bot} tone="gray" delta={null} />
         <KpiCard label="Quality warnings" value={warnings} icon={TriangleAlert} tone="red" delta={null} />
       </div>
 
@@ -122,7 +122,7 @@ export default async function ComponentHealthHome() {
               <div key={group.severity + group.code} className="rounded-lg border border-border p-3">
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-xs font-semibold">{group.code.replaceAll("_", " ")}</div>
-                  <StatusPill label={String(group.count)} tone={group.severity === "WARNING" ? "amber" : "slate"} />
+                  <StatusPill label={String(group.count)} tone={group.severity === "WARNING" ? "amber" : "gray"} />
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
                   {group.phaseCount} phases · {group.componentCount} components
