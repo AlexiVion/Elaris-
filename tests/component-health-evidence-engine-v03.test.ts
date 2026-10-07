@@ -81,6 +81,15 @@ describe("Component Health Evidence Engine V0.3", () => {
     expect(missing.signals["joint.torque_estimate"].summary).toBeNull();
 
     expect(report.quality.maxCoverage).toBe(1);
+    expect(report.quality.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "PHASE_OBSERVATION_ENDS_BEFORE_DECLARED_END",
+          phaseId: "CONTROLLED_LOAD",
+          severity: "WARNING",
+        }),
+      ])
+    );
     expect(report.operationalFingerprints.CONTROLLED_LOAD?.[0]).toMatchObject({
       oemIndex: 3,
       ratio: 2,
@@ -145,6 +154,53 @@ describe("Component Health Evidence Engine V0.3", () => {
         method: "DERIVATIVE_SHA256_REGISTRY",
       },
     });
+  });
+
+  it("fails closed when baseline derivative provenance flags are incomplete", async () => {
+    const fixture = await createFixture();
+    const salvage = await writeRegistry(fixture.observedDir, "salvage.sha256");
+
+    await expect(
+      analyzeComponentHealthEvidenceV03({
+        baselineDir: fixture.baselineDir,
+        sessionDir: fixture.observedDir,
+        passphrase: PASSPHRASE,
+        phaseManifest: fixture.phaseManifest,
+        salvageHashFile: salvage,
+        baselineSourceDir: fixture.baselineDir,
+      })
+    ).rejects.toThrow("Rekeyed historical baseline requires");
+  });
+
+  it("rejects a baseline source modified after its SHA registry was recorded", async () => {
+    const fixture = await createFixture();
+    const salvage = await writeRegistry(fixture.observedDir, "salvage.sha256");
+
+    const derivativeDir = join(
+      dirname(dirname(fixture.baselineDir)),
+      "tampered-baseline-derivative",
+      basename(fixture.baselineDir)
+    );
+    await mkdir(dirname(derivativeDir), { recursive: true });
+    await cp(fixture.baselineDir, derivativeDir, { recursive: true });
+    const derivativeHashes = await writeRegistry(derivativeDir, "derivative.sha256");
+
+    await writeFile(join(fixture.baselineDir, "raw.ndjson.enc"), "\n", {
+      flag: "a",
+    });
+
+    await expect(
+      analyzeComponentHealthEvidenceV03({
+        baselineDir: derivativeDir,
+        sessionDir: fixture.observedDir,
+        passphrase: PASSPHRASE,
+        phaseManifest: fixture.phaseManifest,
+        salvageHashFile: salvage,
+        baselineSourceDir: fixture.baselineDir,
+        baselineSourceHashFile: join(fixture.baselineDir, "checksums.sha256"),
+        baselineDerivativeHashFile: derivativeHashes,
+      })
+    ).rejects.toThrow("Salvage integrity mismatch");
   });
 
   it("fails closed without the required same-session idle reference", async () => {
@@ -221,7 +277,7 @@ async function createFixture() {
         id: "CONTROLLED_LOAD",
         label: "Controlled load",
         start: iso(20),
-        end: iso(41),
+        end: iso(45),
       },
     ],
   };
