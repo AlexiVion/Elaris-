@@ -14,7 +14,7 @@ import {
   verifySalvagedCaptureIntegrity,
 } from "@/lib/component-health/field-evidence";
 import type { CaptureSessionSummary } from "@/lib/edge-collector/types";
-import { UnitreeG1Adapter } from "@/lib/robot-adapters";
+import { UnitreeG1Adapter, type RobotComponentDescriptor } from "@/lib/robot-adapters";
 
 export const COMPONENT_HEALTH_V03_SCHEMA = "0.3.0" as const;
 export const COMPONENT_HEALTH_V03_ENGINE =
@@ -265,13 +265,7 @@ export async function analyzeComponentHealthEvidenceV03(
 
   const descriptors = new UnitreeG1Adapter()
     .components()
-    .filter(
-      (component): component is ReturnType<UnitreeG1Adapter["components"]>[number] & {
-        oemIndex: number;
-      } =>
-        component.kind === "joint" &&
-        typeof component.oemIndex === "number"
-    )
+    .filter(isIndexedJoint)
     .sort((a, b) => a.oemIndex - b.oemIndex);
 
   if (descriptors.length !== 29) {
@@ -876,6 +870,12 @@ async function resolveBaselineLineage(
       registrySha256: await sha256File(registry),
     },
   };
+}
+
+function isIndexedJoint(
+  component: RobotComponentDescriptor
+): component is RobotComponentDescriptor & { oemIndex: number } {
+  return component.kind === "joint" && typeof component.oemIndex === "number";
 }
 
 function inferSlotStatus(
