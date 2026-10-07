@@ -69,7 +69,7 @@ export default async function ComponentHealthSessionsPage() {
                     <td className="px-4 py-3">{artifact.duplicateCopies}</td>
                     <td className="px-4 py-3 font-mono text-xs">{fingerprintPrefix(report.run.inputFingerprint)}…</td>
                     <td className="px-4 py-3">
-                      <StatusPill label={active ? "ACTIVE" : "AVAILABLE"} tone={active ? "green" : "slate"} />
+                      <StatusPill label={active ? "ACTIVE" : "AVAILABLE"} tone={active ? "green" : "gray"} />
                     </td>
                     <td className="px-4 py-3">
                       <Link
