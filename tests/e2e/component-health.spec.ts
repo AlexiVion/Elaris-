@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("Component Health V0.4 uses private V0.3 artifacts without exposing synthetic health claims", async ({ page }) => {
+test("Component Health V0.4.1 uses private V0.3 artifacts and persists human review without health claims", async ({ page }) => {
   await page.goto("/platform/component-health");
 
   await expect(
@@ -57,6 +57,52 @@ test("Component Health V0.4 uses private V0.3 artifacts without exposing synthet
   await expect(page.getByText("Qué tenés que decidir acá")).toBeVisible();
   await expect(page.getByText(/No tenés que decidir si el robot está sano/)).toBeVisible();
   await expect(page.getByText(/Data export/i).first()).toBeVisible();
+  await expect(page.getByText(/NOT APPROVED/i).first()).toBeVisible();
+
+  // Persist the overall review workflow through the real local API/SQLite path.
+  const reviewNote =
+    "E2E persistence check: technical review started; no robot-health conclusion.";
+  const reviewSelect = page.getByRole("combobox").first();
+  await reviewSelect.selectOption("IN_REVIEW");
+  await page.locator("textarea").first().fill(reviewNote);
+  await page.getByRole("button", { name: "Guardar" }).first().click();
+  await expect(page.getByRole("button", { name: "Guardado" }).first()).toBeVisible();
+
+  // Persist a concrete unresolved-evidence action without turning it into a failure claim.
+  const unresolvedTitle = page.getByText("UNRESOLVED COMPONENT SLOT", {
+    exact: true,
+  });
+  await expect(unresolvedTitle).toBeVisible();
+  const unresolvedCard = unresolvedTitle.locator(
+    "xpath=ancestor::div[contains(@class,'rounded-xl')][1]"
+  );
+  const unresolvedNote =
+    "OEM slot mapping / physical telemetry remains unresolved. Technical verification required before stronger interpretation.";
+  await unresolvedCard.getByRole("combobox").selectOption("NEEDS_FOLLOWUP");
+  await unresolvedCard.locator("textarea").fill(unresolvedNote);
+  await unresolvedCard.getByRole("button", { name: "Guardar" }).click();
+  await expect(
+    unresolvedCard.getByRole("button", { name: "Guardado" })
+  ).toBeVisible();
+
+  // Full refresh proves the review state is persisted, not just held in React state.
+  await page.reload();
+  await expect(page.getByRole("combobox").first()).toHaveValue("IN_REVIEW");
+  await expect(page.locator("textarea").first()).toHaveValue(reviewNote);
+
+  const persistedUnresolvedTitle = page.getByText(
+    "UNRESOLVED COMPONENT SLOT",
+    { exact: true }
+  );
+  const persistedUnresolvedCard = persistedUnresolvedTitle.locator(
+    "xpath=ancestor::div[contains(@class,'rounded-xl')][1]"
+  );
+  await expect(persistedUnresolvedCard.getByRole("combobox")).toHaveValue(
+    "NEEDS_FOLLOWUP"
+  );
+  await expect(persistedUnresolvedCard.locator("textarea")).toHaveValue(
+    unresolvedNote
+  );
   await expect(page.getByText(/NOT APPROVED/i).first()).toBeVisible();
 
   await page.goto("/platform/component-health/reports/draft");
