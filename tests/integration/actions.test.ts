@@ -17,9 +17,10 @@ vi.mock("next/headers", () => ({
   cookies: () => ({ get: () => ({ value: (globalThis as Record<string, unknown>).__ELARIS_TEST_VIEWER }) }),
 }));
 
-// Point Prisma at a fresh copy of the seeded DB before anything imports it.
+// Point Prisma at a fresh copy of the selected seeded DB before anything imports it.
+const seededDb = resolve(process.env.ELARIS_TEST_SEEDED_DB ?? "prisma/dev.db");
 process.env.DATABASE_URL = "file:./test-actions.db";
-copyFileSync(resolve("prisma/dev.db"), resolve("prisma/test-actions.db"));
+copyFileSync(seededDb, resolve("prisma/test-actions.db"));
 
 type Actions = typeof import("@/lib/actions/changes");
 type Reports = typeof import("@/lib/db/reports");
