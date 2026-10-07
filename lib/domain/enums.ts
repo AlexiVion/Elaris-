@@ -33,10 +33,18 @@ export const SLOTS = [
 ] as const;
 export type Slot = (typeof SLOTS)[number];
 
+export const DEPLOYMENT_CONTEXT_KINDS = [
+  "COMMERCIAL_DEPLOYMENT",
+  "INSTITUTIONAL_PLACEMENT",
+  "INTERNAL_LAB",
+  "DEMO",
+] as const;
+export type DeploymentContextKind = (typeof DEPLOYMENT_CONTEXT_KINDS)[number];
+
 export const LIFECYCLES = ["TEST", "PILOT", "LIMITED", "PRODUCTION"] as const;
 export type Lifecycle = (typeof LIFECYCLES)[number];
 
-export const OPERATIONAL_STATES = ["PLANNED", "LIVE", "PAUSED", "ENDED"] as const;
+export const OPERATIONAL_STATES = ["PLANNED", "PRESENT", "LIVE", "PAUSED", "ENDED"] as const;
 export type OperationalState = (typeof OPERATIONAL_STATES)[number];
 
 export const OPERATING_MODES = ["SUPERVISED", "AUTONOMOUS_ZONED", "TELEOPERATED"] as const;
