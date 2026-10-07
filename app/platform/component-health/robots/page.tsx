@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/elaris/PageHeader";
 import { Card } from "@/components/ui/card";
 import { StatusPill } from "@/components/elaris/StatusPill";
-import { fieldRobot } from "@/lib/demo/component-health-field-data";
+import { fieldRobot, humanizeSessionDisposition } from "@/lib/demo/component-health-field-data";
 
 export default function ComponentHealthRobotsPage() {
   return (
@@ -13,7 +13,7 @@ export default function ComponentHealthRobotsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/40">
-                {["Robot", "Model", "Acquisition", "Components", "Phases", "Disposition", "Evidence"].map((heading) => (
+                {["Robot", "Model", "Acquisition", "Components", "Phases", "Session", "Evidence"].map((heading) => (
                   <th key={heading} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">{heading}</th>
                 ))}
               </tr>
@@ -27,11 +27,11 @@ export default function ComponentHealthRobotsPage() {
                   <div className="mt-1 text-xs text-muted-foreground">Sanitized real-data demo</div>
                 </td>
                 <td className="px-4 py-3 font-medium">{fieldRobot.model}</td>
-                <td className="px-4 py-3">{fieldRobot.captureMode}</td>
+                <td className="px-4 py-3">Read-only</td>
                 <td className="px-4 py-3">{fieldRobot.usableComponents} usable / {fieldRobot.unresolvedComponents} unresolved</td>
                 <td className="px-4 py-3">{fieldRobot.observedPhases}</td>
-                <td className="px-4 py-3 text-xs">{fieldRobot.sessionState}</td>
-                <td className="px-4 py-3"><StatusPill label={fieldRobot.evidenceClass} tone="green" /></td>
+                <td className="px-4 py-3 text-xs">{humanizeSessionDisposition(fieldRobot.sessionState)}</td>
+                <td className="px-4 py-3"><StatusPill label="OBSERVED" tone="green" /></td>
               </tr>
             </tbody>
           </table>
