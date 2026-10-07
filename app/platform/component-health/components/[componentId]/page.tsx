@@ -33,7 +33,7 @@ export default function FieldComponentDetailPage({ params }: { params: { compone
             {component.id}
           </>
         }
-        actions={<StatusPill label={unresolved ? "UNRESOLVED" : "OBSERVED USABLE"} tone={unresolved ? "amber" : "green"} />}
+        actions={<StatusPill label={unresolved ? "UNRESOLVED" : "TELEMETRY AVAILABLE"} tone={unresolved ? "amber" : "green"} />}
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.25fr_.75fr]">
