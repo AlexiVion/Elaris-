@@ -5,13 +5,23 @@ import type {
   ReadableRobotChannel,
   ReadOnlyRobotTransport,
   RobotFrameHandler,
+  RobotFrameMetadata,
   RobotSubscription,
 } from "./types";
 import { assertReadOnlyChannel } from "./security";
 
 type BridgeMessage =
   | { type: "ready"; channel: string; messageType?: string }
-  | { type: "frame"; channel: string; timestamp: string; payload: unknown }
+  | {
+      type: "frame";
+      channel: string;
+      timestamp?: string;
+      observedAtUnixNs?: string;
+      observedAtMonotonicNs?: string;
+      callbackSequence?: number;
+      emittedSequence?: number;
+      payload: unknown;
+    }
   | { type: "error"; message: string };
 
 export class UnitreeG1Sdk2ReadOnlyTransport implements ReadOnlyRobotTransport {
@@ -182,8 +192,16 @@ export class UnitreeG1Sdk2ReadOnlyTransport implements ReadOnlyRobotTransport {
       const channel = this.channels.get(message.channel);
       if (!channel) return;
 
+      const metadata: RobotFrameMetadata = {
+        bridgeObservedAtUnixNs: message.observedAtUnixNs ?? message.timestamp ?? null,
+        bridgeObservedMonotonicNs: message.observedAtMonotonicNs ?? null,
+        callbackSequence: message.callbackSequence ?? null,
+        emittedSequence: message.emittedSequence ?? null,
+        receivedAt: new Date().toISOString(),
+      };
+
       for (const handler of this.handlers.get(message.channel) ?? []) {
-        await handler(message.payload, channel);
+        await handler(message.payload, channel, metadata);
       }
     }
   }
