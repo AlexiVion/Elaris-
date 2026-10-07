@@ -1,190 +1,168 @@
 import Link from "next/link";
-import { Activity, Bot, ClipboardCheck, FileText, TriangleAlert } from "lucide-react";
+import { unstable_noStore as noStore } from "next/cache";
+import { Activity, Bot, ClipboardCheck, Database, FileText, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/elaris/PageHeader";
 import { KpiCard } from "@/components/elaris/KpiCard";
 import { SectionCard } from "@/components/elaris/SectionCard";
 import { StatusPill } from "@/components/elaris/StatusPill";
+import { ComponentHealthWorkbenchEmpty } from "@/components/platform/ComponentHealthWorkbenchEmpty";
 import {
-  controlledProbeEvidence,
-  evidenceBoundary,
-  fieldPhases,
-  fieldRobot,
-  humanizeSessionDisposition,
-  operationalFingerprints,
-  unresolvedObservation,
-} from "@/lib/demo/component-health-field-data";
+  fingerprintPrefix,
+  loadActiveComponentHealthAnalysis,
+  summarizeQualityFindings,
+} from "@/lib/component-health/workbench-v04";
 
-const format = (value: number, digits = 2) => value.toFixed(digits);
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-export default function ComponentHealthHome() {
-  const turningMax = Math.max(...operationalFingerprints.TURNING.map((row) => row.ratio));
+export default async function ComponentHealthHome() {
+  noStore();
+  const { catalogue, artifact } = await loadActiveComponentHealthAnalysis();
+  if (!artifact) {
+    return <ComponentHealthWorkbenchEmpty />;
+  }
+
+  const report = artifact.report;
+  const qualityGroups = summarizeQualityFindings(report.quality.findings);
+  const warnings = report.quality.findings.filter(
+    (finding) => finding.severity === "WARNING"
+  ).length;
+  const unresolved = report.phases[0]?.components.filter(
+    (component) => component.slotStatus === "OBSERVED_UNRESOLVED_SLOT"
+  ).length ?? 0;
 
   return (
     <>
       <PageHeader
-        title="Component Health · Field Evidence"
-        actions={<StatusPill label="REAL FIELD DATA · V0.2" tone="blue" />}
+        title="Component Health · Audit Workbench"
+        actions={<StatusPill label="REAL V0.3 ARTIFACT · V0.4" tone="blue" />}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Real robots represented" value={1} icon={Bot} tone="blue" delta={null} />
-        <KpiCard label="Joint slots observed" value={fieldRobot.componentSlots} icon={Activity} tone="slate" delta={null} />
-        <KpiCard label="Operational phases" value={fieldRobot.observedPhases} icon={ClipboardCheck} tone="green" delta={null} />
-        <KpiCard label="Unresolved slots" value={fieldRobot.unresolvedComponents} icon={TriangleAlert} tone="red" delta={null} />
+        <KpiCard label="Private analyses" value={catalogue.analyses.length} icon={Database} tone="blue" delta={null} />
+        <KpiCard label="Operational phases" value={report.phases.length} icon={ClipboardCheck} tone="green" delta={null} />
+        <KpiCard label="Component slots" value={report.robot.componentSlots} icon={Bot} tone="slate" delta={null} />
+        <KpiCard label="Quality warnings" value={warnings} icon={TriangleAlert} tone="red" delta={null} />
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <SectionCard title="Validated field session" icon={FileText}>
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_.85fr]">
+        <SectionCard title="Active AnalysisRun" icon={FileText}>
           <div className="grid gap-3 text-sm sm:grid-cols-2">
-            <Fact label="Robot" value={fieldRobot.model} />
-            <Fact label="Acquisition" value="Read-only" />
-            <Fact label="Evidence" value="Observed telemetry" />
-            <Fact label="Context" value="Human-confirmed phases" />
-            <Fact label="Session" value={humanizeSessionDisposition(fieldRobot.sessionState)} />
-            <Fact label="Technical validation" value="Passed" />
-            <Fact label="Historical baseline" value={`${fieldRobot.baselineFrames} frames · ${fieldRobot.baselineEvents.toLocaleString()} events`} />
-            <Fact label="Usable / unresolved" value={`${fieldRobot.usableComponents} / ${fieldRobot.unresolvedComponents}`} />
+            <Fact label="Analysis ID" value={report.run.analysisId} mono />
+            <Fact label="Fingerprint" value={fingerprintPrefix(report.run.inputFingerprint) + "…"} mono />
+            <Fact label="Reference" value="Same-session IDLE_BASELINE" />
+            <Fact label="Historical baseline" value="Secondary context only" />
+            <Fact label="Evidence class" value={report.evidenceClass} />
+            <Fact label="Classification" value={report.sourceClassification + " · export NOT APPROVED"} />
+            <Fact label="Artifact copies" value={String(artifact.duplicateCopies)} />
+            <Fact label="Report SHA-256" value={artifact.reportSha256.slice(0, 16) + "…"} mono />
           </div>
+
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/platform/component-health/robots/G1-FIELD-001" className="text-sm font-medium text-primary hover:underline">
-              Open robot evidence →
+            <Link href="/platform/component-health/sessions" className="text-sm font-medium text-primary hover:underline">
+              Open sessions →
+            </Link>
+            <Link href="/platform/component-health/components" className="text-sm font-medium text-primary hover:underline">
+              Explore components →
             </Link>
             <Link href="/platform/component-health/phases" className="text-sm font-medium text-primary hover:underline">
               Explore phases →
             </Link>
-            <Link href="/platform/component-health/reports/field-evidence" className="text-sm font-medium text-primary hover:underline">
-              Open evidence report →
+            <Link href="/platform/component-health/quality" className="text-sm font-medium text-primary hover:underline">
+              Review quality →
             </Link>
           </div>
         </SectionCard>
 
         <SectionCard title="Evidence boundary" icon={ClipboardCheck}>
-          <div className="space-y-2">
-            {evidenceBoundary.map((item) => (
-              <div key={item} className="flex gap-3 rounded-md bg-muted/40 px-3 py-2 text-sm">
-                <span className="mt-1 size-1.5 shrink-0 rounded-full bg-slate-400" />
-                <span>{item}</span>
-              </div>
-            ))}
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <Boundary text="Descriptive operational evidence only." />
+            <Boundary text="Same-session idle is the primary operational reference." />
+            <Boundary text="No diagnosis, health score, anomaly score, failure probability or RUL." />
+            <Boundary text="OEM voltage / temperature / state semantics remain explicitly unconfirmed where applicable." />
+            <Boundary text="Private evidence is loaded server-side; export approval is independent." />
           </div>
         </SectionCard>
       </div>
 
-      <div className="mt-6">
-        <SectionCard title="Controlled component probes" icon={Activity}>
-          <div className="grid gap-4 lg:grid-cols-3">
-            {controlledProbeEvidence.map((probe) => (
-              <Link
-                key={probe.componentId}
-                href={`/platform/component-health/components/${probe.componentId}`}
-                className="rounded-xl border border-border p-4 hover:bg-muted/40"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-semibold">[{String(probe.oemIndex).padStart(2, "0")}] {probe.component}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">Controlled probe</div>
-                  </div>
-                  <StatusPill label="OBSERVED" tone="green" />
-                </div>
-
-                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                  <Metric label="Position" value={`${format(probe.positionRange.observed, 3)} rad`} />
-                  <Metric label="Velocity" value={`×${format(probe.velocityAbsP95.ratio)}`} />
-                  <Metric label="Torque" value={`×${format(probe.torqueAbsP95.ratio)}`} />
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  <MiniCompare label="Velocity" ratio={probe.velocityAbsP95.ratio} />
-                  <MiniCompare label="Torque" ratio={probe.torqueAbsP95.ratio} />
-                </div>
-
-                <p className="mt-4 text-xs leading-5 text-muted-foreground">
-                  Same-session idle → human-confirmed motion. Descriptive evidence only.
-                </p>
-              </Link>
-            ))}
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_.8fr]">
+        <SectionCard title="Phase coverage" icon={Activity}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/40">
+                  {["Phase", "Frames", "Observed slots", "Max coverage", "Observed end"].map((heading) => (
+                    <th key={heading} className="px-3 py-3 text-left text-xs font-medium text-muted-foreground">
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {report.phases.map((phase) => {
+                  const quality = report.quality.phaseQuality.find((item) => item.phaseId === phase.phaseId);
+                  return (
+                    <tr key={phase.phaseId} className="border-b border-border last:border-0">
+                      <td className="px-3 py-3 font-medium">{phase.label}</td>
+                      <td className="px-3 py-3">{phase.frameCount.toLocaleString()}</td>
+                      <td className="px-3 py-3">{phase.observedComponentCount} / {phase.componentSlots}</td>
+                      <td className="px-3 py-3">{quality ? (quality.maxCoverage * 100).toFixed(1) + "%" : "—"}</td>
+                      <td className="px-3 py-3 text-xs text-muted-foreground">{phase.observedTelemetryEnd ?? "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </SectionCard>
-      </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_.75fr]">
-        <SectionCard
-          title="Turning fingerprint"
-          icon={Activity}
-          action={<Link href="/platform/component-health/phases" className="text-sm font-medium text-primary hover:underline">Phase Explorer →</Link>}
-        >
-          <div className="space-y-4">
-            {operationalFingerprints.TURNING.map((row) => (
-              <div key={row.oemIndex}>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <Link
-                    href={`/platform/component-health/components/joint-${String(row.oemIndex).padStart(2, "0")}-${row.component.toLowerCase().replaceAll(" ", "-")}`}
-                    className="font-medium hover:text-primary"
-                  >
-                    [{String(row.oemIndex).padStart(2, "0")}] {row.component}
-                  </Link>
-                  <span className="font-semibold">×{format(row.ratio)}</span>
-                </div>
-                <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full bg-slate-900"
-                    style={{ width: `${Math.max(6, (row.ratio / turningMax) * 100)}%` }}
-                  />
+        <SectionCard title="Quality summary" icon={TriangleAlert}>
+          <div className="space-y-3">
+            {qualityGroups.slice(0, 6).map((group) => (
+              <div key={group.severity + group.code} className="rounded-lg border border-border p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-xs font-semibold">{group.code.replaceAll("_", " ")}</div>
+                  <StatusPill label={String(group.count)} tone={group.severity === "WARNING" ? "amber" : "slate"} />
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  Torque absP95 {row.idleTorque.toFixed(3)} → {row.observedTorque.toFixed(3)} N·m
+                  {group.phaseCount} phases · {group.componentCount} components
                 </div>
               </div>
             ))}
           </div>
+          <Link href="/platform/component-health/quality" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">
+            Review all quality groups →
+          </Link>
         </SectionCard>
+      </div>
 
-        <SectionCard title="Data-quality finding" icon={TriangleAlert}>
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-sm font-semibold text-amber-950">[{unresolvedObservation.oemIndex}] {unresolvedObservation.component}</div>
-              <StatusPill label="UNRESOLVED" tone="amber" />
-            </div>
-            <p className="mt-3 text-sm leading-6 text-amber-900">{unresolvedObservation.observation}</p>
-            <p className="mt-3 text-xs leading-5 text-amber-800">{unresolvedObservation.interpretation}</p>
-          </div>
-          <div className="mt-4 text-xs leading-5 text-muted-foreground">
-            {fieldPhases.length} human-confirmed phases are represented. No unresolved slot is converted into a health verdict.
-          </div>
-        </SectionCard>
+      {catalogue.warnings.length > 0 && (
+        <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          {catalogue.warnings.map((warning) => <div key={warning}>{warning}</div>)}
+        </div>
+      )}
+
+      <div className="mt-6 text-xs text-muted-foreground">
+        Unresolved slots in active reference snapshot: {unresolved}. Quality findings are evidence-QA records, not robot failure counts.
       </div>
     </>
   );
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
+function Fact({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="rounded-lg border border-border p-3">
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-1 font-medium">{value}</div>
+      <div className={"mt-1 font-medium " + (mono ? "font-mono text-xs" : "")}>{value}</div>
     </div>
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Boundary({ text }: { text: string }) {
   return (
-    <div className="rounded-md bg-muted/50 px-2 py-3">
-      <div className="text-[11px] text-muted-foreground">{label}</div>
-      <div className="mt-1 text-sm font-semibold">{value}</div>
-    </div>
-  );
-}
-
-function MiniCompare({ label, ratio }: { label: string; ratio: number }) {
-  const observedWidth = Math.min(100, Math.max(12, 28 + Math.log2(Math.max(1, ratio)) * 22));
-
-  return (
-    <div className="grid grid-cols-[58px_1fr_auto] items-center gap-2 text-[11px]">
-      <span className="text-muted-foreground">{label}</span>
-      <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-        <div className="h-full rounded-full bg-slate-900" style={{ width: `${observedWidth}%` }} />
-      </div>
-      <span className="font-medium">×{ratio.toFixed(2)}</span>
+    <div className="flex gap-3 rounded-md bg-muted/40 px-3 py-2">
+      <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-slate-400" />
+      <span>{text}</span>
     </div>
   );
 }
