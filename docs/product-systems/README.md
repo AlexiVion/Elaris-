@@ -87,9 +87,13 @@ Those are features of a product system. They are not separate products by defaul
 
 ---
 
-## Relationship with Demo Product Specs
+## Relationship with canonical portfolio planning
 
-The canonical Notion Demo Product Specs define how to create realistic actor-specific demos before validation.
+The canonical Elaris portfolio/product planning lives in GitHub under `docs/portfolio/` and `docs/product/<slug>/`.
+
+Raw discovery/interview notes may live in Notion, but they do not change accepted product scope until the resulting decision is promoted into the versioned GitHub planning docs.
+
+Demo Product Specs remain discovery instruments before validation.
 
 Product Systems add one level above that:
 
@@ -173,14 +177,17 @@ Human authority remains explicit for safety, certification/conformity, underwrit
 
 ---
 
-## Registry
+## Registry and planning packs
 
-See [Product Systems Registry](registry.md).
+See:
+- [Product Systems Registry](registry.md)
+- [Portfolio Planning System](../portfolio/README.md)
+- [Product × Actor Matrix](../portfolio/product-actor-matrix.md)
 
-Current detailed system definitions:
-- [Deployment Control](deployment-control.md)
-- [Placement Workspace](placement.md)
-- [Underwriting Workspace](underwriting.md)
-- [Component Health — Hypothesis](component-health-hypothesis.md)
+Every registered product now has a canonical pack under `docs/product/<slug>/`:
+- `README.md`
+- `roadmap.md`
+- `version-registry.md`
+- `execution-backlog.md`
 
-Use [Product System Template](product-system-template.md) before adding a new Product System.
+Use [Product System Template](product-system-template.md) before proposing Product System #15 or changing a product boundary.

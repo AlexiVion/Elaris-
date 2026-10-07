@@ -2,9 +2,15 @@
 
 ## 1. Objective
 
-Validate Elaris Deployment Control with:
+Validate Elaris Deployment Control with a real Humandroid system context.
 
-**1 Unitree G1 + 1 configuration + 1 real deployment + 1 real or representative change.**
+**Selected first case:** the Humandroid Unitree G1 physically hosted at Universidad Siglo 21 under an institutional agreement.
+
+This case is **not** a task-specific production deployment. The first validation is therefore:
+
+**1 real Unitree G1 + 1 real institutional placement + 1 configuration baseline + existing real evidence references.**
+
+A real/reconstructed change remains the next validation after the placement baseline is represented correctly.
 
 The pilot should prove whether Elaris improves a real recurring workflow between “the robot works” and “the robot can be deployed and kept valid as it changes”.
 
@@ -18,8 +24,11 @@ Humandroid acts as a robotics integrator / solution provider / deployer.
 
 ## 4. Questions the pilot must answer
 
-- What robot and configuration are actually deployed?
-- What task and environment apply?
+- What robot and configuration are physically present?
+- Who provides/owns the robot and who hosts it?
+- What relationship/context explains the placement?
+- Is there a task? If none exists, can Elaris represent that explicitly?
+- What environment/site facts actually apply?
 - What tests, documents and requirements support that deployment?
 - What is missing or unresolved?
 - What changed since the approved/reference baseline?
@@ -81,7 +90,7 @@ The final decision remains human.
 ## 10. Responsibilities
 
 ### Humandroid
-- choose the real deployment;
+- confirm the selected Siglo 21 institutional placement and permitted facts;
 - provide/redact artifacts it is allowed to share;
 - confirm actual configuration;
 - validate or correct Elaris relationships and outputs.
@@ -97,9 +106,10 @@ The final decision remains human.
 
 ## 11. Pilot Definition of Done
 
-- a real deployment is selected;
-- P0 data is received;
-- baseline is reconstructed;
+- the real Siglo 21 placement is selected;
+- provider/host/site/task/commercial-context semantics are correct;
+- permitted P0 data/artifact references are received;
+- baseline is reconstructed without fake customer/task facts;
 - evidence map is useful;
 - gaps are visible;
 - one change-impact case is exercised;

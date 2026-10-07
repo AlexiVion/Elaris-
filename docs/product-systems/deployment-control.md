@@ -151,13 +151,20 @@ Versioned deployment/change/evidence coordination infrastructure.
 
 ## Current next validation
 
-With Humandroid:
+Selected real case: **Humandroid Unitree G1 hosted at Universidad Siglo 21 under an institutional agreement**.
 
-1. use one real deployment;
-2. ingest real P0 data/artifacts;
-3. map at least one real evidence/requirement relationship;
-4. observe one real change or reconstruct a recent one;
-5. compare the Elaris workflow against their actual process.
+This is not a task-specific production deployment and must not be forced into a fictional customer/task model.
+
+Current sequence:
+
+1. generalize placement context so provider/host/customer/task are semantically distinct;
+2. represent the real Siglo 21 placement without fake commercial facts;
+3. attach authorized existing field-evidence references;
+4. freeze a real reference baseline;
+5. only after that, observe or reconstruct a real material change;
+6. compare Elaris against Humandroid's actual process.
+
+See `docs/product/deployment-control/cases/siglo21-humandroid-institutional-placement-v0.md` and `docs/product/deployment-control/v0.5.1-placement-context-semantics.md`.
 
 ## Next adjacent hypothesis
 
