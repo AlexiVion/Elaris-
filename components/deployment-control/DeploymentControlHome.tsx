@@ -19,6 +19,7 @@ import { copy } from "@/lib/copy/en";
 import {
   lifecyclePill,
   operationalStatePill,
+  deploymentContextKindLabel,
   severityPill,
   evidenceStatusPill,
   incidentStatusPill,
@@ -91,7 +92,7 @@ export default async function HomePage() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">{d.name}</div>
                     <div className="truncate text-xs text-muted-foreground">
-                      {d.customerName} · {d.siteCity}, {d.siteCountry}
+                      {d.contextOrganizationName} · {d.siteCity}, {d.siteCountry} · {deploymentContextKindLabel[d.contextKind] ?? d.contextKind}
                     </div>
                   </div>
                   <EnumPill value={d.operationalState} map={operationalStatePill} />
