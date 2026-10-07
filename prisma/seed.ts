@@ -75,6 +75,8 @@ async function main() {
   // ---------------------------------------------------------------- reset
   // migrate reset already drops data; be defensive if run via db:seed alone.
   await prisma.$transaction([
+    prisma.componentHealthReviewItem.deleteMany(),
+    prisma.componentHealthReview.deleteMany(),
     prisma.auditEvent.deleteMany(),
     prisma.shareLink.deleteMany(),
     prisma.incident.deleteMany(),
