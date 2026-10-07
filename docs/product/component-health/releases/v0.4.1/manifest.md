@@ -3,7 +3,7 @@
 **Release line:** `component-health-v0.4.1-stable`  
 **Release branch:** `release/component-health-v0.4.1`  
 **Source implementation head:** `89b5c04d5e5592e2caabecd0c40d7bdf52ceac17` (PR #19, VERIFIED_LOCAL)  
-**Release state:** `RELEASE_CANDIDATE_PENDING_FINAL_GATE`  
+**Release state:** `INTERNAL_STABLE` only when tag `component-health-v0.4.1-stable` points to the exact validated release-branch commit; without that tag this branch is a release candidate.  
 **Audience:** internal / authorized technical users only  
 **Data classification:** `SENSITIVE`  
 **External export:** `NOT_APPROVED`
