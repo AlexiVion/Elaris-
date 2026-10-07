@@ -28,7 +28,6 @@ export type ComponentProbeV043 = {
 const PHYSICAL_DYNAMIC_SIGNALS = [
   "joint.position",
   "joint.velocity",
-  "joint.torque_estimate",
 ] as const;
 
 export function analyzeComponentProbeV043(
