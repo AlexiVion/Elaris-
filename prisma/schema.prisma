@@ -40,6 +40,8 @@ model Person {
   impactsResolved   ImpactItem[]            @relation("ImpactResolvedBy")
   shareLinksCreated ShareLink[]             @relation("ShareCreatedBy")
   auditEvents       AuditEvent[]            @relation("AuditActor")
+  componentHealthReviews ComponentHealthReview[] @relation("ComponentHealthReviewer")
+  componentHealthReviewItems ComponentHealthReviewItem[] @relation("ComponentHealthReviewItemAuthor")
 }
 
 model Customer {
@@ -320,3 +322,40 @@ model AuditEvent {
   @@index([entityType, entityId])
   @@index([at])
 }
+
+model ComponentHealthReview {
+  id               String   @id @default(cuid())
+  analysisId       String   @unique
+  status           String   @default("AWAITING_TECHNICAL_REVIEW") // AWAITING_TECHNICAL_REVIEW | IN_REVIEW | REVIEWED_FOR_COMPLETENESS | BLOCKED
+  summary          String?
+  reviewerPersonId String?
+  reviewedAt       DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  reviewer Person? @relation("ComponentHealthReviewer", fields: [reviewerPersonId], references: [id])
+  items    ComponentHealthReviewItem[]
+
+  @@index([status])
+}
+
+model ComponentHealthReviewItem {
+  id                String   @id @default(cuid())
+  reviewId          String
+  scopeType         String   // QUALITY_GROUP | COMPONENT | PHASE | ANALYSIS
+  scopeKey          String
+  disposition       String   @default("OPEN") // OPEN | ACKNOWLEDGED | NEEDS_FOLLOWUP | DATA_LIMITATION
+  recommendedAction String
+  priority          String   // HIGH | MEDIUM | LOW
+  note              String?
+  authorPersonId    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  review ComponentHealthReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  author Person? @relation("ComponentHealthReviewItemAuthor", fields: [authorPersonId], references: [id])
+
+  @@unique([reviewId, scopeType, scopeKey])
+  @@index([reviewId])
+}
+
