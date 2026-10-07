@@ -38,7 +38,19 @@ export async function getRobotDetail(code: string) {
   const robot = await prisma.robot.findUnique({
     where: { code },
     include: {
-      deploymentRobots: { include: { deployment: { include: { activeBaseline: { include: { snapshot: true } }, customer: true, evidenceItems: { include: { owner: true } } } } } },
+      deploymentRobots: {
+        include: {
+          deployment: {
+            include: {
+              activeBaseline: { include: { snapshot: true } },
+              providerOrganization: true,
+              customer: true,
+              site: { include: { hostOrganization: true } },
+              evidenceItems: { include: { owner: true } },
+            },
+          },
+        },
+      },
       snapshots: { include: { items: true, parentSnapshot: { include: { items: true } }, createdBy: true }, orderBy: { createdAt: "desc" } },
       changes: { include: { author: true }, orderBy: { createdAt: "desc" } },
       incidents: { include: { deployment: true }, orderBy: { occurredAt: "desc" } },
@@ -68,7 +80,16 @@ export async function getRobotDetail(code: string) {
 
   return {
     robot,
-    deployments: deployments.map((d) => ({ code: d.code, name: d.name, customerName: d.customer.name })),
+    deployments: deployments.map((d) => ({
+      code: d.code,
+      name: d.name,
+      contextKind: d.contextKind,
+      contextOrganizationName:
+        d.customer?.name ??
+        d.site.hostOrganization?.name ??
+        d.providerOrganization?.name ??
+        "—",
+    })),
     activeSnapshotCode: activeSnapshot?.code ?? "—",
     activeSnapshotItems,
     history,
