@@ -224,3 +224,23 @@ What repeated field evidence would justify persistent backend/integrations?
 ## 19. Next action
 
 One concrete next step.
+
+
+## 20. Versioned planning pack
+
+Once the Product System is accepted into the registry, create:
+
+```text
+docs/product/<slug>/
+├── README.md
+├── roadmap.md
+├── version-registry.md
+└── execution-backlog.md
+```
+
+The roadmap must be split into:
+- Scope A — work possible with current assets;
+- Scope B — work gated by a real actor/case/artifact;
+- Scope C — repeated/commercial/data-dependent expansion.
+
+Every version must state result, current state and an evidence gate. Engineering verification, actor validation, data/export approval, human authority and commercial validation remain independent.

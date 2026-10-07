@@ -10,10 +10,11 @@ Elaris deliberately separates strategy, implementation and execution records:
 
 | Layer | Canonical source | Purpose |
 |---|---|---|
-| Product strategy / discovery | Notion | actor maps, hypotheses, interviews, validation, roadmap |
-| Accepted code | GitHub `main` | current implementation |
+| Portfolio / product roadmaps / accepted planning | GitHub `docs/portfolio/` + `docs/product/` | canonical product inventory, actor map, roadmaps, gates and backlogs |
+| Raw discovery / interview notes | Notion or linked source artifact | working research; must be promoted into GitHub planning docs to change canonical scope |
+| Accepted code | GitHub `main` / accepted release refs | current implementation |
 | Architecture / protocols | `docs/` | durable engineering and collaboration rules |
-| Tasks | GitHub Issues | owner, scope, acceptance criteria |
+| Tasks / execution backlogs | GitHub Issues when available, otherwise versioned `execution-backlog.md` | owner, scope, acceptance criteria |
 | Integration history | Pull Requests | review, verification, rationale |
 
 Canonical Notion home:
@@ -34,9 +35,19 @@ https://app.notion.com/p/00-HOME-3ebbeb945fd6802dbae4f253211db396?pvs=25
 - [Humandroid / TienKung Reference Stack](architecture/humandroid-tienkung-reference-stack.md)
 - [Edge Collector V0](architecture/edge-collector-v0.md)
 
-### Company
+### Company / Industry
 - [Elaris Overview](company/elaris-overview.md)
 - [Physical AI Industry Map](industry/physical-ai-industry-map.md)
+- [Actor Archetypes](industry/archetypes/README.md)
+
+### Portfolio planning
+- [Portfolio Planning System](portfolio/README.md)
+- [Planning Method](portfolio/planning-method.md)
+- [Master Product Catalog](portfolio/product-catalog.md)
+- [Product × Actor Matrix](portfolio/product-actor-matrix.md)
+- [Portfolio Version Registry](portfolio/version-registry.md)
+- [Portfolio Execution Backlog](portfolio/execution-backlog.md)
+- [Execution Sequencing](portfolio/execution-sequencing.md)
 
 ### Product Systems
 - [Product Systems Overview](product-systems/README.md)
