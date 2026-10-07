@@ -546,6 +546,9 @@ async function healthReport(args: string[]) {
   const phaseManifestPath = resolve(requiredFlag(args, "--phases"));
   const salvageHashFlag = optionalFlag(args, "--salvage-hashes");
   const salvageHashFile = salvageHashFlag ? resolve(salvageHashFlag) : null;
+  const sourceDirFlag = optionalFlag(args, "--source-dir");
+  const sourceHashFlag = optionalFlag(args, "--source-salvage-hashes");
+  const derivativeHashFlag = optionalFlag(args, "--derivative-hashes");
 
   const phaseManifest = await loadFieldPhaseManifest(phaseManifestPath);
   const report = await analyzeComponentHealthFieldEvidence({
@@ -554,6 +557,9 @@ async function healthReport(args: string[]) {
     passphrase,
     phaseManifest,
     salvageHashFile,
+    sourceSessionDir: sourceDirFlag ? resolve(sourceDirFlag) : null,
+    sourceSalvageHashFile: sourceHashFlag ? resolve(sourceHashFlag) : null,
+    derivativeHashFile: derivativeHashFlag ? resolve(derivativeHashFlag) : null,
   });
 
   const outputDir = resolve(
@@ -586,8 +592,11 @@ async function healthReport(args: string[]) {
   console.log(`Session state: ${report.sessionState}`);
   console.log(`Disposition: ${report.disposition}`);
   console.log(
-    `Integrity: ${report.integrity.verified ? "VERIFIED" : "NOT VERIFIED"} via ${report.integrity.method}`
+    `Working-copy integrity: ${report.integrity.verified ? "VERIFIED" : "NOT VERIFIED"} via ${report.integrity.method}`
   );
+  console.log(`Source integrity: ${report.provenance.sourceIntegrity.method}`);
+  console.log(`Working copy: ${report.provenance.workingCopyKind}`);
+  console.log(`Plaintext equivalence: ${report.provenance.plaintextEquivalence}`);
   console.log(`Phases analyzed: ${report.phases.length}`);
   console.log(`Classification: ${report.sourceClassification}`);
   console.log("");
