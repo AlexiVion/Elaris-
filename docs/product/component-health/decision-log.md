@@ -107,6 +107,15 @@ related_prs: []
 **Pendientes deliberados:** review notes persistentes, selector de señales completo, auth/multi-tenant, owner/data approval y external delivery.
 **Fecha:** 2026-10-07.
 
+### CH-DEC-20261007-11 — Implementar V0.4.1 Human Review & Persistence
+
+**Estado:** `APPROVED_FOR_IMPLEMENTATION` por Alexi Vion (2026-10-07): pidió que Elaris traduzca los datos a acciones y persista la revisión porque el operador no debe necesitar interpretar telemetry cruda.
+**Versión:** V0.4.1.
+**Rama/PR:** `feat/component-health-review-persistence-v041` · PR #19 draft.
+**Objetivo:** cola corta de preguntas técnicas, acciones recomendadas, estado/notas persistentes por AnalysisRun.
+**Límite:** completeness review no equivale a healthy/safe/certified ni a data export approval.
+**Gate:** migration deploy sin reset, typecheck/tests/build/E2E y save→refresh real.
+
 ## Registro histórico
 
 | Fecha UTC | ID | Cambio | Autor | Aprobación | Evidencia |
@@ -116,5 +125,6 @@ related_prs: []
 | 2026-10-07 | CH-DEC-20261007-08 | V0.3 alcanza VERIFIED_LOCAL | Evidencia de operador | VERIFIED_LOCAL técnico; no release | PR #17 + doble run Dataset #002 |
 | 2026-10-07 | CH-DEC-20261007-09 | Inicio implementación V0.4 Audit Workbench | Alexi Vion | APPROVED_FOR_IMPLEMENTATION (no release ni datos) | PR #18 / solicitud «sigamos» |
 | 2026-10-07 | CH-DEC-20261007-10 | V0.4 alcanza VERIFIED_LOCAL | Evidencia de operador | VERIFIED_LOCAL técnico; no release | PR #18 + Playwright + recorrido Dataset #002 |
+| 2026-10-07 | CH-DEC-20261007-11 | Inicio V0.4.1 Human Review & Persistence | Alexi Vion | APPROVED_FOR_IMPLEMENTATION; no release | PR #19 |
 
 **Editar al tomar una decisión:** copiar template, completar aprobador, fecha y referencia PR/comentario; actualizar el estado correspondiente en [version-registry.md](version-registry.md). No reemplazar silenciosamente la historia: añadir nueva decisión que supersede la anterior.
