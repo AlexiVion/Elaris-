@@ -42,6 +42,10 @@ Robot Adapter, Edge Collector, evidence/provenance primitives, deterministic eng
 - [Component Health leverage](component-health-leverage-map.md)
 - [Product × Actor matrix](product-actor-matrix.md)
 - [Execution sequencing](execution-sequencing.md)
+- [Product dependency / flywheel map](product-dependency-map.md)
+- [Portfolio version registry](version-registry.md)
+- [Portfolio execution backlog](execution-backlog.md)
+- [Portfolio decision log](decision-log.md)
 - [Industry archetypes](../industry/archetypes/README.md)
 
 This plan authorizes planning, not automatic implementation or external evidence release.
