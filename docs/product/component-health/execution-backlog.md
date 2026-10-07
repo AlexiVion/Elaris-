@@ -25,19 +25,21 @@ El `owner` permanece `UNASSIGNED` hasta aceptación explícita.
 
 ## P1 — V0.3 Evidence Engine reproducible (offline viable)
 
+**Ejecución autorizada:** Alexi, 2026-10-07; PR #17 abierto en draft. `CODE_READY` significa código escrito, **no** typecheck/build/captura verificados. Las tareas de performance, equivalencia plaintext y semánticas OEM validadas siguen abiertas. Ver [V0.3 Evidence Engine](../../product/component-health/v0.3-evidence-engine.md) una vez que se integre PR #17.
+
 | ID | Entregable / criterio verificable | Depende | Estado |
 |---|---|---|---|
-| CH-030-01 | Domain contract versionado Capture/WorkingCopy/AnalysisRun/Phase/Signal/Quality sin tabla UI | cierre V0.2.1 | DRAFT |
-| CH-030-02 | Encadenar source hash→working copy hash→analysis run ID con test de alteración de cada archivo y separación `NOT_INDEPENDENTLY_VERIFIED` | CH-030-01 | DRAFT |
+| CH-030-01 | Domain contract versionado Capture/WorkingCopy/AnalysisRun/Phase/Signal/Quality sin tabla UI | cierre V0.2.1 | CODE_READY / TEST_PENDING |
+| CH-030-02 | Encadenar source hash→working copy hash→analysis run ID con test de alteración de cada archivo y separación `NOT_INDEPENDENTLY_VERIFIED` | CH-030-01 | CODE_READY / TEST_PENDING |
 | CH-030-03 | Demostrar equivalencia plaintext fuente↔derivada por procedimiento local controlado, si las claves originales siguen disponibles/autorizadas; si no, declarar no comprobable | CH-030-02 y custodia | DRAFT / CONDITIONAL |
-| CH-030-04 | Incorporar procedencia source/derivative del **baseline** en motor y report | CH-030-02 | DRAFT |
-| CH-030-05 | Implementar `IDLE_BASELINE` intra-sesión como referencia primaria con comparabilidad explícita; dejar histórico Dataset #001 secundario | CH-030-01 | DRAFT |
-| CH-030-06 | Coverage por timestamps únicos; gaps, duplicados, phase [start,end), observedStart/End; golden tests de límites | CH-030-01 | DRAFT (parte iniciada PR #15) |
-| CH-030-07 | Validación de señales OEM, mapping por variante, unidades, códigos state y flags `UNCONFIRMED`; no diagnosis | metadata OEM aprobada | DRAFT |
-| CH-030-08 | Export estructurado de TODOS los slots y fases con valores medidos / null + quality reason, no solo top 6 | CH-030-05/07 | DRAFT |
-| CH-030-09 | Benchmark memoria/CPU Dataset #002; streaming y bounded memory cuando corresponda | CH-030-08 | DRAFT |
-| CH-030-10 | Versionado report schema y análisis determinista; rerun 2× + hashes de artefactos privados y diff razonado | CH-030-02..09 | DRAFT |
-| CH-030-11 | CLI reproducible con error states, inputs inmutables, fail-closed y documentación de un solo comando | CH-030-10 | DRAFT |
+| CH-030-04 | Incorporar procedencia source/derivative del **baseline** en motor y report | CH-030-02 | CODE_READY / TEST_PENDING |
+| CH-030-05 | Implementar `IDLE_BASELINE` intra-sesión como referencia primaria con comparabilidad explícita; dejar histórico Dataset #001 secundario | CH-030-01 | CODE_READY / TEST_PENDING |
+| CH-030-06 | Coverage por timestamps únicos; gaps, duplicados, phase [start,end), observedStart/End; golden tests de límites | CH-030-01 | PARTIAL CODE_READY / BOUNDARY TEST_PENDING |
+| CH-030-07 | Validación de señales OEM, mapping por variante, unidades, códigos state y flags `UNCONFIRMED`; no diagnosis | metadata OEM aprobada | PARTIAL CODE_READY / OEM VALIDATION BLOCKED |
+| CH-030-08 | Export estructurado de TODOS los slots y fases con valores medidos / null + quality reason, no solo top 6 | CH-030-05/07 | CODE_READY / REAL RUN PENDING |
+| CH-030-09 | Benchmark memoria/CPU Dataset #002; streaming y bounded memory cuando corresponda | CH-030-08 | BACKLOG / REAL BENCHMARK REQUIRED |
+| CH-030-10 | Versionado report schema y análisis determinista; rerun 2× + hashes de artefactos privados y diff razonado | CH-030-02..09 | PARTIAL CODE_READY / 2× RERUN PENDING |
+| CH-030-11 | CLI reproducible con error states, inputs inmutables, fail-closed y documentación de un solo comando | CH-030-10 | CODE_READY / TEST_PENDING |
 
 ## P1 — V0.4 Workbench (sólo después del motor)
 
