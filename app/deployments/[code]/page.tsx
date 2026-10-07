@@ -16,6 +16,7 @@ import {
   lifecyclePill, operationalStatePill, readinessStatusPill, evidenceStatusPill,
   approvalStatusPill, severityPill, incidentStatusPill, changeStatusPill, slotLabel,
   readinessCategoryLabel, environmentLabel, operatingModeLabel, humanExposureLabel,
+  deploymentContextKindLabel,
 } from "@/lib/copy/labels";
 import { getDeploymentDetail } from "@/lib/db/deployments";
 import { formatDate, formatDateTime } from "@/lib/format";
@@ -129,9 +130,18 @@ export default async function DeploymentOverviewPage({
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <KpiTile icon={Bot} label="Robot" value={primaryRobot ? primaryRobot.code : "—"} sub={robots.length > 1 ? `+${robots.length - 1} more` : undefined} />
         <KpiTile icon={Box} label="Configuration" value={snapshot?.code ?? "—"} />
-        <KpiTile icon={ListChecks} label="Task" value={dep.task.name} />
-        <KpiTile icon={Building2} label="Environment" value={environmentLabel[dep.site.environmentType] ?? dep.site.environmentType} />
-        <KpiTile icon={Activity} label={copy.common.status} value={<EnumPill value={dep.lifecycle} map={lifecyclePill} />} />
+        <KpiTile icon={ListChecks} label="Task" value={dep.task?.name ?? "Not assigned"} />
+        <KpiTile
+          icon={Building2}
+          label="Environment"
+          value={dep.site.environmentType ? (environmentLabel[dep.site.environmentType] ?? dep.site.environmentType) : "Not recorded"}
+        />
+        <KpiTile
+          icon={Activity}
+          label="Context"
+          value={deploymentContextKindLabel[dep.contextKind] ?? dep.contextKind}
+          sub={dep.lifecycle ? (lifecyclePill[dep.lifecycle]?.label ?? dep.lifecycle) : undefined}
+        />
         <Card className="flex items-center justify-between p-4">
           <div>
             <div className="text-xs text-muted-foreground">{copy.home.readiness}</div>
@@ -147,11 +157,24 @@ export default async function DeploymentOverviewPage({
             <SectionCard title="Overview" action={<Link href={`/deployments/${dep.code}`} className="text-sm text-muted-foreground">{copy.common.edit}</Link>}>
               <p className="mb-4 text-sm leading-relaxed text-foreground/90">{dep.description}</p>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                <Field icon={Building2} label="Customer" value={dep.customer.name} />
-                <Field icon={User} label="Human exposure" value={humanExposureLabel[dep.humanExposure] ?? dep.humanExposure} />
-                <Field icon={MapPin} label="Site" value={`${dep.site.city}, ${dep.site.country}`} />
-                <Field icon={Building2} label="Owner" value={copy.topbar.organization} />
-                <Field icon={Settings2} label="Operating mode" value={operatingModeLabel[dep.operatingMode] ?? dep.operatingMode} />
+                {dep.providerOrganization ? (
+                  <Field icon={Building2} label="Provider / owner context" value={dep.providerOrganization.name} />
+                ) : null}
+                {dep.site.hostOrganization ? (
+                  <Field icon={Building2} label="Host organization" value={dep.site.hostOrganization.name} />
+                ) : null}
+                {dep.customer ? (
+                  <Field icon={Building2} label="Customer" value={dep.customer.name} />
+                ) : null}
+                <Field icon={MapPin} label="Site" value={`${dep.site.name} · ${dep.site.city}, ${dep.site.country}`} />
+                <Field icon={Activity} label="Context kind" value={deploymentContextKindLabel[dep.contextKind] ?? dep.contextKind} />
+                {dep.humanExposure ? (
+                  <Field icon={User} label="Human exposure" value={humanExposureLabel[dep.humanExposure] ?? dep.humanExposure} />
+                ) : null}
+                {dep.operatingMode ? (
+                  <Field icon={Settings2} label="Operating mode" value={operatingModeLabel[dep.operatingMode] ?? dep.operatingMode} />
+                ) : null}
+                {dep.task ? <Field icon={ListChecks} label="Task" value={dep.task.name} /> : null}
                 <Field icon={FileText} label="Reference" value={dep.code} />
               </dl>
             </SectionCard>
