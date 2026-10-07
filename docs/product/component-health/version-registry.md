@@ -56,7 +56,7 @@ La aprobación para exportar un extracto no convierte el capture fuente en `PUBL
 | V0.2 | Demo real-data-derived Component Health | `VERIFIED_LOCAL` | 5/5 tests, typecheck/build PASS y UI HTTP 200 en commit `41a8cce` | **NOT_APPROVED** | UNTESTED | PR #14 draft | no registrado |
 | **V0.2.1** | Correcciones de integridad, metadata, legacy y E2E | **`VERIFIED_LOCAL`** | **PASS informado por operador: typecheck, 8/8 tests, build 52/52, E2E 1/1 y Dataset #002 real rerun con provenance separada; output sellado SHA-256** | **NOT_APPROVED** | UNTESTED | PR #15 draft | no registrado |
 | V0.3 | Evidence Engine reproducible | **`VERIFIED_LOCAL`** | **PASS informado por operador: typecheck, 14/14 tests, build 52/52, Dataset #002 2× determinista, 8×29 slots, SHA-256 OK; benchmark ~514–521 MB RSS / 1:32–1:40** | **NOT_APPROVED** | DISCOVERY | PR #17 draft · CH-030… | Implementación: Alexi; release/owner approval: no registrado |
-| V0.4 | Audit Workbench con entidades persistidas | `DRAFT` | NOT_RUN | NOT_APPROVED | DISCOVERY | CH-040… | — |
+| V0.4 | Audit Workbench privado sobre artifacts V0.3; persistencia/notas todavía parciales | **`IN_PROGRESS`** (implementación autorizada por Alexi, 2026-10-07) | NOT_RUN sobre PR #18 | **NOT_APPROVED** | DISCOVERY | PR #18 draft · CH-040… | Implementación: Alexi; release/owner approval: no registrado |
 | V0.5 | Human-approved export / client delivery | `DRAFT` | NOT_RUN | NOT_APPROVED | DISCOVERY | CH-050… | — |
 | V0.6 | Comparación longitudinal controlada | `PROPOSED` | NOT_RUN | NOT_APPROVED | DISCOVERY | CH-060… | — |
 | V0.7 | Operación repetible de auditorías | `PROPOSED` | NOT_RUN | NOT_APPROVED | DISCOVERY | CH-070… | — |
