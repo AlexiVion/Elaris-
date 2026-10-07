@@ -1,5 +1,7 @@
 # Component Health — Field Evidence Report V0
 
+> **NOTA DE VIGENCIA:** este documento registra la implementación original V0. Para analizar una derivada recifrada después del cierre V0.2.1 es obligatorio distinguir el hash registry del capture **original** del registry de la **derivada**. No reutilizar `--salvage-hashes` con checksums de la derivada como si verificasen la fuente. Ver [cierre V0.2.1](component-health/v0.2.1-closeout.md), [auditoría](component-health/audit-2026-10-06.md) y [registro de estados](component-health/version-registry.md). En V0.2.1 el código aún requiere revalidación local.
+
 ## 1. Producto vendible
 
 Elaris Component Health — Field Evidence Report V0 convierte una captura read-only de un robot físico en un paquete de evidencia técnica reproducible por componente y por fase operacional.

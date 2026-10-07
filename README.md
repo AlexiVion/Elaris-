@@ -1,5 +1,11 @@
 # Elaris
 
+## Component Health — evidencia real Unitree G1
+
+La documentación **actual** del producto, auditoría integral, versión ideal, roadmap por alcances, backlog y registro de aprobaciones está en [docs/product/component-health/README.md](docs/product/component-health/README.md).
+
+V0.2 fue validada localmente como demo con agregados de captura real; V0.2.1 permanece **pendiente de nueva verificación**. La fuente real sigue **SENSITIVE / NOT_APPROVED** y la liberación de agregados requiere autorización aparte. No confundir Component Health con el MVP histórico de Deployment Control ni con mantenimiento predictivo.
+
 > **Contributors and AI agents:** read [`AGENTS.md`](AGENTS.md) first. It is the canonical operating contract for architecture, source-of-truth rules and collaboration.
 
 ## Current reference product — Deployment & Change Evidence

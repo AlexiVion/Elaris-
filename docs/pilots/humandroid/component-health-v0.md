@@ -1,5 +1,7 @@
 # Elaris Component Health V0 — Humandroid Pilot
 
+> **ARCHIVO DE HIPÓTESIS SINTÉTICA.** Este flujo es una demo de descubrimiento histórico y no representa una inspección/servicio real de Humandroid. Desde 2026-10-06 existe un Field Evidence Audit real sobre Unitree G1, documentado independientemente en [Component Health Product OS](../../product/component-health/README.md). Las aprobaciones de datos y la validación comercial siguen pendientes.
+
 ## Status
 **HYPOTHESIS · DEMO READY V0 · NO FIELD VALIDATION YET**
 
