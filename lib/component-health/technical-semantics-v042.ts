@@ -35,17 +35,27 @@ export type ComponentHealthTechnicalItem = {
   referenceIds: string[];
 };
 
+export type UnitreeG1ModeMachineResolution = {
+  modeMachine: number;
+  dof: 23 | 29;
+  profile: string;
+  referenceId: string;
+};
+
 export type ComponentHealthTechnicalVerification = {
   schemaVersion: typeof COMPONENT_HEALTH_V042_SCHEMA;
   assessment: "TECHNICAL_SEMANTICS_VERIFICATION";
-  interpretation:
-    "NO_HEALTH_OR_SAFETY_CONCLUSION";
+  interpretation: "NO_HEALTH_OR_SAFETY_CONCLUSION";
   sourceClassification: ComponentHealthEvidenceV03["sourceClassification"];
   analysisId: string;
   robot: ComponentHealthEvidenceV03["robot"];
   context: {
+    modeMachine: number | null;
     declaredDof: 23 | 29 | null;
+    effectiveDof: 23 | 29 | null;
     configurationEvidence: string | null;
+    configurationConflict: boolean;
+    modeMachineReferenceId: string | null;
   };
   observed: {
     unresolvedSlotCount: number;
@@ -70,6 +80,7 @@ export type ComponentHealthTechnicalVerification = {
 };
 
 export type ComponentHealthTechnicalContext = {
+  modeMachine?: number | null;
   declaredDof?: 23 | 29 | null;
   configurationEvidence?: string | null;
 };
@@ -101,6 +112,22 @@ export const COMPONENT_HEALTH_V042_REFERENCES: readonly ComponentHealthTechnical
       "The public G1 example marks wrist pitch/yaw slots as invalid for the 23-DOF G1 configuration.",
   },
   {
+    id: "UNITREE_G1_MODE_MACHINE_REV1",
+    authority: "UNITREE_PUBLIC_SDK",
+    repository: "unitreerobotics/unitree_rl_gym",
+    path: "resources/robots/g1_description/README.md",
+    supports:
+      "Unitree's G1 description table maps mode_machine 4 to G1 23-DOF rev 1.0 and mode_machine 5 to G1 29-DOF rev 1.0.",
+  },
+  {
+    id: "UNITREE_G1_MODE_MACHINE_CURRENT",
+    authority: "UNITREE_PUBLIC_SDK",
+    repository: "unitreerobotics/unitree_ros",
+    path: "robots/g1_description/README.md",
+    supports:
+      "Unitree's current G1 description table maps mode_machine 10 to 23-DOF and modes 11-15 to 29-DOF variants.",
+  },
+  {
     id: "UNITREE_HG_MOTORSTATE_SCHEMA",
     authority: "UNITREE_PUBLIC_SDK",
     repository: "unitreerobotics/unitree_sdk2",
@@ -118,12 +145,87 @@ export const COMPONENT_HEALTH_V042_REFERENCES: readonly ComponentHealthTechnical
   },
 ] as const;
 
+export function resolveUnitreeG1DofFromModeMachine(
+  modeMachine: number | null | undefined
+): UnitreeG1ModeMachineResolution | null {
+  if (modeMachine === null || modeMachine === undefined) return null;
+
+  if (modeMachine === 1) {
+    return {
+      modeMachine,
+      dof: 23,
+      profile: "g1_23dof beta",
+      referenceId: "UNITREE_G1_MODE_MACHINE_REV1",
+    };
+  }
+  if (modeMachine === 2 || modeMachine === 3) {
+    return {
+      modeMachine,
+      dof: 29,
+      profile:
+        modeMachine === 3 ? "g1_29dof lock waist beta" : "g1_29dof beta",
+      referenceId: "UNITREE_G1_MODE_MACHINE_REV1",
+    };
+  }
+  if (modeMachine === 4) {
+    return {
+      modeMachine,
+      dof: 23,
+      profile: "g1_23dof_rev_1_0",
+      referenceId: "UNITREE_G1_MODE_MACHINE_REV1",
+    };
+  }
+  if (modeMachine === 5 || modeMachine === 6) {
+    return {
+      modeMachine,
+      dof: 29,
+      profile:
+        modeMachine === 6
+          ? "g1_29dof_lock_waist_rev_1_0"
+          : "g1_29dof_rev_1_0",
+      referenceId: "UNITREE_G1_MODE_MACHINE_REV1",
+    };
+  }
+  if (modeMachine === 10) {
+    return {
+      modeMachine,
+      dof: 23,
+      profile: "g1_23dof_mode_10",
+      referenceId: "UNITREE_G1_MODE_MACHINE_CURRENT",
+    };
+  }
+  if ([11, 12, 13, 14, 15].includes(modeMachine)) {
+    return {
+      modeMachine,
+      dof: 29,
+      profile: `g1_29dof_mode_${modeMachine}`,
+      referenceId: "UNITREE_G1_MODE_MACHINE_CURRENT",
+    };
+  }
+
+  return null;
+}
+
 export function buildComponentHealthTechnicalVerification(
   report: ComponentHealthEvidenceV03,
   context: ComponentHealthTechnicalContext = {}
 ): ComponentHealthTechnicalVerification {
+  const modeMachine =
+    context.modeMachine === undefined ? null : context.modeMachine;
+  const modeResolution = resolveUnitreeG1DofFromModeMachine(modeMachine);
   const declaredDof = context.declaredDof ?? null;
-  const configurationEvidence = cleanContext(context.configurationEvidence);
+  const configurationConflict =
+    declaredDof !== null &&
+    modeResolution !== null &&
+    declaredDof !== modeResolution.dof;
+  const effectiveDof = configurationConflict
+    ? null
+    : declaredDof ?? modeResolution?.dof ?? null;
+  const configurationEvidence =
+    cleanContext(context.configurationEvidence) ??
+    (modeResolution
+      ? `Observed rt/lowstate mode_machine=${modeResolution.modeMachine}; mapped by Unitree public profile ${modeResolution.profile}.`
+      : null);
 
   const rightWristRows = report.phases
     .map((phase) =>
@@ -181,6 +283,14 @@ export function buildComponentHealthTechnicalVerification(
   ).length;
 
   const items: ComponentHealthTechnicalItem[] = [
+    buildG1ConfigurationItem({
+      modeMachine,
+      modeResolution,
+      declaredDof,
+      effectiveDof,
+      configurationConflict,
+      configurationEvidence,
+    }),
     {
       key: "G1_RIGHT_WRIST_YAW_MAPPING",
       title: "Right wrist yaw OEM mapping",
@@ -195,9 +305,10 @@ export function buildComponentHealthTechnicalVerification(
       referenceIds: ["UNITREE_G1_JOINT_INDEX"],
     },
     buildRightWristAvailabilityItem({
-      declaredDof,
+      effectiveDof,
       configurationEvidence,
       unresolvedRightWristRows,
+      modeResolution,
     }),
     {
       key: "HG_TEMPERATURE_CHANNEL_LABELS",
@@ -323,8 +434,12 @@ export function buildComponentHealthTechnicalVerification(
     analysisId: report.run.analysisId,
     robot: report.robot,
     context: {
+      modeMachine,
       declaredDof,
+      effectiveDof,
       configurationEvidence,
+      configurationConflict,
+      modeMachineReferenceId: modeResolution?.referenceId ?? null,
     },
     observed: {
       unresolvedSlotCount,
@@ -344,28 +459,112 @@ export function buildComponentHealthTechnicalVerification(
   };
 }
 
-function buildRightWristAvailabilityItem(input: {
+function buildG1ConfigurationItem(input: {
+  modeMachine: number | null;
+  modeResolution: UnitreeG1ModeMachineResolution | null;
   declaredDof: 23 | 29 | null;
+  effectiveDof: 23 | 29 | null;
+  configurationConflict: boolean;
+  configurationEvidence: string | null;
+}): ComponentHealthTechnicalItem {
+  if (input.configurationConflict) {
+    return {
+      key: "G1_PHYSICAL_CONFIGURATION",
+      title: "G1 physical configuration",
+      status: "STILL_UNRESOLVED",
+      findingCodes: ["UNRESOLVED_COMPONENT_SLOT"],
+      confirmedFacts: [
+        ...(input.modeResolution
+          ? [
+              `mode_machine=${input.modeResolution.modeMachine} maps to ${input.modeResolution.dof}-DOF in the pinned Unitree profile.`,
+            ]
+          : []),
+        ...(input.declaredDof
+          ? [`A separate context declared ${input.declaredDof}-DOF.`]
+          : []),
+      ],
+      unresolvedQuestions: [
+        "The declared DOF and mode_machine-derived DOF disagree; Elaris must not choose one silently.",
+      ],
+      nextAction:
+        "Reconcile the configuration sources before interpreting variant-dependent slots.",
+      referenceIds: input.modeResolution
+        ? [input.modeResolution.referenceId]
+        : [],
+    };
+  }
+
+  if (input.effectiveDof !== null) {
+    return {
+      key: "G1_PHYSICAL_CONFIGURATION",
+      title: "G1 physical configuration",
+      status: "CONFIRMED_SUPPORTED",
+      findingCodes: ["UNRESOLVED_COMPONENT_SLOT"],
+      confirmedFacts: [
+        `The evidence context resolves this robot to ${input.effectiveDof}-DOF.`,
+        ...(input.modeResolution
+          ? [
+              `Observed mode_machine=${input.modeResolution.modeMachine} maps to Unitree profile ${input.modeResolution.profile}.`,
+            ]
+          : []),
+        ...(input.configurationEvidence
+          ? [input.configurationEvidence]
+          : []),
+      ],
+      unresolvedQuestions: [],
+      nextAction: null,
+      referenceIds: input.modeResolution
+        ? [input.modeResolution.referenceId]
+        : [],
+    };
+  }
+
+  return {
+    key: "G1_PHYSICAL_CONFIGURATION",
+    title: "G1 physical configuration",
+    status: "STILL_UNRESOLVED",
+    findingCodes: ["UNRESOLVED_COMPONENT_SLOT"],
+    confirmedFacts:
+      input.modeMachine === null
+        ? []
+        : [`Observed mode_machine=${input.modeMachine}.`],
+    unresolvedQuestions: [
+      input.modeMachine === null
+        ? "No read-only mode_machine/configuration evidence is attached to this verification run."
+        : "The observed mode_machine is not mapped by the Unitree profiles pinned in V0.4.2.",
+    ],
+    nextAction:
+      "Attach the observed rt/lowstate mode_machine or another authoritative read-only configuration source.",
+    referenceIds: [],
+  };
+}
+
+function buildRightWristAvailabilityItem(input: {
+  effectiveDof: 23 | 29 | null;
   configurationEvidence: string | null;
   unresolvedRightWristRows: PhaseComponentEvidenceV03[];
+  modeResolution: UnitreeG1ModeMachineResolution | null;
 }): ComponentHealthTechnicalItem {
-  if (input.declaredDof === 23) {
+  if (input.effectiveDof === 23) {
     return {
       key: "G1_RIGHT_WRIST_YAW_PHYSICAL_AVAILABILITY",
       title: "Right wrist yaw availability on this robot",
       status: "CONFIRMED_UNSUPPORTED",
       findingCodes: ["UNRESOLVED_COMPONENT_SLOT", "CONSTANT_ZERO_SIGNAL"],
       confirmedFacts: [
-        "The robot configuration is declared as 23-DOF.",
+        "The robot configuration resolves to 23-DOF.",
         "Unitree's public G1 example marks wrist pitch/yaw slots as invalid for G1 23-DOF.",
       ],
       unresolvedQuestions: [],
       nextAction: null,
-      referenceIds: ["UNITREE_G1_VARIANT_NOTE"],
+      referenceIds: [
+        "UNITREE_G1_VARIANT_NOTE",
+        ...(input.modeResolution ? [input.modeResolution.referenceId] : []),
+      ],
     };
   }
 
-  if (input.declaredDof === 29) {
+  if (input.effectiveDof === 29) {
     return {
       key: "G1_RIGHT_WRIST_YAW_PHYSICAL_AVAILABILITY",
       title: "Right wrist yaw availability on this robot",
@@ -375,8 +574,11 @@ function buildRightWristAvailabilityItem(input: {
           : "CONFIRMED_SUPPORTED",
       findingCodes: ["UNRESOLVED_COMPONENT_SLOT", "CONSTANT_ZERO_SIGNAL"],
       confirmedFacts: [
-        "The robot configuration is declared as 29-DOF.",
+        "The robot configuration resolves to 29-DOF.",
         "OEM index 28 belongs to RightWristYaw in the public G1 joint map.",
+        ...(input.configurationEvidence
+          ? [input.configurationEvidence]
+          : []),
       ],
       unresolvedQuestions:
         input.unresolvedRightWristRows.length > 0
@@ -386,11 +588,12 @@ function buildRightWristAvailabilityItem(input: {
           : [],
       nextAction:
         input.unresolvedRightWristRows.length > 0
-          ? "Run a read-only wrist-slot discrimination capture while an authorized operator moves the already-supported mechanism through its normal procedure; Elaris must not command motion."
+          ? "Run a read-only wrist-slot discrimination capture while an authorized operator moves the mechanism through its normal procedure; Elaris must not command motion."
           : null,
       referenceIds: [
         "UNITREE_G1_JOINT_INDEX",
         "UNITREE_G1_VARIANT_NOTE",
+        ...(input.modeResolution ? [input.modeResolution.referenceId] : []),
       ],
     };
   }
@@ -408,10 +611,10 @@ function buildRightWristAvailabilityItem(input: {
         : []),
     ],
     unresolvedQuestions: [
-      "The physical robot's 23-DOF versus 29-DOF configuration has not been established in the evidence contract.",
+      "The physical robot's 23-DOF versus 29-DOF configuration has not been established in this verification context.",
     ],
     nextAction:
-      "Identify the physical G1 DOF/variant from read-only configuration evidence before interpreting constant-zero wrist channels.",
+      "Attach read-only mode_machine/configuration evidence before interpreting constant-zero wrist channels.",
     referenceIds: [
       "UNITREE_G1_JOINT_INDEX",
       "UNITREE_G1_VARIANT_NOTE",
