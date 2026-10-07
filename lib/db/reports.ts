@@ -11,7 +11,18 @@ export async function getPassport(code: string) {
   const robot = await prisma.robot.findUnique({
     where: { code },
     include: {
-      deploymentRobots: { include: { deployment: { include: { customer: true, activeBaseline: { include: { snapshot: { include: { items: true } } } } } } } },
+      deploymentRobots: {
+        include: {
+          deployment: {
+            include: {
+              providerOrganization: true,
+              customer: true,
+              site: { include: { hostOrganization: true } },
+              activeBaseline: { include: { snapshot: { include: { items: true } } } },
+            },
+          },
+        },
+      },
       changes: { orderBy: { createdAt: "desc" } },
       snapshots: { orderBy: { createdAt: "desc" }, take: 1, include: { items: true } },
     },
@@ -31,7 +42,15 @@ export async function getPassport(code: string) {
       ? { code: activeSnapshot.code, hash: activeSnapshot.hash, items: activeSnapshot.items.map((i) => ({ slot: i.slot, value: i.value })) }
       : null,
     changes: robot.changes.map((c) => ({ code: c.code, createdAt: c.createdAt.toISOString(), status: c.status, diff: parseJson<DiffEntry[]>(c.diff, []) })),
-    deployments: robot.deploymentRobots.map((dr) => ({ code: dr.deployment.code, name: dr.deployment.name, customer: dr.deployment.customer.name })),
+    deployments: robot.deploymentRobots.map((dr) => ({
+      code: dr.deployment.code,
+      name: dr.deployment.name,
+      contextKind: dr.deployment.contextKind,
+      provider: dr.deployment.providerOrganization?.name ?? null,
+      host: dr.deployment.site.hostOrganization?.name ?? null,
+      customer: dr.deployment.customer?.name ?? null,
+      site: dr.deployment.site.name,
+    })),
     footer: REPORT_FOOTER,
   };
 }
@@ -41,7 +60,10 @@ export async function getReadinessPack(code: string) {
   const dep = await prisma.deployment.findUnique({
     where: { code },
     include: {
-      customer: true, site: true, task: true,
+      providerOrganization: true,
+      customer: true,
+      site: { include: { hostOrganization: true } },
+      task: true,
       deploymentRobots: { include: { robot: true } },
       activeBaseline: { include: { snapshot: true } },
       evidenceItems: { include: { owner: true } },
@@ -55,7 +77,9 @@ export async function getReadinessPack(code: string) {
   const readiness = deploymentReadiness({
     evidence: dep.evidenceItems as unknown as EvidenceRow[],
     approvals: dep.approvals as unknown as ApprovalRow[],
-    hasSerial: dep.deploymentRobots.every((dr) => dr.robot.serialNumber.trim().length > 0),
+    hasSerial: dep.deploymentRobots.every(
+      (dr) => typeof dr.robot.serialNumber === "string" && dr.robot.serialNumber.trim().length > 0
+    ),
     activeHashMatchesBaseline: !!dep.activeBaseline,
     hasPendingChange,
   });
@@ -65,9 +89,21 @@ export async function getReadinessPack(code: string) {
     type: "Deployment Readiness Pack" as const,
     generatedAt: new Date().toISOString(),
     deployment: {
-      code: dep.code, name: dep.name, customer: dep.customer.name, site: `${dep.site.city}, ${dep.site.country}`,
-      lifecycle: dep.lifecycle, operationalState: dep.operationalState, operatingMode: dep.operatingMode,
-      humanExposure: dep.humanExposure, task: dep.task.name, description: dep.description,
+      code: dep.code,
+      name: dep.name,
+      contextKind: dep.contextKind,
+      provider: dep.providerOrganization?.name ?? null,
+      host: dep.site.hostOrganization?.name ?? null,
+      customer: dep.customer?.name ?? null,
+      site: dep.site.name,
+      siteLocation: `${dep.site.city}, ${dep.site.country}`,
+      environmentType: dep.site.environmentType,
+      lifecycle: dep.lifecycle,
+      operationalState: dep.operationalState,
+      operatingMode: dep.operatingMode,
+      humanExposure: dep.humanExposure,
+      task: dep.task?.name ?? null,
+      description: dep.description,
     },
     activeBaseline: dep.activeBaseline ? { code: dep.activeBaseline.code, hash: dep.activeBaseline.hash, snapshotCode: dep.activeBaseline.snapshot.code } : null,
     readiness: { percent: readiness.percent, categories: readiness.categories },
