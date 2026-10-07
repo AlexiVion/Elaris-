@@ -79,11 +79,21 @@ related_prs: []
 **Gate:** TypeScript, tests, build, 2 ejecuciones Dataset #002 idénticas con trazabilidad completa, revisión de claims y actualización del registro.
 **Fecha UTC de decisión:** 2026-10-07 (sin hora UTC firmada en GitHub; solicitud original en conversación).
 
+### CH-DEC-20261007-08 — V0.3 alcanza VERIFIED_LOCAL
+
+**Estado:** `VERIFIED_LOCAL` técnico; no `APPROVED_BY_OWNER` ni `RELEASED`.
+**Versión:** V0.3 Evidence Engine.
+**Evidencia:** typecheck PASS, 14/14 tests, build PASS, Dataset #002 ejecutado 2× con mismos IDs/artefactos/checksums, 8×29 slots, max coverage 1 y benchmark registrado.
+**Performance local:** ~1:32–1:40 por run; máximo RSS ~514–521 MB.
+**Riesgos que permanecen:** export `NOT_APPROVED`, semánticas OEM no validadas, plaintext equivalence `NOT_INDEPENDENTLY_VERIFIED`, bounded-memory no implementado.
+**Siguiente alcance propuesto:** V0.4 Audit Workbench, todavía requiere aprobación separada para implementación.
+
 ## Registro histórico
 
 | Fecha UTC | ID | Cambio | Autor | Aprobación | Evidencia |
 |---|---|---|---|---|---|
 | 2026-10-06 | Inicio del registro | Decisiones y gates propuestos | Auditoría Elaris | PENDIENTE | Este PR |
 | 2026-10-07 | CH-DEC-20261007-07 | Inicio implementación V0.3 Evidence Engine | Alexi Vion | APPROVED_FOR_IMPLEMENTATION (no release ni datos) | PR #17 / solicitud explícita de implementación |
+| 2026-10-07 | CH-DEC-20261007-08 | V0.3 alcanza VERIFIED_LOCAL | Evidencia de operador | VERIFIED_LOCAL técnico; no release | PR #17 + doble run Dataset #002 |
 
 **Editar al tomar una decisión:** copiar template, completar aprobador, fecha y referencia PR/comentario; actualizar el estado correspondiente en [version-registry.md](version-registry.md). No reemplazar silenciosamente la historia: añadir nueva decisión que supersede la anterior.
