@@ -56,7 +56,7 @@ La aprobación para exportar un extracto no convierte el capture fuente en `PUBL
 | V0.2 | Demo real-data-derived Component Health | `VERIFIED_LOCAL` | 5/5 tests, typecheck/build PASS y UI HTTP 200 en commit `41a8cce` | **NOT_APPROVED** | UNTESTED | PR #14 draft | no registrado |
 | **V0.2.1** | Correcciones de integridad, metadata, legacy y E2E | **`VERIFIED_LOCAL`** | **PASS informado por operador: typecheck, 8/8 tests, build 52/52, E2E 1/1 y Dataset #002 real rerun con provenance separada; output sellado SHA-256** | **NOT_APPROVED** | UNTESTED | PR #15 draft | no registrado |
 | V0.3 | Evidence Engine reproducible | **`VERIFIED_LOCAL`** | **PASS informado por operador: typecheck, 14/14 tests, build 52/52, Dataset #002 2× determinista, 8×29 slots, SHA-256 OK; benchmark ~514–521 MB RSS / 1:32–1:40** | **NOT_APPROVED** | DISCOVERY | PR #17 draft · CH-030… | Implementación: Alexi; release/owner approval: no registrado |
-| V0.4 | Audit Workbench privado sobre artifacts V0.3; persistencia/notas todavía parciales | **`IN_PROGRESS` / partial verification** | **PASS informado por operador: typecheck, 20/20 tests, build 55/55 y recorrido manual real Dataset #002; Playwright V0.4 PENDING** | **NOT_APPROVED** | DISCOVERY | PR #18 draft · CH-040… | Implementación: Alexi; release/owner approval: no registrado |
+| V0.4 | Audit Workbench privado artifact-backed/read-only; persistencia/notas quedan como follow-up | **`VERIFIED_LOCAL`** | **PASS informado por operador: typecheck, 20/20 tests, build 55/55, Playwright 1/1 y recorrido manual real Dataset #002** | **NOT_APPROVED** | DISCOVERY | PR #18 draft · CH-040… | Implementación: Alexi; release/owner approval: no registrado |
 | V0.5 | Human-approved export / client delivery | `DRAFT` | NOT_RUN | NOT_APPROVED | DISCOVERY | CH-050… | — |
 | V0.6 | Comparación longitudinal controlada | `PROPOSED` | NOT_RUN | NOT_APPROVED | DISCOVERY | CH-060… | — |
 | V0.7 | Operación repetible de auditorías | `PROPOSED` | NOT_RUN | NOT_APPROVED | DISCOVERY | CH-070… | — |
@@ -131,3 +131,8 @@ Aprobación humana exige firma/conformidad visible en PR o registro de decisión
 ### Evidencia V0.3 — 2026-10-07
 
 El operador ejecutó Dataset #002 dos veces con inputs idénticos sobre PR #17. Ambos runs produjeron el mismo `analysisId=CH-A03-5D9D0A2922AD460F245F`, mismo `inputFingerprint`, artefactos byte-identical, checksums válidos, 8 fases × 29 slots, `maxCoverage=1`, provenance source/derivative separada para observed y baseline, y Recovery Idle con último dato observado `2026-10-06T15:45:55.399Z`. Benchmark local: 520552 KB / 1:39.78 y 513852 KB / 1:31.61. `VERIFIED_LOCAL` no cambia `NOT_APPROVED` de export ni constituye aprobación humana de release.
+
+
+### Evidencia V0.4 — 2026-10-07
+
+El operador completó el gate restante de Playwright con 1/1 PASS (~6,3 min). Junto con typecheck PASS, 20/20 tests, build PASS (55/55) y el recorrido manual del Dataset #002, el alcance artifact-backed/read-only de V0.4 pasa a **VERIFIED_LOCAL**. Persisted review notes, señal seleccionable completa, auth/multi-tenant y export permanecen fuera de este cierre. `NOT_APPROVED` de datos no cambia.
