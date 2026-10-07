@@ -47,12 +47,12 @@ El `owner` permanece `UNASSIGNED` hasta aceptación explícita.
 
 | ID | Entregable / criterio verificable | Depende | Estado |
 |---|---|---|---|
-| CH-040-01 | Data dictionary y entidades persistentes mínimas, no duplicar `Robot/Config/Deployment` compartidos | CH-030-01 + caso real | DEFERRED UNTIL READ-ONLY WORKFLOW VALIDATION |
+| CH-040-01 | Data dictionary y entidades persistentes mínimas, no duplicar `Robot/Config/Deployment` compartidos | CH-030-01 + caso real | PARTIAL / MINIMAL REVIEW MODEL IMPLEMENTED + TESTED |
 | CH-040-02 | Import local de report privado vía backend/autorizado con validación de schema/hash, sin exposición en bundle público | CH-030-10 | TESTED / REAL DATASET PASS |
 | CH-040-03 | Vista Sessions: capture original/working copy, errores, salvage, phases, data quality | CH-040-02 | TESTED / REAL DATASET PASS |
 | CH-040-04 | Vista Component 360 con señales *observadas* en todas las fases y estado de mapping | CH-040-02 | TESTED / REAL DATASET PASS |
 | CH-040-05 | Phase Explorer con señal seleccionable, comparabilidad y 29×8 disponible, no solo top rows hardcoded | CH-040-02 | PARTIAL CODE_READY / TORQUE FIRST; SIGNAL SELECTOR PENDING |
-| CH-040-06 | Quality Review: notas autor/fecha, missingness, unresolved, interpretación separada del dato | CH-040-03..05 | PARTIAL CODE_READY / QA GROUPING DONE; HUMAN NOTES PENDING |
+| CH-040-06 | Quality Review: notas autor/fecha, missingness, unresolved, interpretación separada del dato | CH-040-03..05 | PARTIAL / NOTES + DISPOSITIONS PERSISTED; AUTHENTICATED AUTHOR IDENTITY PENDING |
 | CH-040-07 | Historial de AnalysisRuns con versión, inputs, re-ejecución, error handling | CH-040-02 | CODE_READY / FILESYSTEM CATALOGUE; PERSISTENT RUN INDEX PENDING DECISION |
 | CH-040-08 | Acceptance E2E: importar dataset de prueba → revisar componentes/fases → generar borrador | CH-040-03..07 | TESTED / E2E + REAL UI PASS |
 
