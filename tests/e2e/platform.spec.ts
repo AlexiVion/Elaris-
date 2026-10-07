@@ -27,6 +27,7 @@ test("Deployment Control renders the Siglo 21 institutional placement without co
   await expect(page.getByText("Universidad Siglo 21", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Not assigned", { exact: true })).toBeVisible();
   await expect(page.getByText("Not recorded", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Change impact blocked" })).toBeDisabled();
 
   await page.goto("/reports/readiness/DEP-S21-001");
   await expect(page.getByRole("heading", { name: "Siglo 21 Institutional Placement" })).toBeVisible();
