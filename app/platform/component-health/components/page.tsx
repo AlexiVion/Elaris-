@@ -40,7 +40,7 @@ export default function FieldComponentsPage() {
                     <td className="px-4 py-3 font-medium">{component.name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{component.group}</td>
                     <td className="px-4 py-3">
-                      <StatusPill label={unresolved ? "UNRESOLVED" : "OBSERVED USABLE"} tone={unresolved ? "amber" : "green"} />
+                      <StatusPill label={unresolved ? "UNRESOLVED" : "TELEMETRY AVAILABLE"} tone={unresolved ? "amber" : "green"} />
                     </td>
                     <td className="px-4 py-3">
                       <Link href={`/platform/component-health/components/${component.id}`} className="font-medium text-primary hover:underline">
