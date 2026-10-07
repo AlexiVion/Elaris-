@@ -7,6 +7,7 @@ const nav = [
   { label: "Phases", href: "/platform/component-health/phases", icon: "phases" as const },
   { label: "Quality", href: "/platform/component-health/quality", icon: "service" as const },
   { label: "Review", href: "/platform/component-health/review", icon: "return" as const },
+  { label: "Semantics", href: "/platform/component-health/semantics", icon: "attention" as const },
   { label: "Reports", href: "/platform/component-health/reports", icon: "reports" as const },
 ];
 
@@ -14,12 +15,12 @@ export default function ComponentHealthLayout({ children }: { children: React.Re
   return (
     <FullDemoProductShell
       product="Component Health"
-      subtitle="Audit Workbench · V0.4"
+      subtitle="Audit Workbench · V0.4.2"
       organization="Elaris Field Validation"
       persona="Reliability Lead"
       attentionCount={0}
       nav={nav}
-      demoDataNotice="Private V0.3 evidence · Server-side Workbench · SENSITIVE · Export NOT APPROVED"
+      demoDataNotice="Private V0.3 evidence · V0.4.2 semantics verification · SENSITIVE · Export NOT APPROVED"
       demoNoticeTone="slate"
     >
       {children}
