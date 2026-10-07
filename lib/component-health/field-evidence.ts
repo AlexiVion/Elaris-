@@ -67,6 +67,9 @@ export type PhaseEvidence = {
   frameCount: number;
   observedTelemetryStart: string | null;
   observedTelemetryEnd: string | null;
+  /** Actual gaps between distinct timestamped joint frames; null if insufficient frames. */
+  maxInterFrameGapMs: number | null;
+  medianInterFrameGapMs: number | null;
   jointEventCount: number;
   componentCount: number;
   components: ComponentPhaseEvidence[];
@@ -354,6 +357,18 @@ export async function analyzeComponentHealthFieldEvidence(input: {
   const phases: PhaseEvidence[] = input.phaseManifest.phases.map((phase) => {
     const phaseAcc = accumulators.get(phase.id)!;
     const frameCount = phaseAcc.frameTimestamps.size;
+    const observedFrameMs = [...phaseAcc.frameTimestamps]
+      .map((timestamp) => Date.parse(timestamp))
+      .filter(Number.isFinite)
+      .sort((a, b) => a - b);
+    const frameGaps = observedFrameMs
+      .slice(1)
+      .map((timeMs, index) => timeMs - observedFrameMs[index]!)
+      .sort((a, b) => a - b);
+    const maxInterFrameGapMs =
+      frameGaps.length > 0 ? frameGaps[frameGaps.length - 1]! : null;
+    const medianInterFrameGapMs =
+      frameGaps.length > 0 ? percentile(frameGaps, 0.5) : null;
     const components: ComponentPhaseEvidence[] = [];
 
     for (const [componentId, signalMap] of phaseAcc.components.entries()) {
@@ -415,6 +430,8 @@ export async function analyzeComponentHealthFieldEvidence(input: {
         ? null : new Date(phaseAcc.observedStartMs).toISOString(),
       observedTelemetryEnd: phaseAcc.observedEndMs === null
         ? null : new Date(phaseAcc.observedEndMs).toISOString(),
+      maxInterFrameGapMs,
+      medianInterFrameGapMs,
       jointEventCount: phaseAcc.eventCount,
       componentCount: components.length,
       components,
@@ -586,6 +603,7 @@ function summarizeSignal(
     signal,
     unit: acc.unit,
     samples: acc.values.length,
+    uniqueTimestamps: acc.sampleTimestamps.size,
     coverage: frameCount > 0 ? acc.sampleTimestamps.size / frameCount : 0,
     quality: signalQuality(min, max),
     min,
