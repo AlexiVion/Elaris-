@@ -50,6 +50,7 @@ export async function getHorizontalPlatformData() {
       },
     }),
     prisma.deployment.findMany({
+      where: { contextKind: "COMMERCIAL_DEPLOYMENT" },
       include: {
         providerOrganization: true,
         customer: true,
