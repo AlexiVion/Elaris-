@@ -1,11 +1,11 @@
 import { FullDemoProductShell } from "@/components/platform/FullDemoProductShell";
-import { publicDemoNotice } from "@/lib/demo/component-health-field-data";
 
 const nav = [
   { label: "Overview", href: "/platform/component-health", icon: "home" as const, exact: true },
-  { label: "Robot", href: "/platform/component-health/robots", icon: "robots" as const },
+  { label: "Sessions", href: "/platform/component-health/sessions", icon: "robots" as const },
   { label: "Components", href: "/platform/component-health/components", icon: "attention" as const },
   { label: "Phases", href: "/platform/component-health/phases", icon: "phases" as const },
+  { label: "Quality", href: "/platform/component-health/quality", icon: "service" as const },
   { label: "Reports", href: "/platform/component-health/reports", icon: "reports" as const },
 ];
 
@@ -13,12 +13,12 @@ export default function ComponentHealthLayout({ children }: { children: React.Re
   return (
     <FullDemoProductShell
       product="Component Health"
-      subtitle="Field Evidence Audit"
+      subtitle="Audit Workbench · V0.4"
       organization="Elaris Field Validation"
       persona="Reliability Lead"
       attentionCount={0}
       nav={nav}
-      demoDataNotice={publicDemoNotice}
+      demoDataNotice="Private V0.3 evidence · Server-side Workbench · SENSITIVE · Export NOT APPROVED"
       demoNoticeTone="slate"
     >
       {children}
