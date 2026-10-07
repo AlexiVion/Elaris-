@@ -21,6 +21,16 @@ export default async function NewChangePage({ params }: { params: { code: string
       </>
     );
   }
+  if (!dep.humanExposure) {
+    return (
+      <>
+        <PageHeader title="New change" />
+        <p className="text-sm text-muted-foreground">
+          Change-impact analysis is blocked until the human-exposure context is explicitly recorded.
+        </p>
+      </>
+    );
+  }
 
   const initialItems = [...dep.activeBaseline.snapshot.items]
     .sort((a, b) => (SLOT_INDEX.get(a.slot as never) ?? 99) - (SLOT_INDEX.get(b.slot as never) ?? 99))
