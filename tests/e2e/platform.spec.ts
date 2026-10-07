@@ -16,6 +16,30 @@ test("platform home is the first level and Deployment Control opens as a full pr
   await expect(page.getByRole("link", { name: "Deployments", exact: true })).toBeVisible();
 });
 
+test("Deployment Control renders the Siglo 21 institutional placement without commercial fiction", async ({ page }) => {
+  await page.goto("/platform/deployment-control/deployments/DEP-S21-001");
+
+  await expect(page.getByRole("heading", { name: "Siglo 21 Institutional Placement" })).toBeVisible();
+  await expect(page.getByText("Institutional placement", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Provider / owner context")).toBeVisible();
+  await expect(page.getByText("Humandroid", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Host organization")).toBeVisible();
+  await expect(page.getByText("Universidad Siglo 21", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Not assigned", { exact: true })).toBeVisible();
+  await expect(page.getByText("Not recorded", { exact: true })).toBeVisible();
+
+  await page.goto("/reports/readiness/DEP-S21-001");
+  await expect(page.getByRole("heading", { name: "Siglo 21 Institutional Placement" })).toBeVisible();
+  await expect(page.getByText("Institutional placement", { exact: true })).toBeVisible();
+  await expect(page.getByText("Customer requirements not requested for this deployment")).toBeVisible();
+  await expect(page.getByText("Insurance not requested for this deployment")).toBeVisible();
+
+  await page.goto("/robots/G1-S21");
+  await expect(page.getByRole("heading", { name: "G1-S21" })).toBeVisible();
+  await expect(page.getByText("Not recorded", { exact: true })).toBeVisible();
+  await expect(page.getByText("Siglo 21 Institutional Placement")).toBeVisible();
+});
+
 test("Operational Readiness behaves like a complete buyer workspace", async ({ page }) => {
   await page.goto("/platform/operational-readiness");
 
