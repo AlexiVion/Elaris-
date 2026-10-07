@@ -32,7 +32,7 @@ export default async function ComponentHealthQualityPage() {
         actions={
           <div className="flex items-center gap-2">
             <StatusPill label={warningCount + " WARNINGS"} tone={warningCount ? "amber" : "green"} />
-            <StatusPill label={report.quality.findings.length + " QA RECORDS"} tone="slate" />
+            <StatusPill label={report.quality.findings.length + " QA RECORDS"} tone="gray" />
           </div>
         }
       />
@@ -52,7 +52,7 @@ export default async function ComponentHealthQualityPage() {
                   </div>
                   <StatusPill
                     label={group.severity + " · " + group.count}
-                    tone={group.severity === "WARNING" ? "amber" : "slate"}
+                    tone={group.severity === "WARNING" ? "amber" : "gray"}
                   />
                 </div>
 
