@@ -6,6 +6,10 @@ import { defineConfig, devices } from "@playwright/test";
  */
 const e2ePort = process.env.ELARIS_E2E_PORT ?? "3105";
 const e2eURL = `http://127.0.0.1:${e2ePort}`;
+const e2eUsePrebuilt = process.env.ELARIS_E2E_USE_PREBUILT === "1";
+const e2eServerCommand = e2eUsePrebuilt
+  ? `node ./node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port ${e2ePort}`
+  : `pnpm build && node ./node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port ${e2ePort}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -23,7 +27,7 @@ export default defineConfig({
     // Make the E2E gate self-contained. Next dev can cold-compile for several
     // minutes on /mnt/c, while a previous dev run can also leave .next without
     // a production BUILD_ID. Build first, then exercise the production server.
-    command: `pnpm build && node ./node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port ${e2ePort}`,
+    command: e2eServerCommand,
     url: e2eURL,
     reuseExistingServer: !process.env.CI,
     timeout: 900_000,
