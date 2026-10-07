@@ -110,6 +110,7 @@ test("Component Health V0.4.2 uses private V0.3 artifacts, persists review and v
   await expect(
     page.getByRole("heading", { name: "Technical Semantics Verification" })
   ).toBeVisible();
+  await expect(page.getByText("G1_PHYSICAL_CONFIGURATION")).toBeVisible();
   await expect(page.getByText("G1_RIGHT_WRIST_YAW_MAPPING")).toBeVisible();
   await expect(
     page.getByText("G1_RIGHT_WRIST_YAW_PHYSICAL_AVAILABILITY")
@@ -117,7 +118,8 @@ test("Component Health V0.4.2 uses private V0.3 artifacts, persists review and v
   await expect(page.getByText("CONFIRMED SUPPORTED").first()).toBeVisible();
   await expect(page.getByText("STILL UNRESOLVED").first()).toBeVisible();
   await expect(page.getByText(/NO_HEALTH_OR_SAFETY_CONCLUSION/)).toBeVisible();
-  await expect(page.getByText(/23-DOF \/ 29-DOF/)).toBeVisible();
+  await expect(page.getByText("mode_machine attached")).toBeVisible();
+  await expect(page.getByText("Resolved G1 DOF")).toBeVisible();
 
   await page.goto("/platform/component-health/reports/draft");
   await expect(
