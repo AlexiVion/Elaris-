@@ -267,13 +267,11 @@ function recommendationForGroup(
         whyItMatters:
           "Zero can mean a true value, an unsupported channel or missing instrumentation; Elaris must not guess.",
       };
-    default:
-      return exhaustiveRecommendation(group);
   }
-}
 
-function exhaustiveRecommendation(group: never): RecommendedReviewItem {
-  throw new Error(`Unhandled Component Health quality finding: ${JSON.stringify(group)}`);
+  throw new Error(
+    `Unhandled Component Health quality finding: ${group.code}`
+  );
 }
 
 function priorityRank(priority: RecommendedReviewItem["priority"]) {
