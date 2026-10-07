@@ -191,7 +191,7 @@ function normalizeScenario(
         {
           robotId: "G1-REPLAY",
           captureSessionId: scenario.id,
-          timestamp: frame.metadata?.receivedAt,
+          timestamp: frame.metadata?.receivedAt ?? undefined,
           transportKind: "replay",
         }
       )
