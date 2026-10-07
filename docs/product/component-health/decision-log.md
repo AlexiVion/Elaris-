@@ -98,6 +98,15 @@ related_prs: []
 **Límites:** no aprobación de export, release, multi-user, diagnóstico, score, RUL, control del robot o publicación de evidencia.
 **Gate:** typecheck/tests/build/E2E + recorrido con Dataset #002 real + revisión de ausencia de leakage.
 
+### CH-DEC-20261007-10 — V0.4 alcanza VERIFIED_LOCAL
+
+**Estado:** `VERIFIED_LOCAL` técnico para el alcance artifact-backed/read-only; no `APPROVED_BY_OWNER` ni `RELEASED`.
+**Versión:** V0.4 Audit Workbench.
+**Evidencia:** typecheck PASS, 20/20 tests, build PASS 55/55, Playwright 1/1 PASS y recorrido manual completo con Dataset #002.
+**Resultado operacional:** run A/B deduplicados, 29 slots × 8 fases navegables, Quality Review agrupado y Draft Report interno sin editar TypeScript.
+**Pendientes deliberados:** review notes persistentes, selector de señales completo, auth/multi-tenant, owner/data approval y external delivery.
+**Fecha:** 2026-10-07.
+
 ## Registro histórico
 
 | Fecha UTC | ID | Cambio | Autor | Aprobación | Evidencia |
@@ -106,5 +115,6 @@ related_prs: []
 | 2026-10-07 | CH-DEC-20261007-07 | Inicio implementación V0.3 Evidence Engine | Alexi Vion | APPROVED_FOR_IMPLEMENTATION (no release ni datos) | PR #17 / solicitud explícita de implementación |
 | 2026-10-07 | CH-DEC-20261007-08 | V0.3 alcanza VERIFIED_LOCAL | Evidencia de operador | VERIFIED_LOCAL técnico; no release | PR #17 + doble run Dataset #002 |
 | 2026-10-07 | CH-DEC-20261007-09 | Inicio implementación V0.4 Audit Workbench | Alexi Vion | APPROVED_FOR_IMPLEMENTATION (no release ni datos) | PR #18 / solicitud «sigamos» |
+| 2026-10-07 | CH-DEC-20261007-10 | V0.4 alcanza VERIFIED_LOCAL | Evidencia de operador | VERIFIED_LOCAL técnico; no release | PR #18 + Playwright + recorrido Dataset #002 |
 
 **Editar al tomar una decisión:** copiar template, completar aprobador, fecha y referencia PR/comentario; actualizar el estado correspondiente en [version-registry.md](version-registry.md). No reemplazar silenciosamente la historia: añadir nueva decisión que supersede la anterior.
