@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("Component Health V0.4.1 uses private V0.3 artifacts and persists human review without health claims", async ({ page }) => {
+test("Component Health V0.4.2 uses private V0.3 artifacts, persists review and verifies technical semantics without health claims", async ({ page }) => {
   await page.goto("/platform/component-health");
 
   await expect(
@@ -104,6 +104,22 @@ test("Component Health V0.4.1 uses private V0.3 artifacts and persists human rev
     unresolvedNote
   );
   await expect(page.getByText(/NOT APPROVED/i).first()).toBeVisible();
+
+  // V0.4.2 confirms public OEM mappings while preserving unresolved physical availability.
+  await page.goto("/platform/component-health/semantics");
+  await expect(
+    page.getByRole("heading", { name: "Technical Semantics Verification" })
+  ).toBeVisible();
+  await expect(page.getByText("G1_PHYSICAL_CONFIGURATION")).toBeVisible();
+  await expect(page.getByText("G1_RIGHT_WRIST_YAW_MAPPING")).toBeVisible();
+  await expect(
+    page.getByText("G1_RIGHT_WRIST_YAW_PHYSICAL_AVAILABILITY")
+  ).toBeVisible();
+  await expect(page.getByText("CONFIRMED SUPPORTED").first()).toBeVisible();
+  await expect(page.getByText("STILL UNRESOLVED").first()).toBeVisible();
+  await expect(page.getByText(/NO_HEALTH_OR_SAFETY_CONCLUSION/)).toBeVisible();
+  await expect(page.getByText("mode_machine attached")).toBeVisible();
+  await expect(page.getByText("Resolved G1 DOF")).toBeVisible();
 
   await page.goto("/platform/component-health/reports/draft");
   await expect(
