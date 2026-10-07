@@ -116,6 +116,15 @@ related_prs: []
 **Límite:** completeness review no equivale a healthy/safe/certified ni a data export approval.
 **Gate:** migration deploy sin reset, typecheck/tests/build/E2E y save→refresh real.
 
+### CH-DEC-20261007-12 — V0.4.1 alcanza VERIFIED_LOCAL
+
+**Estado:** `VERIFIED_LOCAL` técnico para Human Review & Persistence; no `APPROVED_BY_OWNER` ni `RELEASED`.
+**Versión:** V0.4.1.
+**Evidencia:** migration PASS, Prisma generate PASS, typecheck PASS, 23/23 tests, build 58/58 y Playwright 1/1 PASS.
+**Persistencia probada:** review `IN_REVIEW` + nota general + `UNRESOLVED_COMPONENT_SLOT → NEEDS_FOLLOWUP` + nota técnica sobreviven full refresh vía SQLite/API.
+**Límite:** el workflow no emite health/safety/certification/readiness/export approval.
+**Siguiente paso:** resolver findings técnicos reales (OEM semantics, slot mapping, capture timing) antes de preparar V0.5 Delivery & Export.
+
 ## Registro histórico
 
 | Fecha UTC | ID | Cambio | Autor | Aprobación | Evidencia |
@@ -126,5 +135,6 @@ related_prs: []
 | 2026-10-07 | CH-DEC-20261007-09 | Inicio implementación V0.4 Audit Workbench | Alexi Vion | APPROVED_FOR_IMPLEMENTATION (no release ni datos) | PR #18 / solicitud «sigamos» |
 | 2026-10-07 | CH-DEC-20261007-10 | V0.4 alcanza VERIFIED_LOCAL | Evidencia de operador | VERIFIED_LOCAL técnico; no release | PR #18 + Playwright + recorrido Dataset #002 |
 | 2026-10-07 | CH-DEC-20261007-11 | Inicio V0.4.1 Human Review & Persistence | Alexi Vion | APPROVED_FOR_IMPLEMENTATION; no release | PR #19 |
+| 2026-10-07 | CH-DEC-20261007-12 | V0.4.1 alcanza VERIFIED_LOCAL | Evidencia de operador | VERIFIED_LOCAL técnico; no release | PR #19 + save→refresh E2E |
 
 **Editar al tomar una decisión:** copiar template, completar aprobador, fecha y referencia PR/comentario; actualizar el estado correspondiente en [version-registry.md](version-registry.md). No reemplazar silenciosamente la historia: añadir nueva decisión que supersede la anterior.
