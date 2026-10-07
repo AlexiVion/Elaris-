@@ -32,7 +32,7 @@ Ninguna capacidad M5/M6 se anuncia usando sólo evidencia M1/M2.
 | **V0.2.1** | **Cierre correctivo** | Sin alertas inventadas, provenance fuente/derivada y quality metadata | `IMPLEMENTED_PENDING_VERIFICATION` | Tests+build+E2E+rerun real+data gate |
 | V0.3 | **Evidence Engine confiable** | Normalización de reportes privados y referencia intra-sesión como contrato | **`VERIFIED_LOCAL` · PR #17 draft** | Owner/data approval siguen separados; siguiente alcance: V0.4 |
 | V0.4 | **Audit Workbench** | Artifact-backed sessions/components/phases/quality/report; notes/persistencia diferidas | **`VERIFIED_LOCAL` · PR #18 draft** | Workflow real Dataset #002 validado sin editar TypeScript; siguiente decisión: persistencia/review o V0.5 delivery |
-| V0.4.1 | **Human Review & Persistence** | Cola accionable, estado de revisión y notas persistentes sin claims de health/release | **`IN_PROGRESS` · PR #19 draft** | Guardar + refresh real; no transformar completeness en aprobación técnica |
+| V0.4.1 | **Human Review & Persistence** | Cola accionable, estado de revisión y notas persistentes sin claims de health/release | **`VERIFIED_LOCAL` · PR #19 draft** | Persistencia save→refresh validada; siguiente trabajo real: resolver preguntas técnicas/OEM antes de V0.5 |
 | V0.5 | **Delivery & Export** | Paquete aprobado, export versionado y handoff al cliente | `DRAFT` | Aprobación legal/datos + entrega verificable |
 | V0.6 | **Comparable Sessions** | Historial de sesiones sobre mismo robot/componente/config | `PROPOSED` | 2+ capturas comparables y caso real de comparación |
 | V0.7 | **Field Audit Operations** | intake, checklist, costos, reejecución, observaciones, PR/runbook | `PROPOSED` | 2 auditorías operadas repetidamente |
