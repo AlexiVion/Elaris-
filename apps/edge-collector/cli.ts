@@ -998,6 +998,13 @@ Commands:
     --purpose <purpose> \\
     [--duration 60] [--hz 20] [--configuration <id>] [--root captures]
 
+  pnpm edge probe-unitree-component \\
+    --interface <iface> \\
+    --component <id-or-name> \\
+    [--duration 30] [--hz 20]
+
+  pnpm edge diagnose-capture <capture-dir>
+
   pnpm edge capture-replay \\
     --fixture <json> \\
     --robot-id <id> \\
