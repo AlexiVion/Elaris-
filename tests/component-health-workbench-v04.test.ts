@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import {
   mkdir,
   mkdtemp,
@@ -154,9 +155,26 @@ async function writeReport(
   report: ComponentHealthEvidenceV03
 ) {
   await mkdir(directory, { recursive: true });
+
+  const files: Array<[string, string]> = [
+    ["field-evidence-v03.json", JSON.stringify(report, null, 2) + "\n"],
+    ["field-evidence-v03.md", "# fixture\n"],
+    ["analysis-run.json", JSON.stringify(report.run, null, 2) + "\n"],
+    ["quality-v03.json", JSON.stringify(report.quality, null, 2) + "\n"],
+    ["phase-manifest.json", JSON.stringify({ fixture: true }, null, 2) + "\n"],
+  ];
+
+  const checksums: string[] = [];
+  for (const [file, payload] of files) {
+    await writeFile(join(directory, file), payload, "utf8");
+    checksums.push(
+      createHash("sha256").update(payload).digest("hex") + "  " + file
+    );
+  }
+
   await writeFile(
-    join(directory, "field-evidence-v03.json"),
-    JSON.stringify(report, null, 2) + "\n",
+    join(directory, "checksums.sha256"),
+    checksums.join("\n") + "\n",
     "utf8"
   );
 }
