@@ -52,7 +52,7 @@ function rightWristComponent(
     },
     comparisonsToIdle: {},
     newStateCodesVsIdle: [],
-  } as PhaseComponentEvidenceV03;
+  } as unknown as PhaseComponentEvidenceV03;
 }
 
 function report(): ComponentHealthEvidenceV03 {
