@@ -22,8 +22,10 @@ export default async function ComponentHealthSemanticsPage() {
     );
   }
 
+  const modeMachine = readModeMachine();
   const verification = buildComponentHealthTechnicalVerification(
-    artifact.report
+    artifact.report,
+    { modeMachine }
   );
 
   return (
@@ -68,9 +70,9 @@ export default async function ComponentHealthSemanticsPage() {
               implementación pública de Unitree: casing y winding.
             </p>
             <p>
-              Esto no convierte ningún valor en diagnóstico. La disponibilidad
-              física del wrist sigue dependiendo de identificar la variante real
-              23-DOF / 29-DOF.
+              Si se adjunta <code>mode_machine</code> observado por lectura,
+              Elaris resuelve la familia 23-DOF / 29-DOF contra perfiles públicos
+              de Unitree. Eso no convierte ningún valor en diagnóstico.
             </p>
           </div>
         </SectionCard>
@@ -112,11 +114,17 @@ export default async function ComponentHealthSemanticsPage() {
                 <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Confirmado
                 </div>
-                <ul className="mt-2 space-y-2 text-sm leading-6">
-                  {item.confirmedFacts.map((fact) => (
-                    <li key={fact}>• {fact}</li>
-                  ))}
-                </ul>
+                {item.confirmedFacts.length > 0 ? (
+                  <ul className="mt-2 space-y-2 text-sm leading-6">
+                    {item.confirmedFacts.map((fact) => (
+                      <li key={fact}>• {fact}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Sin hecho técnico adicional confirmado en este scope.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -149,6 +157,26 @@ export default async function ComponentHealthSemanticsPage() {
       <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
         <SectionCard title="Evidencia observada" icon={CircleHelp}>
           <div className="space-y-2 text-sm">
+            <Fact
+              label="mode_machine attached"
+              value={
+                verification.context.modeMachine === null
+                  ? "NOT ATTACHED"
+                  : String(verification.context.modeMachine)
+              }
+            />
+            <Fact
+              label="Resolved G1 DOF"
+              value={
+                verification.context.effectiveDof === null
+                  ? "UNRESOLVED"
+                  : `${verification.context.effectiveDof}-DOF`
+              }
+            />
+            <Fact
+              label="Configuration conflict"
+              value={verification.context.configurationConflict ? "YES" : "NO"}
+            />
             <Fact
               label="Unresolved slot findings"
               value={String(verification.observed.unresolvedSlotCount)}
@@ -201,6 +229,18 @@ export default async function ComponentHealthSemanticsPage() {
       </div>
     </>
   );
+}
+
+function readModeMachine() {
+  const raw = process.env.ELARIS_COMPONENT_HEALTH_G1_MODE_MACHINE?.trim();
+  if (!raw) return null;
+
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 0 || value > 255) {
+    return null;
+  }
+
+  return value;
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
