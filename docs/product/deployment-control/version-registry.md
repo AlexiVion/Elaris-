@@ -15,7 +15,9 @@
 | V0.2 | Evidence + baseline graph | `IMPLEMENTED_REFERENCE` | One coherent deployment package can be rendered from shared truth. |
 | V0.3 | Change Evidence engine | `IMPLEMENTED_REFERENCE` | Golden deterministic change scenario remains reproducible. |
 | V0.4 | Operator workbench + outputs | `IMPLEMENTED_REFERENCE` | End-to-end demo is coherent; no claim of field validation. |
-| V0.5 | Real Institutional Placement Reconciliation | `CASE_SELECTED` | Siglo 21/Humandroid placement is represented without fictional Customer/Task or production semantics. |
+| V0.5 | Real Institutional Placement Reconciliation | `IN_PROGRESS` | V0.5.1 verified and V0.5.2 authorized baseline completed. |
+| V0.5.1 | Placement Context Semantics | `IMPLEMENTED_PENDING_LOCAL_VERIFICATION` | Migration, commercial regression, institutional fixture, reports and E2E pass. |
+| V0.5.2 | Siglo 21 Real Baseline | `BLOCKED_ON_V0.5.1_AND_DATA_REVIEW` | Authorized real evidence/config refs are approved and reproducible. |
 | V0.6 | Real Change Case | `PROPOSED` | Named reviewers confirm impact/re-test/re-approval workflow. |
 | V0.7 | Source-system intake | `DEFERRED_UNTIL_PAIN` | At least two repeated manual intake events justify an integration. |
 | V0.8 | Cross-product evidence links | `PROPOSED` | No duplicate system-of-record; links preserve provenance/authority. |
@@ -34,4 +36,4 @@ All future transitions require PR evidence and named owner review.
 
 `DC-CASE-S21-HMND-001` — Humandroid Unitree G1 physically hosted at Universidad Siglo 21 under institutional agreement.
 
-The case is non-production and not task-specific. Current schema incompatibility is now a V0.5 acceptance blocker, not something to paper over with demo data.
+The case is non-production and not task-specific. The schema incompatibility has been implemented as V0.5.1 and remains pending local verification; V0.5.2 stays separately gated by authorized real evidence/configuration review.
