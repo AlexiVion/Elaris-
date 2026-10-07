@@ -4,7 +4,7 @@ import { copy } from "@/lib/copy/en";
 import {
   evidenceStatusPill, approvalStatusPill, severityPill, impactStatusPill, changeStatusPill,
   readinessStatusPill, slotLabel, readinessCategoryLabel, categoryLabel, suggestedActionLabel,
-  kindLabel, roleLabel, humanExposureLabel, operatingModeLabel,
+  kindLabel, roleLabel, humanExposureLabel, operatingModeLabel, deploymentContextKindLabel,
 } from "@/lib/copy/labels";
 import { formatDate } from "@/lib/format";
 import type { getPassport, getReadinessPack, getImpactReport } from "@/lib/db/reports";
@@ -72,7 +72,7 @@ function PassportBody({ r }: { r: Passport }) {
         <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
           <KV label="Code" value={r.robot.code} />
           <KV label="Model" value={r.robot.model} />
-          <KV label="Serial" value={<span className="font-mono text-xs">{r.robot.serialNumber}</span>} />
+          <KV label="Serial" value={<span className="font-mono text-xs">{r.robot.serialNumber ?? "Not recorded"}</span>} />
           <KV label="Status" value={r.robot.status} />
         </dl>
       </Section>
@@ -106,8 +106,17 @@ function PassportBody({ r }: { r: Passport }) {
           </tbody>
         </table>
       </Section>
-      <Section title="Deployments">
-        <ul className="text-sm">{r.deployments.map((d) => <li key={d.code}>{d.name} · {d.customer}</li>)}</ul>
+      <Section title="Placements / deployments">
+        <ul className="text-sm">
+          {r.deployments.map((d) => (
+            <li key={d.code}>
+              {d.name} · {deploymentContextKindLabel[d.contextKind] ?? d.contextKind}
+              {d.customer ? ` · Customer: ${d.customer}` : ""}
+              {d.host ? ` · Host: ${d.host}` : ""}
+              {d.provider ? ` · Provider: ${d.provider}` : ""}
+            </li>
+          ))}
+        </ul>
       </Section>
     </>
   );
@@ -118,11 +127,18 @@ function ReadinessBody({ r }: { r: Readiness }) {
     <>
       <Section title="Overview">
         <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-          <KV label="Customer" value={r.deployment.customer} />
-          <KV label="Site" value={r.deployment.site} />
-          <KV label="Task" value={r.deployment.task} />
-          <KV label="Operating mode" value={operatingModeLabel[r.deployment.operatingMode] ?? r.deployment.operatingMode} />
-          <KV label="Human exposure" value={humanExposureLabel[r.deployment.humanExposure] ?? r.deployment.humanExposure} />
+          <KV label="Context" value={deploymentContextKindLabel[r.deployment.contextKind] ?? r.deployment.contextKind} />
+          {r.deployment.provider ? <KV label="Provider / owner context" value={r.deployment.provider} /> : null}
+          {r.deployment.host ? <KV label="Host organization" value={r.deployment.host} /> : null}
+          {r.deployment.customer ? <KV label="Customer" value={r.deployment.customer} /> : null}
+          <KV label="Site" value={`${r.deployment.site} · ${r.deployment.siteLocation}`} />
+          {r.deployment.task ? <KV label="Task" value={r.deployment.task} /> : null}
+          {r.deployment.operatingMode ? (
+            <KV label="Operating mode" value={operatingModeLabel[r.deployment.operatingMode] ?? r.deployment.operatingMode} />
+          ) : null}
+          {r.deployment.humanExposure ? (
+            <KV label="Human exposure" value={humanExposureLabel[r.deployment.humanExposure] ?? r.deployment.humanExposure} />
+          ) : null}
           <KV label="Reference" value={r.deployment.code} />
         </dl>
         <p className="mt-3 text-sm text-foreground/90">{r.deployment.description}</p>
