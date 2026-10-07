@@ -147,7 +147,7 @@ export default async function ComponentHealthDraftReportPage() {
                   <div className="text-xs font-semibold">{group.code.replaceAll("_", " ")}</div>
                   <div className="mt-1 text-xs text-muted-foreground">{group.phaseCount} phases · {group.componentCount} components</div>
                 </div>
-                <StatusPill label={group.severity + " · " + group.count} tone={group.severity === "WARNING" ? "amber" : "slate"} />
+                <StatusPill label={group.severity + " · " + group.count} tone={group.severity === "WARNING" ? "amber" : "gray"} />
               </div>
             ))}
           </div>
