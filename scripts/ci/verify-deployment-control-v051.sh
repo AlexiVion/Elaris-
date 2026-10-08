@@ -43,7 +43,7 @@ echo "=== PRODUCTION BUILD ==="
 pnpm build
 
 echo "=== PLATFORM E2E: fresh port ${ELARIS_E2E_PORT} / prebuilt / 2 workers ==="
-pnpm exec playwright test tests/e2e/platform.spec.ts --workers=2
+CI=1 pnpm exec playwright test tests/e2e/platform.spec.ts --workers=2
 
 echo "=== DC V0.5.1 GATE PASS ==="
 echo "Verified against temporary DB: $repo_root/prisma/v051-gate.db"
