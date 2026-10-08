@@ -77,7 +77,7 @@ test("offline build emits HTML, CSVs and manifest with the SHA256 of source JSON
   assert.equal(manifest.status, "SYNTHETIC_DEMO_ONLY");
   assert.equal(manifest.sourceInputSha256.length, 64);
   assert.ok(manifest.nonClaims.includes("NO_INSURANCE_DECISION"));
-  assert.throws(() => generate(fixture, out), /report.html already exists/);
+  await assert.rejects(() => generate(fixture, out), /report.html already exists/);
 });
 
 test("no output is written when validation fails", async () => {
