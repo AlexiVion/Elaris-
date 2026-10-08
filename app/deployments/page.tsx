@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { ReadinessBar } from "@/components/elaris/ReadinessBar";
 import { EnumPill } from "@/components/elaris/EnumPill";
 import { copy } from "@/lib/copy/en";
-import { lifecyclePill, operationalStatePill } from "@/lib/copy/labels";
+import { deploymentContextKindLabel, lifecyclePill, operationalStatePill } from "@/lib/copy/labels";
 import { getDeploymentSummaries } from "@/lib/db/deployments";
 
 export default async function DeploymentsPage() {
@@ -19,9 +19,9 @@ export default async function DeploymentsPage() {
             <thead>
               <tr className="border-b border-border bg-muted/40">
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Deployment</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Customer</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Context organization</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Site</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Lifecycle</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Context</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">{copy.common.status}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">{copy.home.readiness}</th>
               </tr>
@@ -35,9 +35,12 @@ export default async function DeploymentsPage() {
                     </Link>
                     <div className="text-xs text-muted-foreground">{d.code}</div>
                   </td>
-                  <td className="px-4 py-3">{d.customerName}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{d.siteCity}, {d.siteCountry}</td>
-                  <td className="px-4 py-3"><EnumPill value={d.lifecycle} map={lifecyclePill} /></td>
+                  <td className="px-4 py-3">{d.contextOrganizationName}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{d.siteName} · {d.siteCity}, {d.siteCountry}</td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm">{deploymentContextKindLabel[d.contextKind] ?? d.contextKind}</div>
+                    {d.lifecycle ? <div className="mt-1"><EnumPill value={d.lifecycle} map={lifecyclePill} /></div> : null}
+                  </td>
                   <td className="px-4 py-3"><EnumPill value={d.operationalState} map={operationalStatePill} /></td>
                   <td className="px-4 py-3">
                     <div className="w-40"><ReadinessBar percent={d.readinessPercent} /></div>

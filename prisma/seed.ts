@@ -104,6 +104,9 @@ async function main() {
   const humandroid = await prisma.organization.create({
     data: { code: "ORG-001", name: "Humandroid" },
   });
+  const siglo21 = await prisma.organization.create({
+    data: { code: "ORG-S21", name: "Universidad Siglo 21" },
+  });
 
   // ------------------------------------------------------------- persons
   const juan = await prisma.person.create({
@@ -137,7 +140,17 @@ async function main() {
     data: { customerId: autoline.id, name: "Autoline Plant 1", city: "Stuttgart", country: "Germany", environmentType: "INDOOR_INDUSTRIAL" },
   });
   const labSite = await prisma.site.create({
-    data: { customerId: lab.id, name: "Humandroid Lab", city: "Buenos Aires", country: "Argentina", environmentType: "LAB" },
+    data: { customerId: lab.id, hostOrganizationId: humandroid.id, name: "Humandroid Lab", city: "Buenos Aires", country: "Argentina", environmentType: "LAB" },
+  });
+  const siglo21Site = await prisma.site.create({
+    data: {
+      customerId: null,
+      hostOrganizationId: siglo21.id,
+      name: "Universidad Siglo 21",
+      city: "Córdoba",
+      country: "Argentina",
+      environmentType: null,
+    },
   });
 
   // -------------------------------------------------------------- robots
@@ -158,6 +171,14 @@ async function main() {
   const r017 = robots["G1 #017"]!;
   const r012 = robots["G1 #012"]!;
   const r016 = robots["G1 #016"]!;
+  const rSiglo21 = await prisma.robot.create({
+    data: {
+      code: "G1-S21",
+      model: "Unitree G1",
+      serialNumber: null,
+      status: "ACTIVE",
+    },
+  });
 
   // --------------------------------------------------------- snapshots (G1 #017)
   // Chain: C003 (firmware 1.4.1) --CHG-0003 approved--> C004 (active, baseline B-0017-01)
@@ -209,6 +230,21 @@ async function main() {
     data: { code: "C200", robotId: r016.id, hash: hashSnapshot(c200Items), createdById: juan.id, note: "Warehouse demo config", createdAt: d("2026-09-01T09:00:00Z"), items: { create: c200Items.map((i) => ({ slot: i.slot, value: i.value })) } },
   });
 
+  // Real-context-safe Siglo 21 fixture. Only user-confirmed/public-safe facts
+  // are materialized here; serial, firmware, task and operating semantics stay unknown.
+  const cSiglo21Items = items({ CHASSIS: "Unitree G1" });
+  const cSiglo21 = await prisma.configurationSnapshot.create({
+    data: {
+      code: "C-S21-001",
+      robotId: rSiglo21.id,
+      hash: hashSnapshot(cSiglo21Items),
+      createdById: juan.id,
+      note: "Institutional placement reference; configuration intentionally incomplete",
+      createdAt: d("2026-10-07T12:00:00Z"),
+      items: { create: cSiglo21Items.map((i) => ({ slot: i.slot, value: i.value })) },
+    },
+  });
+
   // --------------------------------------------------------------- tasks
   const valveTask = await prisma.task.create({
     data: { name: "Valve manipulation", description: "Inspect and manipulate valves in a live gas facility.", parameters: serializeJson({ torqueLimitNm: 12, approachSpeed: "slow" }) },
@@ -220,10 +256,64 @@ async function main() {
     data: { name: "Warehouse manipulation", description: "Picking sequence demo in the lab.", parameters: serializeJson({ binHeightCm: 80 }) },
   });
 
+  // ------------------------------------- real institutional placement DEP-S21-001
+  const depSiglo21 = await prisma.deployment.create({
+    data: {
+      code: "DEP-S21-001",
+      name: "Siglo 21 Institutional Placement",
+      contextKind: "INSTITUTIONAL_PLACEMENT",
+      providerOrganizationId: humandroid.id,
+      customerId: null,
+      siteId: siglo21Site.id,
+      taskId: null,
+      lifecycle: null,
+      operationalState: "PRESENT",
+      operatingMode: null,
+      humanExposure: null,
+      description:
+        "Humandroid Unitree G1 physically hosted at Universidad Siglo 21 under an institutional agreement. No commercial customer or task-specific production assignment is inferred.",
+      deploymentRobots: { create: [{ robotId: rSiglo21.id }] },
+    },
+  });
+
+  const blSiglo21 = await prisma.baseline.create({
+    data: {
+      code: "B-S21-001",
+      deploymentId: depSiglo21.id,
+      snapshotId: cSiglo21.id,
+      taskSnapshot: null,
+      environmentSnapshot: serializeJson({
+        contextKind: "INSTITUTIONAL_PLACEMENT",
+        providerOrganization: { code: humandroid.code, name: humandroid.name },
+        hostOrganization: { code: siglo21.code, name: siglo21.name },
+        customer: null,
+        site: {
+          name: siglo21Site.name,
+          city: siglo21Site.city,
+          country: siglo21Site.country,
+          environmentType: null,
+        },
+        lifecycle: null,
+        operationalState: "PRESENT",
+        operatingMode: null,
+        humanExposure: null,
+      }),
+      evidenceState: serializeJson([]),
+      approvalState: serializeJson([]),
+      hash: hashSnapshot(cSiglo21Items),
+      frozenById: juan.id,
+      frozenAt: d("2026-10-07T12:00:00Z"),
+    },
+  });
+  await prisma.deployment.update({
+    where: { id: depSiglo21.id },
+    data: { activeBaselineId: blSiglo21.id },
+  });
+
   // --------------------------------------------------- deployment DEP-0017
   const dep17 = await prisma.deployment.create({
     data: {
-      code: "DEP-0017", name: "Valve Inspection Pilot", customerId: northgas.id, siteId: northSite.id, taskId: valveTask.id,
+      code: "DEP-0017", name: "Valve Inspection Pilot", contextKind: "COMMERCIAL_DEPLOYMENT", providerOrganizationId: humandroid.id, customerId: northgas.id, siteId: northSite.id, taskId: valveTask.id,
       lifecycle: "PILOT", operationalState: "LIVE", operatingMode: "SUPERVISED", humanExposure: "SHARED_AREA",
       description:
         "Pilot deployment of the Unitree G1 for valve inspection and manipulation tasks at the Northgas Energy North gas facility. The deployment validates end-to-end operation in a live gas facility with human workers in shared areas, under supervised operation.",

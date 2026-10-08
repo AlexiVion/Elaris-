@@ -42,7 +42,7 @@ async function loadContext(deploymentCode: string) {
     before,
     evidence: (dep.evidenceItems as unknown as EvidenceRow[]).filter((e) => e.archivedAt === null).map(toEvidenceInput),
     approvals: (dep.approvals as unknown as ApprovalRow[]).map(toApprovalInput),
-    humanExposure: dep.humanExposure as HumanExposure,
+    humanExposure: dep.humanExposure ? (dep.humanExposure as HumanExposure) : null,
   };
 }
 
@@ -68,8 +68,16 @@ export async function previewChange(raw: unknown): Promise<ActionResult<{
   const ctx = await loadContext(parsed.data.deploymentCode);
   if (!ctx) return { ok: false, error: "Deployment not found" };
 
+  if (!ctx.humanExposure) {
+    return { ok: false, error: "Human exposure context is required before change-impact analysis." };
+  }
+
   const after: ConfigItemInput[] = parsed.data.edits.map((e) => ({ slot: e.slot, value: e.value, vendor: null, version: null }));
-  const { diff, items, counts } = runEngine(ctx.before, after, ctx);
+  const { diff, items, counts } = runEngine(ctx.before, after, {
+    evidence: ctx.evidence,
+    approvals: ctx.approvals,
+    humanExposure: ctx.humanExposure,
+  });
   if (diff.length === 0) return { ok: false, error: "No changes to preview" };
   return { ok: true, data: { diff, items, counts } };
 }
@@ -83,8 +91,16 @@ export async function createChange(raw: unknown): Promise<ActionResult<{ code: s
   const ctx = await loadContext(parsed.data.deploymentCode);
   if (!ctx || !ctx.robot || !ctx.dep.activeBaseline) return { ok: false, error: "Deployment not ready for changes" };
 
+  if (!ctx.humanExposure) {
+    return { ok: false, error: "Human exposure context is required before confirming a configuration change." };
+  }
+
   const after: ConfigItemInput[] = parsed.data.edits.map((e) => ({ slot: e.slot, value: e.value, vendor: null, version: null }));
-  const { diff, items } = runEngine(ctx.before, after, ctx);
+  const { diff, items } = runEngine(ctx.before, after, {
+    evidence: ctx.evidence,
+    approvals: ctx.approvals,
+    humanExposure: ctx.humanExposure,
+  });
   if (diff.length === 0) return { ok: false, error: "No changes to confirm" };
 
   const [snapshotCode, changeCode] = await Promise.all([
@@ -271,7 +287,18 @@ export async function approveChange(raw: unknown): Promise<ActionResult<{ baseli
 
   const change = await prisma.change.findUnique({
     where: { code: parsed.data.changeCode },
-    include: { impactItems: true, afterSnapshot: { include: { items: true } }, deployment: { include: { task: true, site: true, customer: true } } },
+    include: {
+      impactItems: true,
+      afterSnapshot: { include: { items: true } },
+      deployment: {
+        include: {
+          task: true,
+          customer: true,
+          providerOrganization: true,
+          site: { include: { hostOrganization: true } },
+        },
+      },
+    },
   });
   if (!change) return { ok: false, error: "Change not found" };
   if (change.status === "APPROVED") return { ok: false, error: "Change already approved." };
@@ -293,19 +320,38 @@ export async function approveChange(raw: unknown): Promise<ActionResult<{ baseli
     const baseline = await tx.baseline.create({
       data: {
         code: baselineCode, deploymentId: change.deploymentId, snapshotId: change.afterSnapshotId,
-        taskSnapshot: serializeJson({
-          id: change.deployment.task.id,
-          name: change.deployment.task.name,
-          description: change.deployment.task.description,
-          parameters: parseJson(change.deployment.task.parameters, {}),
-        }),
+        taskSnapshot: change.deployment.task
+          ? serializeJson({
+              id: change.deployment.task.id,
+              name: change.deployment.task.name,
+              description: change.deployment.task.description,
+              parameters: parseJson(change.deployment.task.parameters, {}),
+            })
+          : null,
         environmentSnapshot: serializeJson({
-          customer: {
-            id: change.deployment.customer.id,
-            code: change.deployment.customer.code,
-            name: change.deployment.customer.name,
-            country: change.deployment.customer.country,
-          },
+          contextKind: change.deployment.contextKind,
+          providerOrganization: change.deployment.providerOrganization
+            ? {
+                id: change.deployment.providerOrganization.id,
+                code: change.deployment.providerOrganization.code,
+                name: change.deployment.providerOrganization.name,
+              }
+            : null,
+          hostOrganization: change.deployment.site.hostOrganization
+            ? {
+                id: change.deployment.site.hostOrganization.id,
+                code: change.deployment.site.hostOrganization.code,
+                name: change.deployment.site.hostOrganization.name,
+              }
+            : null,
+          customer: change.deployment.customer
+            ? {
+                id: change.deployment.customer.id,
+                code: change.deployment.customer.code,
+                name: change.deployment.customer.name,
+                country: change.deployment.customer.country,
+              }
+            : null,
           site: {
             id: change.deployment.site.id,
             name: change.deployment.site.name,
@@ -314,6 +360,7 @@ export async function approveChange(raw: unknown): Promise<ActionResult<{ baseli
             environmentType: change.deployment.site.environmentType,
           },
           lifecycle: change.deployment.lifecycle,
+          operationalState: change.deployment.operationalState,
           operatingMode: change.deployment.operatingMode,
           humanExposure: change.deployment.humanExposure,
         }),

@@ -15,7 +15,11 @@ export async function search(q: string) {
     }),
     prisma.deployment.findMany({
       where: { OR: [{ code: { contains: term } }, { name: { contains: term } }] },
-      include: { customer: true },
+      include: {
+        providerOrganization: true,
+        customer: true,
+        site: { include: { hostOrganization: true } },
+      },
       take: 10,
     }),
     prisma.evidenceItem.findMany({
@@ -32,7 +36,15 @@ export async function search(q: string) {
 
   return {
     robots: robots.map((r) => ({ code: r.code, model: r.model, status: r.status })),
-    deployments: deployments.map((d) => ({ code: d.code, name: d.name, customer: d.customer.name })),
+    deployments: deployments.map((d) => ({
+      code: d.code,
+      name: d.name,
+      customer:
+        d.customer?.name ??
+        d.site.hostOrganization?.name ??
+        d.providerOrganization?.name ??
+        "—",
+    })),
     evidence: evidence.map((e) => ({ code: e.code, title: e.title, category: e.category, deployment: e.deployment.name })),
     changes: changes.map((c) => ({ code: c.code, deployment: c.deployment.name, robot: c.robot.code, status: c.status })),
     total: robots.length + deployments.length + evidence.length + changes.length,

@@ -64,6 +64,7 @@ export const lifecyclePill: Record<string, Pill> = {
 
 export const operationalStatePill: Record<string, Pill> = {
   PLANNED: P("Planned", "gray"),
+  PRESENT: P("Present", "blue"),
   LIVE: P("Live", "green"),
   PAUSED: P("Paused", "amber"),
   ENDED: P("Ended", "gray"),
@@ -88,6 +89,13 @@ export const robotStatusPill: Record<string, Pill> = {
 };
 
 /** Plain human labels (no pill) for structural enums. */
+export const deploymentContextKindLabel: Record<string, string> = {
+  COMMERCIAL_DEPLOYMENT: "Commercial deployment",
+  INSTITUTIONAL_PLACEMENT: "Institutional placement",
+  INTERNAL_LAB: "Internal lab",
+  DEMO: "Demo",
+};
+
 export const slotLabel: Record<string, string> = {
   CHASSIS: "Chassis",
   HANDS: "Hands",

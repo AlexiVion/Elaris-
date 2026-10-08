@@ -36,7 +36,7 @@ export default async function RobotsPage() {
                     <Link href={`/robots/${encodeURIComponent(r.code)}`} className="font-medium text-primary hover:underline">{r.code}</Link>
                   </td>
                   <td className="px-4 py-3">{r.model}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{r.serialNumber}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{r.serialNumber ?? "Not recorded"}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {r.deploymentCode ? <Link href={`/deployments/${r.deploymentCode}`} className="hover:underline">{r.deploymentName}</Link> : "—"}
                   </td>

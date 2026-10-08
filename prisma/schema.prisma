@@ -20,6 +20,9 @@ model Organization {
   code    String   @unique
   name    String   @unique
   persons Person[]
+
+  hostedSites         Site[]       @relation("SiteHostOrganization")
+  providedDeployments Deployment[] @relation("DeploymentProviderOrganization")
 }
 
 model Person {
@@ -55,22 +58,26 @@ model Customer {
 }
 
 model Site {
-  id              String @id @default(cuid())
-  customerId      String
-  name            String
-  city            String
-  country         String
-  environmentType String // INDOOR_INDUSTRIAL | GAS_FACILITY | WAREHOUSE | PUBLIC_SPACE | LAB
+  id                 String @id @default(cuid())
+  customerId         String?
+  hostOrganizationId String?
+  name               String
+  city               String
+  country            String
+  environmentType    String? // INDOOR_INDUSTRIAL | GAS_FACILITY | WAREHOUSE | PUBLIC_SPACE | LAB
 
-  customer    Customer     @relation(fields: [customerId], references: [id])
-  deployments Deployment[]
+  customer         Customer?     @relation(fields: [customerId], references: [id])
+  hostOrganization Organization? @relation("SiteHostOrganization", fields: [hostOrganizationId], references: [id])
+  deployments      Deployment[]
+
+  @@index([hostOrganizationId])
 }
 
 model Robot {
   id           String @id @default(cuid())
   code         String @unique // "G1 #017"
   model        String // "Unitree G1"
-  serialNumber String
+  serialNumber String?
   status       String // ACTIVE | INACTIVE
 
   snapshots        ConfigurationSnapshot[]
@@ -122,29 +129,34 @@ model Task {
 }
 
 model Deployment {
-  id               String  @id @default(cuid())
-  code             String  @unique // "DEP-0017"
-  name             String
-  customerId       String
-  siteId           String
-  taskId           String
-  lifecycle        String // TEST | PILOT | LIMITED | PRODUCTION
-  operationalState String // PLANNED | LIVE | PAUSED | ENDED
-  operatingMode    String // SUPERVISED | AUTONOMOUS_ZONED | TELEOPERATED
-  humanExposure    String // NONE | SEPARATED | SHARED_AREA
-  description      String
-  activeBaselineId String?
+  id                     String  @id @default(cuid())
+  code                   String  @unique // "DEP-0017"
+  name                   String
+  contextKind            String  @default("COMMERCIAL_DEPLOYMENT")
+  providerOrganizationId String?
+  customerId             String?
+  siteId                 String
+  taskId                 String?
+  lifecycle              String? // TEST | PILOT | LIMITED | PRODUCTION when operational maturity applies
+  operationalState       String // PLANNED | PRESENT | LIVE | PAUSED | ENDED
+  operatingMode          String? // SUPERVISED | AUTONOMOUS_ZONED | TELEOPERATED when applicable
+  humanExposure          String? // NONE | SEPARATED | SHARED_AREA when applicable
+  description            String
+  activeBaselineId       String?
 
-  customer         Customer          @relation(fields: [customerId], references: [id])
-  site             Site              @relation(fields: [siteId], references: [id])
-  task             Task              @relation(fields: [taskId], references: [id])
-  activeBaseline   Baseline?         @relation("ActiveBaseline", fields: [activeBaselineId], references: [id])
+  providerOrganization Organization? @relation("DeploymentProviderOrganization", fields: [providerOrganizationId], references: [id])
+  customer             Customer?     @relation(fields: [customerId], references: [id])
+  site                 Site          @relation(fields: [siteId], references: [id])
+  task                 Task?         @relation(fields: [taskId], references: [id])
+  activeBaseline       Baseline?     @relation("ActiveBaseline", fields: [activeBaselineId], references: [id])
   deploymentRobots DeploymentRobot[]
   baselines        Baseline[]        @relation("DeploymentBaselines")
   evidenceItems    EvidenceItem[]
   approvals        Approval[]
   changes          Change[]
   incidents        Incident[]
+
+  @@index([providerOrganizationId])
 }
 
 // Explicit many-to-many (Postgres-clean).
@@ -163,7 +175,7 @@ model Baseline {
   code                String   @unique // "B-0017-01"
   deploymentId        String
   snapshotId          String
-  taskSnapshot        String // frozen JSON
+  taskSnapshot        String? // frozen JSON; null when no operational task applies
   environmentSnapshot String // frozen JSON
   evidenceState       String // frozen JSON: ids + statuses
   approvalState       String // frozen JSON

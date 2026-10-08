@@ -17,14 +17,17 @@ vi.mock("next/headers", () => ({
   cookies: () => ({ get: () => ({ value: (globalThis as Record<string, unknown>).__ELARIS_TEST_VIEWER }) }),
 }));
 
-// Point Prisma at a fresh copy of the seeded DB before anything imports it.
+// Point Prisma at a fresh copy of the selected seeded DB before anything imports it.
+const seededDb = resolve(process.env.ELARIS_TEST_SEEDED_DB ?? "prisma/dev.db");
 process.env.DATABASE_URL = "file:./test-actions.db";
-copyFileSync(resolve("prisma/dev.db"), resolve("prisma/test-actions.db"));
+copyFileSync(seededDb, resolve("prisma/test-actions.db"));
 
 type Actions = typeof import("@/lib/actions/changes");
+type Reports = typeof import("@/lib/db/reports");
 type Prisma = typeof import("@/lib/db/prisma")["prisma"];
 
 let actions: Actions;
+let reports: Reports;
 let prisma: Prisma;
 let sarahId: string;
 let juanId: string;
@@ -35,12 +38,113 @@ const as = (id: string) => ((globalThis as Record<string, unknown>).__ELARIS_TES
 beforeAll(async () => {
   ({ prisma } = await import("@/lib/db/prisma"));
   actions = await import("@/lib/actions/changes");
+  reports = await import("@/lib/db/reports");
   const sarah = await prisma.person.findFirst({ where: { role: "SAFETY_LEAD" } });
   const juan = await prisma.person.findFirst({ where: { role: "ENGINEER" } });
   const james = await prisma.person.findFirst({ where: { role: "CUSTOMER_ENGINEER" } });
   sarahId = sarah!.id;
   juanId = juan!.id;
   jamesId = james!.id;
+});
+
+describe("Deployment Control V0.5.1 — institutional placement semantics", () => {
+  it("represents the Humandroid G1 at Siglo 21 without invented customer, task or serial", async () => {
+    const dep = await prisma.deployment.findUnique({
+      where: { code: "DEP-S21-001" },
+      include: {
+        providerOrganization: true,
+        customer: true,
+        task: true,
+        site: { include: { hostOrganization: true } },
+        deploymentRobots: { include: { robot: true } },
+        activeBaseline: true,
+      },
+    });
+
+    expect(dep).not.toBeNull();
+    expect(dep).toMatchObject({
+      contextKind: "INSTITUTIONAL_PLACEMENT",
+      operationalState: "PRESENT",
+      customerId: null,
+      taskId: null,
+      lifecycle: null,
+      operatingMode: null,
+      humanExposure: null,
+    });
+    expect(dep!.providerOrganization?.name).toBe("Humandroid");
+    expect(dep!.site.hostOrganization?.name).toBe("Universidad Siglo 21");
+    expect(dep!.site.customerId).toBeNull();
+    expect(dep!.site.environmentType).toBeNull();
+    expect(dep!.deploymentRobots[0]?.robot.serialNumber).toBeNull();
+    expect(dep!.activeBaseline?.taskSnapshot).toBeNull();
+
+    const frozen = JSON.parse(dep!.activeBaseline!.environmentSnapshot) as {
+      contextKind: string;
+      providerOrganization: { name: string } | null;
+      hostOrganization: { name: string } | null;
+      customer: unknown;
+      lifecycle: unknown;
+      operatingMode: unknown;
+      humanExposure: unknown;
+    };
+    expect(frozen.contextKind).toBe("INSTITUTIONAL_PLACEMENT");
+    expect(frozen.providerOrganization?.name).toBe("Humandroid");
+    expect(frozen.hostOrganization?.name).toBe("Universidad Siglo 21");
+    expect(frozen.customer).toBeNull();
+    expect(frozen.lifecycle).toBeNull();
+    expect(frozen.operatingMode).toBeNull();
+    expect(frozen.humanExposure).toBeNull();
+  });
+
+  it("keeps non-applicable customer and insurance readiness categories out of the denominator", async () => {
+    const report = await reports.getReadinessPack("DEP-S21-001");
+    expect(report).not.toBeNull();
+
+    expect(report!.deployment).toMatchObject({
+      contextKind: "INSTITUTIONAL_PLACEMENT",
+      provider: "Humandroid",
+      host: "Universidad Siglo 21",
+      customer: null,
+      task: null,
+      lifecycle: null,
+      operatingMode: null,
+      humanExposure: null,
+    });
+
+    const categories = Object.fromEntries(
+      report!.readiness.categories.map((item) => [item.category, item.status])
+    );
+    expect(categories.CUSTOMER_REQUIREMENTS).toBe("NOT_REQUESTED");
+    expect(categories.INSURANCE).toBe("NOT_REQUESTED");
+    expect(categories.SYSTEM_IDENTITY).toBe("REVIEW_REQUIRED");
+    // The report exposes percent + categories, not the engine's internal
+    // requiredTotal counter. Denominator logic is tested in readiness.test.ts.
+  });
+
+  it("fails closed on change-impact analysis while human exposure is unknown", async () => {
+    const result = await actions.previewChange({
+      deploymentCode: "DEP-S21-001",
+      edits: [{ slot: "CHASSIS", value: "Unitree G1 — changed test value" }],
+      note: "test only",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toMatch(/Human exposure context is required/i);
+    }
+  });
+
+  it("preserves the existing commercial deployment semantics", async () => {
+    const dep = await prisma.deployment.findUnique({
+      where: { code: "DEP-0017" },
+      include: { customer: true, task: true },
+    });
+    expect(dep?.contextKind).toBe("COMMERCIAL_DEPLOYMENT");
+    expect(dep?.customer?.name).toBe("Northgas Energy");
+    expect(dep?.task?.name).toBe("Valve manipulation");
+    expect(dep?.lifecycle).toBe("PILOT");
+    expect(dep?.humanExposure).toBe("SHARED_AREA");
+  });
 });
 
 describe("approval gating & waiver (spec §6.4)", () => {
@@ -162,7 +266,7 @@ describe("full resolve + approve flow → new baseline (spec §6.4, §10)", () =
 
     // A baseline freezes the full deployment context needed to reconstruct
     // what was approved, rather than placeholder deployment IDs / empty JSON.
-    const taskState = JSON.parse(active!.taskSnapshot) as { name: string; parameters: Record<string, unknown> };
+    const taskState = JSON.parse(active!.taskSnapshot!) as { name: string; parameters: Record<string, unknown> };
     expect(taskState.name).toBe("Valve manipulation");
     expect(taskState.parameters).toMatchObject({ torqueLimitNm: 12 });
 
