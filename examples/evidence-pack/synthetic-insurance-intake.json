@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "elaris-evidence-pack/v0",
+  "mode": "SYNTHETIC",
+  "caseId": "ELARIS-DEMO-001",
+  "subject": "Aster M2 — fictional indoor service robot",
+  "preparedFor": "Commercial demonstration — fictional organization",
+  "purpose": "TECHNICAL_EVIDENCE_PREPARATION",
+  "scope": "One fictional robot in one fictional indoor demonstration area. All names, sources, versions and scenarios are invented. No insurance claim, incident or operational test occurred.",
+  "sources": [
+    {
+      "id": "SRC-001",
+      "title": "Fictional integrator's robot inventory sheet, demonstration edition",
+      "custodian": "Fictional integrator",
+      "kind": "SYNTHETIC_DOCUMENT"
+    },
+    {
+      "id": "SRC-002",
+      "title": "Fictional deployment context interview, demonstration edition",
+      "custodian": "Fictional site operator",
+      "kind": "SYNTHETIC_DOCUMENT"
+    },
+    {
+      "id": "SRC-003",
+      "title": "Fictional evidence register — placeholders only; no actual tests",
+      "custodian": "Fictional technical reviewer",
+      "kind": "SYNTHETIC_DOCUMENT"
+    }
+  ],
+  "facts": [
+    {
+      "id": "F-001",
+      "label": "System manufacturer and model",
+      "value": "Aster Robotics M2 (fictional)",
+      "status": "SYNTHETIC",
+      "sourceId": "SRC-001"
+    },
+    {
+      "id": "F-002",
+      "label": "Unit serial number",
+      "value": null,
+      "status": "UNKNOWN",
+      "sourceId": null
+    },
+    {
+      "id": "F-003",
+      "label": "Integration and provision",
+      "value": "Aster Systems Integrator (fictional)",
+      "status": "SYNTHETIC",
+      "sourceId": "SRC-001"
+    },
+    {
+      "id": "F-004",
+      "label": "Host site",
+      "value": "Demo Hall 1 (fictional)",
+      "status": "SYNTHETIC",
+      "sourceId": "SRC-002"
+    },
+    {
+      "id": "F-005",
+      "label": "Assigned task",
+      "value": "Moving empty cartons in a restricted indoor test area (fictional)",
+      "status": "SYNTHETIC",
+      "sourceId": "SRC-002"
+    },
+    {
+      "id": "F-006",
+      "label": "Human exposure",
+      "value": null,
+      "status": "UNKNOWN",
+      "sourceId": null
+    },
+    {
+      "id": "F-007",
+      "label": "Software release",
+      "value": "aster-os 0.4.2 (fictional)",
+      "status": "SYNTHETIC",
+      "sourceId": "SRC-001"
+    },
+    {
+      "id": "F-008",
+      "label": "Control and teleoperation mode",
+      "value": null,
+      "status": "UNKNOWN",
+      "sourceId": null
+    }
+  ],
+  "evidence": [
+    {
+      "id": "EV-001",
+      "title": "Installation description (placeholder)",
+      "category": "DOCUMENTATION",
+      "status": "SYNTHETIC",
+      "sourceId": "SRC-003",
+      "notes": "Illustrative example of a required document class; not a real provided artifact."
+    },
+    {
+      "id": "EV-002",
+      "title": "Safety test evidence",
+      "category": "TEST",
+      "status": "UNKNOWN",
+      "sourceId": null,
+      "notes": "Not supplied. No test outcome is asserted."
+    },
+    {
+      "id": "EV-003",
+      "title": "Operator training record",
+      "category": "TRAINING",
+      "status": "UNKNOWN",
+      "sourceId": null,
+      "notes": "Not supplied."
+    }
+  ],
+  "gaps": [
+    {
+      "id": "GAP-001",
+      "question": "Can a named responsible person verify the unit identity and serial?",
+      "requestedFrom": "Fictional integrator",
+      "priority": "HIGH",
+      "status": "OPEN"
+    },
+    {
+      "id": "GAP-002",
+      "question": "Which human exposure and operating modes apply to the stated task?",
+      "requestedFrom": "Fictional site operator",
+      "priority": "HIGH",
+      "status": "OPEN"
+    },
+    {
+      "id": "GAP-003",
+      "question": "Which test results and operator training records actually exist?",
+      "requestedFrom": "Fictional technical reviewer",
+      "priority": "MEDIUM",
+      "status": "OPEN"
+    }
+  ]
+}
