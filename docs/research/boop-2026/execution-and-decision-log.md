@@ -87,3 +87,21 @@ Si A1/A2 no se confirman, priorizar otros actores del mapa, no abandonar la misi
 - Este registro de decisiones
 
 **No realizados:** software, adquisición de clientes, pruebas del RDR, contacto con Boop, análisis jurídico individualizado, pólizas, ingresos, un nuevo deployment público 24/7.
+
+## Technical implementation track — issue fallback
+
+**2026-10-08:** GitHub Issues are **disabled** in this repository (API returned HTTP 410). As permitted by the repository docs, the versioned backlog serves as the executable work unit. One branch/PR is maintained and the Issue link is marked `UNAVAILABLE_REPOSITORY_SETTING`, not invented.
+
+### BOOP-T01/T02-V0 — Offline Evidence Pack Generator
+- **Owner:** Alexi (technical); **review:** Juanma (commercial format).
+- **Actor:** A04/A05 integrator/deployer, A14 broker as buyer hypothesis.
+- **Trigger:** prepare a source-referenced technical evidence dossier before formal underwriting review.
+- **Input V0:** structured JSON, `SYNTHETIC` only; no Humandroid/G1 intake, no real-client data.
+- **Output V0:** printable HTML, CSV fact/evidence/gap registers, hash manifest, optional PDF using existing Playwright.
+- **Deterministic role:** validate and escape facts/sources, retain UNKNOWN, preserve traceability; no risk/coverage score.
+- **Human authority:** commercial user must review presentation; customer/broker/suscriptor decide actual content and its meaning.
+- **Non-claims:** no MGA, brokerage, certification, safety approval, insurability, premium or PAIDS compliance.
+- **Acceptance:** fail-closed on REAL input and unsupported source ID; synthetic watermark; CLI/test sample; no new dependencies/DB; local suite/build pending external run.
+- **Branch:** `feat/technical-evidence-pack-offline-v0` (stacked on research PR #24; does not depend on unfinished DC051).
+- **Owner action after PR:** run local offline CLI and tests, inspect PDF quality, record reproducible results; **do not merge without verification**.
+- **Current state:** `IMPLEMENTATION_IN_PROGRESS / UNVERIFIED_LOCAL`.
