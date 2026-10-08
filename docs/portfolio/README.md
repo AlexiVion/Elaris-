@@ -5,6 +5,8 @@
 
 Elaris expands by Product Systems, not by adding unrelated screens.
 
+**Long-term corporate scope:** [Founders' Industrial Intelligence Vision](../company/long-term-vision-industrial-intelligence.md) — Elaris spans the full industrial value chain, not just robotics insurance. The [Boop/Trustboop research](../research/boop-2026/README.md) explores insurance as an initial commercial entry point, not as the sole product or corporate identity.
+
 ```text
 Actor → decision → trigger → evidence → process
 → deterministic/AI role → human authority → output → outcome
