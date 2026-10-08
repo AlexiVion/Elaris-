@@ -4,12 +4,12 @@
 ## Índice de entregables versionados
 1. [Registro de fuentes y nivel de confianza](sources-and-claims.md) — trazabilidad de fuentes primarias, independientes, regulación, afirmaciones no verificadas.
 2. [Análisis del white paper v0.8, capítulo a capítulo](white-paper-deep-dive.md) — tesis, capas, arquitectura, teleop, PAIDS, límites y evaluación crítica.
-3. [Benchmark Boop / Elaris y los 14 productos](competitive-and-product-benchmark.md) — qué existe, qué es mockup, qué falta, qué no hay que construir.
-4. [Crosswalk PAIDS → Elaris y gap de evidencia real](paids-elar is-crosswalk.md) — **consultar nombre correcto:** `paids-elaris-crosswalk.md`.
-5. [Actores y relaciones económico-técnicas](industrial-relationships-insurance-entry.md) — A01–A20 y sus conexiones en la oportunidad.
-6. [Oferta inicial, canal y validación comercial](commercial-offer-and-validation.md) — servicios sin MGA ni SaaS, secuencia hacia asociación.
-7. [Arquitectura de datos, derechos y portabilidad](data-rights-and-architecture.md) — horizontales vs verticales y confianza.
-8. [Registro de decisiones y backlog](execution-and-decision-log.md) — responsables, gates, hipótesis, GO/PAUSE/KILL.
+3. [Benchmark Boop / Elaris y los 14 productos](competitive-and-product-benchmark.md) — qué existe, qué es mockup, qué falta, qué no hay que construir.\n4. [Modelo comercial de Boop y economics](boop-business-model-and-economics.md) — oferta pública, MGA declarada, qué no podemos extrapolar.
+5. [Crosswalk PAIDS → Elaris y gap de evidencia real](paids-elaris-crosswalk.md) — campo por campo, disponibilidad y límites reales.
+6. [Actores y relaciones económico-técnicas](industrial-relationships-insurance-entry.md) — A01–A20 y sus conexiones en la oportunidad.
+7. [Oferta inicial, canal y validación comercial](commercial-offer-and-validation.md) — servicios sin MGA ni SaaS, secuencia hacia asociación.
+8. [Arquitectura de datos, derechos y portabilidad](data-rights-and-architecture.md) — horizontales vs verticales y confianza.
+9. [Registro de decisiones y backlog](execution-and-decision-log.md) — responsables, gates, hipótesis, GO/PAUSE/KILL.\n10. [Plantilla técnica del entregable](technical-evidence-pack-template.md) — estructura de PDF/planilla sin claims regulatorios.
 
 ## Aclaraciones operativas
 - Fuentes web de Boop son **declaraciones comerciales o un working draft propio**: no pruebas independientes de disponibilidad de pólizas, licencias, acuerdos de reaseguro, tasa de siniestralidad ni despliegue funcional de RDR.
