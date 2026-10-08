@@ -36,7 +36,7 @@ https://app.notion.com/p/00-HOME-3ebbeb945fd6802dbae4f253211db396?pvs=25
 - [Edge Collector V0](architecture/edge-collector-v0.md)
 
 ### Company / Industry
-- [Elaris Overview](company/elaris-overview.md)
+- [Elaris Overview](company/elaris-overview.md)\n- [Founders' Long-term Industrial Intelligence Vision](company/long-term-vision-industrial-intelligence.md)\n- [Boop/Trustboop Research — full benchmark and commercial plan](research/boop-2026/README.md)
 - [Physical AI Industry Map](industry/physical-ai-industry-map.md)
 - [Actor Archetypes](industry/archetypes/README.md)
 
