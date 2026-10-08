@@ -29,8 +29,8 @@
 ### WS2 — Producto/entregable (Alexi)
 | ID | Acción | Entregable verificable | Prioridad | Estado |
 |---|---|---|---|---|
-| BOOP-T01 | Construir esquema de dossier técnico semiautomático | template PDF + XLSX/CSV con campos y procedencia | P0 | NOT_STARTED |
-| BOOP-T02 | Crear demo 100% `SYNTHETIC` con disclosure | un pack íntegro publicable por los socios | P0 | NOT_STARTED |
+| BOOP-T01 | Construir esquema de dossier técnico semiautomático | generador offline: HTML/CSV/manifest + PDF opcional, datos sintéticos | P0 | IMPLEMENTED_PENDING_LOCAL_VERIFICATION |
+| BOOP-T02 | Crear demo 100% `SYNTHETIC` con disclosure | fixture y render determinista para generar un pack, revisión visual pendiente | P0 | IMPLEMENTED_PENDING_LOCAL_VERIFICATION |
 | BOOP-T03 | Ejecutar tiempo de producción real de dossier | coste/hora, quality review, errores, margen | P0 | NOT_STARTED |
 | BOOP-T04 | Finalizar gate local DC-051 (PR23), sin mezclar con investigación | tests, lint, build, E2E PASS | P0 | IN_PROGRESS_EXTERNAL |
 | BOOP-T05 | Diseñar legal/permissions checklist para intake | contrato/protocolo aprobados por asesor cuando corresponda | P0 | NOT_STARTED |
@@ -104,4 +104,4 @@ Si A1/A2 no se confirman, priorizar otros actores del mapa, no abandonar la misi
 - **Acceptance:** fail-closed on REAL input and unsupported source ID; synthetic watermark; CLI/test sample; no new dependencies/DB; local suite/build pending external run.
 - **Branch:** `feat/technical-evidence-pack-offline-v0` (stacked on research PR #24; does not depend on unfinished DC051).
 - **Owner action after PR:** run local offline CLI and tests, inspect PDF quality, record reproducible results; **do not merge without verification**.
-- **Current state:** `IMPLEMENTATION_IN_PROGRESS / UNVERIFIED_LOCAL`.
+- **Current state:** `IMPLEMENTED_PENDING_LOCAL_VERIFICATION` — archivos creados y versionados, sin ejecución reportada ni validación comercial. El PDF depende de Chromium local y no se afirma generado.
