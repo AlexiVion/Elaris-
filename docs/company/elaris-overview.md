@@ -1,6 +1,6 @@
 # Elaris — Company Overview
 
-## What Elaris is
+## Long-term corporate identity\n\n**Elaris is a horizontal and vertical industrial-intelligence infrastructure ambition, not an insurance-only startup.** The 20 initial industrial archetypes are a versioned map of roles and dependencies, not the limits of the business. Elaris may develop services, products or operating businesses across the chain over many years; each step requires actual technical, commercial, legal and data-rights validation.\n\nCanonical founders' direction (Spanish): [Long-term industrial vision](long-term-vision-industrial-intelligence.md). The first insurance/MGA wedge is a commercial experiment, not a change to the corporate mission.\n\n## What Elaris is
 
 Elaris builds a shared data, evidence and coordination layer for Physical AI.
 
@@ -35,7 +35,7 @@ It answers:
 
 Humandroid is our first real pilot because it sits at the integration/deployment layer, where robot hardware, software, task, environment, customer requirements and operational evidence meet.
 
-## Long-term expansion
+## Insurance entry research\n\nSee [Boop/Trustboop research and insurance entry plan](../research/boop-2026/README.md). A technical insurance evidence dossier is an initial service hypothesis; issuing or intermediating insurance requires separate authorization, contracts and validation.\n\n## Long-term expansion
 
 Deployment evidence → change management → safety / procurement / customer → insurance → incidents / claims → outcomes → risk intelligence.
 
