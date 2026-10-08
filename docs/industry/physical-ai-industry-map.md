@@ -7,6 +7,8 @@ Components/subsystems → Robot OEM → AI/software
 → Outcome/renewal/portfolio learning
 ```
 
+**Important:** A01–A20 are the initial role taxonomy, not an exhaustive census of physical production (extractive industries, capital-equipment manufacture and upstream machinery are not yet separately profiled). See [expanded cross-actor financial, technical and data links](../research/boop-2026/industrial-relationships-insurance-entry.md) and the [long-term company vision](../company/long-term-vision-industrial-intelligence.md).
+
 ## 20 canonical archetypes
 - **A01 — [Component / Subsystem / Material Supplier](archetypes/component-supplier.md)** — Upstream supply
 - **A02 — [Robot OEM](archetypes/robot-oem.md)** — Robot manufacture
