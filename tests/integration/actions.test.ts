@@ -117,7 +117,8 @@ describe("Deployment Control V0.5.1 — institutional placement semantics", () =
     expect(categories.CUSTOMER_REQUIREMENTS).toBe("NOT_REQUESTED");
     expect(categories.INSURANCE).toBe("NOT_REQUESTED");
     expect(categories.SYSTEM_IDENTITY).toBe("REVIEW_REQUIRED");
-    expect(report!.readiness.requiredTotal).toBe(0);
+    // The report exposes percent + categories, not the engine's internal
+    // requiredTotal counter. Denominator logic is tested in readiness.test.ts.
   });
 
   it("fails closed on change-impact analysis while human exposure is unknown", async () => {
