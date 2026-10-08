@@ -15,11 +15,8 @@ const LEGACY_PRODUCT_ROOTS = [
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  if (pathname.startsWith(DEPLOYMENT_PREFIX + "/")) {
-    const target = request.nextUrl.clone();
-    target.pathname = pathname.slice(DEPLOYMENT_PREFIX.length);
-    return NextResponse.rewrite(target);
-  }
+  // Internal product routing is a next.config afterFiles rewrite.
+  // Rewriting here causes a cycle with the canonical legacy redirects.
 
   if (LEGACY_PRODUCT_ROOTS.some((root) => pathname === root || pathname.startsWith(root + "/"))) {
     const target = request.nextUrl.clone();
@@ -32,7 +29,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/platform/deployment-control/:path*",
     "/robots/:path*",
     "/deployments/:path*",
     "/evidence/:path*",
