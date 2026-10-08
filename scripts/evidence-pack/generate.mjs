@@ -230,7 +230,6 @@ export async function generate(inputPath, outputPath, { pdf = false, overwrite =
     generatedAt: new Date().toISOString(),
     nonClaims: ["NO_INSURANCE_DECISION", "NO_SAFETY_CERTIFICATION", "NO_FIELD_VALIDATION", "NO_PAIDS_COMPLIANCE"]
   };
-  writeFileSync(resolve(out, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n", { flag: overwrite ? "w" : "wx" });
   if (pdf) {
     // Existing dev dependency. No external service, uploads or HTTP requests.
     const { chromium } = await import("@playwright/test");
@@ -243,6 +242,9 @@ export async function generate(inputPath, outputPath, { pdf = false, overwrite =
       await browser.close();
     }
   }
+  // Write the manifest only once every requested output (including PDF)
+  // was produced successfully: an incomplete export must not look complete.
+  writeFileSync(resolve(out, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n", { flag: overwrite ? "w" : "wx" });
   return { out, files: proposed, manifest };
 }
 
