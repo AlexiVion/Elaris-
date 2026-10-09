@@ -1,11 +1,12 @@
 import { createHash } from "node:crypto";
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, symlinkSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, symlinkSync, statSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  inspectPack, parseChecksumRegistry, validateV03, summarizeV03, validateAuthorization
+  inspectPack, parseChecksumRegistry, validateV03, summarizeV03, validateAuthorization, validatePrivateOutputTarget
 } from "../../scripts/evidence-pack/g1-private-draft.mjs";
 
 const root=mkdtempSync(join(tmpdir(),"elaris-private-g1-fixture-"));
@@ -41,8 +42,8 @@ function syntheticArtifact() {
     limitations:["Synthetic test fixture — NOT physical evidence."]
   };
 }
-function fixtureDir() {
-  const dir=join(root,"case-"+Math.random().toString(36).slice(2));
+function fixtureDir(parent=root) {
+  const dir=join(parent,"case-"+Math.random().toString(36).slice(2));
   mkdirSync(dir);
   const obj=syntheticArtifact();
   const payload={
@@ -136,4 +137,68 @@ test("explicit local-only owner authorization is bound to exact input SHA256",()
   assert.equal(validateAuthorization(valid,digest).recordReference,"TEST-AUTH-001");
   assert.throws(()=>validateAuthorization({...valid,externalSharing:"ALLOWED"},digest),/permission/);
   assert.throws(()=>validateAuthorization({...valid,sourceReportSha256:"2".repeat(64)},digest),/permission/);
+});
+
+test("output validation permits new direct child of private root, not existing/external/symlink destinations",()=>{
+  const home=join(root,"direct-child-case");
+  mkdirSync(home);
+  const expected=join(home,"new-internal-draft");
+  assert.equal(validatePrivateOutputTarget(expected,home),expected);
+  assert.throws(()=>validatePrivateOutputTarget(home,home),/NEW private directory/);
+  assert.throws(()=>validatePrivateOutputTarget(join(root,"outside-private-root"),home),/NEW private directory/);
+  mkdirSync(expected);
+  assert.throws(()=>validatePrivateOutputTarget(expected,home),/NEW private directory/);
+  const alias=join(home,"alias");
+  symlinkSync(root,alias,"dir");
+  assert.throws(()=>validatePrivateOutputTarget(join(alias,"new-report"),home),/Symbolic link/);
+});
+
+test("full prepare CLI creates a PRIVATE synthetic-fixture HTML with authorization; does not change original",()=>{
+  const home=join(root,"isolated-test-home");
+  const privateDir=join(home,"elaris-private");
+  mkdirSync(home);
+  mkdirSync(privateDir);
+  const f=fixtureDir(privateDir);
+  const original=readFileSync(f.report);
+  const authPath=join(privateDir,"authorization.json");
+  const auth={
+    schemaVersion:"elaris-field-internal-use/v1",
+    status:"AUTHORIZED_FOR_LOCAL_INTERNAL_REVIEW",
+    purpose:"PREPARE_DESCRIPTIVE_G1_FIELD_DRAFT",
+    externalSharing:"PROHIBITED",
+    authorizedBy:"Synthetic fixture reviewer",
+    dataOwner:"Synthetic fixture organization",
+    recordReference:"FIXTURE-ONLY-0001",
+    authorizedAt:"2026-10-09T12:00:00Z",
+    sourceReportSha256:f.digest
+  };
+  writeFileSync(authPath,JSON.stringify(auth));
+  const target=join(privateDir,"first-internal-g1-draft");
+  const args=[
+    resolve("scripts/evidence-pack/g1-private-draft.mjs"),"prepare",
+    "--input",f.report,"--authorization",authPath,"--out",target
+  ];
+  const result=spawnSync(process.execPath,args,{
+    cwd:process.cwd(),env:{...process.env,HOME:home},encoding:"utf8"
+  });
+  assert.equal(result.status,0,result.stderr);
+  assert.match(result.stdout,/PRIVATE DRAFT CREATED/);
+  assert.equal(existsSync(join(target,"internal-g1-draft.html")),true);
+  assert.equal(existsSync(join(target,"internal-g1-draft.pdf")),false);
+  const html=readFileSync(join(target,"internal-g1-draft.html"),"utf8");
+  assert.match(html,/SENSITIVE — PRIVATE INTERNAL DRAFT — NOT APPROVED FOR EXPORT/);
+  assert.match(html,/Synthetic fixture reviewer/);
+  assert.match(html,/G1 · Technical Field Evidence/);
+  const manifest=JSON.parse(readFileSync(join(target,"internal-draft-manifest.json"),"utf8"));
+  assert.equal(manifest.exportApproval,"NOT_APPROVED");
+  assert.equal(manifest.sourceReportSha256,f.digest);
+  assert.equal(manifest.outputSha256["internal-g1-draft.html"],sha(html));
+  assert.equal(statSync(target).mode & 0o777,0o700);
+  assert.equal(statSync(join(target,"internal-g1-draft.html")).mode & 0o777,0o600);
+  assert.equal(Buffer.compare(original,readFileSync(f.report)),0);
+  const rerun=spawnSync(process.execPath,args,{
+    cwd:process.cwd(),env:{...process.env,HOME:home},encoding:"utf8"
+  });
+  assert.notEqual(rerun.status,0);
+  assert.match(rerun.stderr,/NEW private directory/);
 });
