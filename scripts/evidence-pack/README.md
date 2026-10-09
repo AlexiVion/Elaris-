@@ -74,6 +74,20 @@ This gate runs Prisma Client generation, migrations/status, seed on the isolated
 
 [Build failure, root-cause and isolated gate record](../../docs/research/boop-2026/evidence-pack-v01-build-gate-2026-10-09.md).
 
+## Visual audit of user-provided V0.1 artifacts (2026-10-09)
+
+All six uploaded output binaries matched their SHA-256 values in the uploaded manifest. PDF was readable and valid **A4 / 2 pages**, with no apparent clipped text. However, section **03 — Information gaps** began on page 1 with just GAP-001 and continued on page 2 without the section heading, leaving disproportionate blank space.
+
+A narrowly scoped print CSS fix was committed to start section 03 at the top of a new page, with a regression assertion in the existing offline unit tests. **This changed PDF has not been re-rendered in the user's WSL yet.** See the [artifact-by-artifact integrity and visual audit](../../docs/research/boop-2026/evidence-pack-v01-artifact-audit-2026-10-09.md).
+
+To complete the final visual gate:
+```bash
+git pull --ff-only
+node --test tests/evidence-pack/pack.test.mjs
+node scripts/evidence-pack/generate.mjs --input examples/evidence-pack/synthetic-insurance-intake.json --out out/elaris-evidence-demo-v02 --pdf
+```
+Inspect `out/elaris-evidence-demo-v02/report.pdf` and confirm **the complete 03 section starts on page 2** and every question/source/disclaimer remains visible. This is a synthetic-demo presentation check only; live/client data remain disabled.
+
 ## Built-in fail-closed design
 1. Only `schemaVersion: elaris-evidence-pack/v0` and `mode: SYNTHETIC` are supported.
 2. Every synthetic fact and listed synthetic document references a declared synthetic source; UNKNOWN carries `null` value/source.
