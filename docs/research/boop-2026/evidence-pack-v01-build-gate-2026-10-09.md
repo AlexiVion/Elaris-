@@ -40,3 +40,26 @@ No encadenar comandos de seguimiento con `;` ignorando errores; script es fail-f
 - El programa genera múltiples operaciones Prisma sobre el seed *sintético*, pero ninguna operación contra robots físicos ni bases del usuario. 
 - El `DATABASE_URL` exportado solo se aplica al proceso del script y sus hijos.
 - Se requiere verificación local real porque los cambios se hicieron con GitHub connector y no fueron ejecutados en el WSL del usuario.
+
+## 7. Segundo gate — resultados WSL e incidencia Share View
+
+**Log:** `/home/ubuntu/elaris-evidence-gate-20261009-162949.log` (salida final compartida el 2026-10-09). Rama descargada hasta `4adb3b2`.
+
+La DB temporal se creó y permitió superar:
+- Prisma / migraciones / seed (el script continuó hasta las siguientes etapas).
+- 9/9 tests específicos Evidence Pack (el script alcanzó lint y Vitest).
+- `pnpm lint` PASS, `pnpm typecheck` PASS.
+- **Vitest: 18 archivos de tests PASS, un archivo de tests FAIL; 122 tests PASS y cuatro tests de Share View no ejecutados porque falló el setup de su suite.** Esto es un **FAIL global**, no «122/126 PASS» como gate superado.
+- `pnpm build` NO SE EJECUTÓ debido al fail-fast de la suite.
+
+**Causa concreta confirmada:** `tests/integration/share.test.ts` conservaba la referencia fija a `prisma/dev.db` y a la copia `test-share.db`. El worktree tenía una base de desarrollo incompleta; por eso `prisma.person.findFirst()` devolvió error `P2021`. El primer arreglo ya había aislado `actions.test.ts`, pero todavía no `share.test.ts`.
+
+**Corrección documentada:** el test Share View ahora consume `ELARIS_TEST_SEEDED_DB` y `ELARIS_TEST_SHARE_DB_NAME` cuando el gate los proporciona; el script les asigna una segunda copia temporal exclusiva y la elimina al terminar. Los valores por defecto de la suite fuera del gate se conservan.
+
+**Siguiente gate (pendiente de ejecutar por el usuario):**
+```bash
+cd /mnt/c/Users/alexi/Documents/Elaris-evidence-pack-v0
+git pull --ff-only
+bash scripts/ci/verify-evidence-pack-v01.sh
+```
+No reportar `FULL_GATE_PASS` ni `BUILD_PASS` hasta ver resultados nuevos. La revisión visual del PDF V0.1 sigue pendiente.
