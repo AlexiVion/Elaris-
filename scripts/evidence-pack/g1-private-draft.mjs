@@ -258,15 +258,32 @@ export async function resolvePlaywrightChromium({
   }
 }
 
+// Documentary fields must identify a traceable human authorization, not a
+// punctuation mark or a generic collective placeholder. This is deliberately
+// only a structural gate, NOT proof of legal authority or verified consent.
+export function meaningfulAuthorizationField(value, minLetters = 5, minChars = 5) {
+  if (!plain(value)) return false;
+  const normalized = value.trim().normalize("NFKC").toLocaleLowerCase("es");
+  if (normalized.length < minChars) return false;
+  if (/^(todos?|todas?|everyone|all|anyone|anybody|equipo|team|unknown|desconocid[oa]s?|n\\/?a|no aplica|ninguno|ninguna|s\\/?d|pendiente|sin dato|sin nombre)$/.test(normalized)) {
+    return false;
+  }
+  return [...normalized.matchAll(/\\p{L}/gu)].length >= minLetters;
+}
+
 export function validateAuthorization(auth, sourceDigest) {
   if (!auth || auth.schemaVersion !== "elaris-field-internal-use/v1" ||
       auth.status !== "AUTHORIZED_FOR_LOCAL_INTERNAL_REVIEW" ||
       auth.purpose !== "PREPARE_DESCRIPTIVE_G1_FIELD_DRAFT" ||
       auth.externalSharing !== "PROHIBITED" ||
-      !plain(auth.authorizedBy) || !plain(auth.dataOwner) ||
-      !plain(auth.recordReference) || !Number.isFinite(Date.parse(auth.authorizedAt)) ||
+      !meaningfulAuthorizationField(auth.authorizedBy) ||
+      !meaningfulAuthorizationField(auth.dataOwner) ||
+      !meaningfulAuthorizationField(auth.recordReference, 5, 12) ||
+      !meaningfulAuthorizationField(auth.attestedBy) ||
+      !meaningfulAuthorizationField(auth.authorizationBasis, 8, 10) ||
+      !Number.isFinite(Date.parse(auth.authorizedAt)) ||
       auth.sourceReportSha256 !== sourceDigest) {
-    die("Missing or invalid explicit data-owner permission for PRIVATE internal review");
+    die("Incomplete or unverifiable INTERNAL permission record: real authorizing person, permission reference, attesting operator and authorization context required");
   }
   return auth;
 }
