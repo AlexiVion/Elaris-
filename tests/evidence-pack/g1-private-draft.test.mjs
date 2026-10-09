@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { buildInternalAuthorization } from "../../scripts/evidence-pack/create-g1-internal-authorization.mjs";
 import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -201,4 +202,24 @@ test("full prepare CLI creates a PRIVATE synthetic-fixture HTML with authorizati
   });
   assert.notEqual(rerun.status,0);
   assert.match(rerun.stderr,/NEW private directory/);
+});
+
+
+test("interactive authorization record builder requires actual claimed provenance and no-export scope",()=>{
+  const params={
+    digest:"c".repeat(64),
+    dataOwner:"Fictional Humandroid test org",
+    authorizedBy:"Fictional person",
+    recordReference:"FIXTURE-EMAIL-2026-10-09",
+    attestedBy:"Fictional operator",
+    authorizationBasis:"Fictional email",
+    now:new Date("2026-10-09T15:30:00.000Z")
+  };
+  const record=buildInternalAuthorization(params);
+  assert.equal(record.sourceReportSha256,params.digest);
+  assert.equal(record.externalSharing,"PROHIBITED");
+  assert.equal(record.status,"AUTHORIZED_FOR_LOCAL_INTERNAL_REVIEW");
+  assert.equal(record.authorizedAt,"2026-10-09T15:30:00.000Z");
+  assert.throws(()=>buildInternalAuthorization({...params,recordReference:""}),/metadata/);
+  assert.throws(()=>buildInternalAuthorization({...params,digest:"invalid"}),/metadata/);
 });
