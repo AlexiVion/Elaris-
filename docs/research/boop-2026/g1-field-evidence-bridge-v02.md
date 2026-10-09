@@ -199,3 +199,21 @@ node scripts/evidence-pack/create-g1-internal-authorization.mjs "$A" --prepare-p
 ```
 
 Si la última instrucción falla, registrar sólo el error técnico y la existencia del archivo esperado, **no subir PDF, autorización ni registros reales**. El asistente requiere una declaración verídica de permiso del dueño de datos, ligada al SHA-256 exacto y restringida a elaboración interna, NO distribución externa. Evitar repetir `pnpm install` mientras WSL no tenga memoria suficiente.
+
+## Hito real: borrador privado generado — metadatos de autorización requieren revisión (2026-10-09)
+
+**Evidencia aportada por el operador desde Ubuntu WSL, sin adjuntar datos del robot:**
+- `git pull --ff-only` actualizó a `5aef693`.
+- `node --test tests/evidence-pack/g1-private-draft.test.mjs`: **14/14 PASS**.
+- Reutilización de Playwright y Chromium de worktree V0.1: `PLAYWRIGHT + CHROMIUM: OK`; no se reinstalaron dependencias después de `ERR_PNPM_ENOMEM`.
+- Subcomando interactivo `--prepare-pdf` sobre el reporte V0.3 real de `run-a`: **`PRIVATE DRAFT CREATED (SENSITIVE / NOT APPROVED FOR EXPORT)`**.
+- Archivos privados generados localmente bajo `$HOME/elaris-private/g1-internal-real-draft-20261009-185750`: HTML, PDF, manifest SHA-256. `test -s` confirmó PDF no vacío y `explorer.exe` se invocó sin error.
+- El PDF **no se compartió ni se revisó visualmente fuera del equipo local**. Ninguna conclusión sobre páginas completas, legibilidad, contenido técnico correcto o validación de Humandroid fuera del alcance de los checks.
+
+**Problema encontrado al inspeccionar la salida de registro (no publicar datos personales reales):** el asistente aceptó un autorizante genérico y campos de referencia/responsable de registro de un solo signo de puntuación. Por lo tanto, aunque el usuario confirmó en chat que Humandroid autorizó el uso interno, la **constancia estructurada almacenada no alcanza una trazabilidad documental mínima**. Esto **no invalida que el PDF se haya generado desde el reporte real**; sí impide declarar revisión de permisos completada y usarlo como expediente final.
+
+**Corrección fail-closed del código:** `meaningfulAuthorizationField` y `validateAuthorization` ahora rechazan valores de relleno/generales, exigen persona identificable, entidad, referencia rastreable suficientemente descriptiva, responsable que registra, medio de autorización y SHA del reporte exacto. Esta es una validación formal de completitud **no prueba la autoridad jurídica de quien concede permiso**. Dos tests de regresión añadidos; gate WSL de esta corrección pendiente.
+
+**Siguiente acción:** actualizar worktree, repetir tests (esperados **16**), repetir la generación en **nuevo directorio privado** con nombres/roles concretos y una referencia auténtica de la reunión/permiso (no inventar fechas, firmas ni asistentes); revisar PDF en WSL y conservar el primer borrador como `SUPERSEDED / UNREVIEWED` sin usarlo fuera del equipo. Evitar subir PDFs, autorizaciones y secretos a GitHub/ChatGPT. `EXTERNAL SHARING: PROHIBITED` sigue vigente incluso después de repetir exitosamente el proceso.
+
+**Estado:** `REAL_G1_DRAFT_GENERATION_PASS / DOC_PERMISSION_METADATA_NEEDS_CORRECTION / FINAL_VISUAL_REVIEW_PENDING / EXTERNAL_EXPORT_NOT_APPROVED`. Se documenta el hito real; no se confunde con validación comercial ni certificación.
