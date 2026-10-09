@@ -1,6 +1,6 @@
 # Elaris — Offline Technical Evidence Pack V0
 
-**Status:** `LOCAL_COMPONENT_GATE_PASS / FULL_REPO_AND_VISUAL_REVIEW_PENDING` (2026-10-09).  
+**Status:** `FULL_LOCAL_GATE_PASS / VISUAL_AND_COMMERCIAL_REVIEW_PENDING` (2026-10-09).  
 **Owner:** Alexi (technical); **commercial reviewer:** Juanma.  
 **Task:** `BOOP-T01/T02-V0` in [research backlog](../../docs/research/boop-2026/execution-and-decision-log.md). GitHub Issues are disabled in this repository (HTTP 410), so this is the versioned task record.  
 **Strategy:** [Boop benchmark](../../docs/research/boop-2026/README.md) and [horizontal Elaris vision](../../docs/company/long-term-vision-industrial-intelligence.md).
@@ -57,7 +57,7 @@ pnpm build
 
 ## Registro de la verificación local V0.1
 
-El 2026-10-09, Alexi ejecutó el gate en WSL sobre la revisión `0c61ea5`: **9/9 Node tests, PDF generado, `pnpm lint` PASS y `pnpm typecheck` PASS**. Registro formal: [local gate](../../docs/research/boop-2026/evidence-pack-v01-local-verification-2026-10-09.md). Siguen pendientes la inspección visual del PDF actualizado, `pnpm test` general y `pnpm build`.
+El 2026-10-09, Alexi ejecutó el gate en WSL sobre la revisión `0c61ea5`: **9/9 Node tests, PDF generado, `pnpm lint` PASS y `pnpm typecheck` PASS**. Registro formal: [local gate](../../docs/research/boop-2026/evidence-pack-v01-local-verification-2026-10-09.md). Los controles generales `pnpm test` y `pnpm build` PASARON mediante el gate aislado el 2026-10-09; sigue pendiente inspección visual del PDF actualizado y validación comercial.
 
 ## Full repository build verification without touching prisma/dev.db
 
@@ -70,7 +70,7 @@ git pull --ff-only
 bash scripts/ci/verify-evidence-pack-v01.sh
 ```
 
-This gate runs Prisma Client generation, migrations/status, seed on the isolated DB, 9 component tests, lint, typecheck, full Vitest, and Next.js build. It cleans up the specifically generated temporary DBs on exit and prints PASS only if all stages succeed. It has **not yet been re-run on WSL** after creation.
+This gate runs Prisma Client generation, migrations/status, seed on the isolated DB, 9 component tests, lint, typecheck, full Vitest, and Next.js build. It cleans up the specifically generated temporary DBs on exit and prints PASS only if all stages succeed. It **passed in Ubuntu WSL** on 2026-10-09 (log `~/elaris-evidence-gate-20261009-170003.log`). The gate does not leave behind a running server or seeded persistent database.
 
 [Build failure, root-cause and isolated gate record](../../docs/research/boop-2026/evidence-pack-v01-build-gate-2026-10-09.md).
 
