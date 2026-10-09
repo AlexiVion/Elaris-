@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -315,6 +315,7 @@ export async function main(argv) {
       await page.setContent(html,{waitUntil:"load"});
       await page.pdf({path:join(target,"internal-g1-draft.pdf"),format:"A4",printBackground:true,preferCSSPageSize:true});
     } finally {await browser.close();}
+    chmodSync(join(target,"internal-g1-draft.pdf"),0o600);
     manifest.outputSha256["internal-g1-draft.pdf"]=sha256(readFileSync(join(target,"internal-g1-draft.pdf")));
   }
   writeFileSync(join(target,"internal-draft-manifest.json"),JSON.stringify(manifest,null,2)+"\n",{flag:"wx",mode:0o600});
