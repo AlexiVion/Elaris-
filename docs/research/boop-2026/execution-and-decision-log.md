@@ -29,8 +29,8 @@
 ### WS2 — Producto/entregable (Alexi)
 | ID | Acción | Entregable verificable | Prioridad | Estado |
 |---|---|---|---|---|
-| BOOP-T01 | Construir esquema de dossier técnico semiautomático | template PDF + XLSX/CSV con campos y procedencia | P0 | NOT_STARTED |
-| BOOP-T02 | Crear demo 100% `SYNTHETIC` con disclosure | un pack íntegro publicable por los socios | P0 | NOT_STARTED |
+| BOOP-T01 | Construir esquema de dossier técnico semiautomático | generador offline: HTML/CSV/manifest + PDF opcional, datos sintéticos | P0 | SYNTHETIC_DEMO_ACCEPTED |
+| BOOP-T02 | Crear demo 100% `SYNTHETIC` con disclosure | fixture y render determinista para generar un pack, revisión visual pendiente | P0 | SYNTHETIC_DEMO_ACCEPTED |
 | BOOP-T03 | Ejecutar tiempo de producción real de dossier | coste/hora, quality review, errores, margen | P0 | NOT_STARTED |
 | BOOP-T04 | Finalizar gate local DC-051 (PR23), sin mezclar con investigación | tests, lint, build, E2E PASS | P0 | IN_PROGRESS_EXTERNAL |
 | BOOP-T05 | Diseñar legal/permissions checklist para intake | contrato/protocolo aprobados por asesor cuando corresponda | P0 | NOT_STARTED |
@@ -87,3 +87,30 @@ Si A1/A2 no se confirman, priorizar otros actores del mapa, no abandonar la misi
 - Este registro de decisiones
 
 **No realizados:** software, adquisición de clientes, pruebas del RDR, contacto con Boop, análisis jurídico individualizado, pólizas, ingresos, un nuevo deployment público 24/7.
+
+## Technical implementation track — issue fallback
+
+**2026-10-08:** GitHub Issues are **disabled** in this repository (API returned HTTP 410). As permitted by the repository docs, the versioned backlog serves as the executable work unit. One branch/PR is maintained and the Issue link is marked `UNAVAILABLE_REPOSITORY_SETTING`, not invented.
+
+### BOOP-T01/T02-V0 — Offline Evidence Pack Generator
+- **Owner:** Alexi (technical); **review:** Juanma (commercial format).
+- **Actor:** A04/A05 integrator/deployer, A14 broker as buyer hypothesis.
+- **Trigger:** prepare a source-referenced technical evidence dossier before formal underwriting review.
+- **Input V0:** structured JSON, `SYNTHETIC` only; no Humandroid/G1 intake, no real-client data.
+- **Output V0:** printable HTML, CSV fact/evidence/gap registers, hash manifest, optional PDF using existing Playwright.
+- **Deterministic role:** validate and escape facts/sources, retain UNKNOWN, preserve traceability; no risk/coverage score.
+- **Human authority:** commercial user must review presentation; customer/broker/suscriptor decide actual content and its meaning.
+- **Non-claims:** no MGA, brokerage, certification, safety approval, insurability, premium or PAIDS compliance.
+- **Acceptance:** fail-closed on REAL input and unsupported source ID; synthetic watermark; CLI/test sample; no new dependencies/DB; local suite/build pending external run.
+- **Branch:** `feat/technical-evidence-pack-offline-v0` (stacked on research PR #24; does not depend on unfinished DC051).
+- **Owner action after PR:** run local offline CLI and tests, inspect PDF quality, record reproducible results; **do not merge without verification**.
+- **Current state (2026-10-09):** `FULL_LOCAL_GATE_PASS` — Evidence Pack CLI/PDF, 9/9 Node tests, lint, typecheck, suite general y Next.js build de 59 páginas pasaron en gate aislado WSL. **PDF V0.1 validado visualmente:** paquete de 2 páginas, sección 03 completa en página 2 y SHA-256 de seis outputs verificados. **Pendiente:** validación comercial. Sin intake real, sin E2E ni deployment público. [Gate final](evidence-pack-v01-build-gate-2026-10-09.md).
+
+
+### BOOP-T10 — Evidence Pack V0.2: ingesta documental REAL bajo permisos
+- **Estado:** `SPEC_WRITTEN / IMPLEMENTATION_NOT_STARTED`.
+- **Requisito de entrada:** V0.1 sintética aceptada; siguiente implementación en rama/PR separados.
+- **Alcance:** case permissions, inventario hash por fuente, trazabilidad por dato, revisión humana y exportación a destinatarios expresamente permitidos. Primero fixtures sintéticos; nunca copiar/ingestar datos Humandroid sin autorización.
+- **Owner técnico:** Alexi. **Validación comercial:** Juanma.
+- **Prohibido:** convertir `mode: REAL` en un simple flag, incluir carpetas privadas en Git, crear rating asegurador o MGA, reclamar PAIDS.
+- **Especificación y gates:** [Evidence Pack V0.2 — secure real-client intake](evidence-pack-v02-real-intake-spec.md).
