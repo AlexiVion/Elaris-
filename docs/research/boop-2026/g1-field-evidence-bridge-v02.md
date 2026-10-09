@@ -127,3 +127,39 @@ La parte de captura y análisis real del G1 existe como antecedente verificable 
 **Próxima decisión humana:** confirmar con Humandroid (y con cualquier otro titular de datos contractual relevante, incluida la sede institucional si aplica) la autorización explícita de **preparación de reporte privado interno** para el análisis indicado, sin compartirlo externamente. Una vez validado el permiso, `prepare` podrá producir el primer borrador local, con sello NO APPROVED FOR EXPORT y QA humano. El uso comercial/asegurador necesita un gate separado, con destinatarios aprobados.
 
 **NO inferir:** informe comercial terminado, sistema asegurador/actuarial, diagnóstico de salud, robot seguro, certificación o conformidad PAIDS.
+
+## Preparación del primer PDF REAL privado — procedimiento simplificado
+
+**Confirmación del operador (2026-10-09):** Alexi indicó expresamente que Humandroid ya concedió permiso para usar estas capturas y elaborar un informe interno. **No se recibió identidad del autorizante ni constancia de fecha/medio en esta conversación**; se solicitarán en el equipo local al crear el registro, sin subirlos a GitHub.
+
+**Corrección del adaptador:** el primer intento de `prepare` habría rechazado por error una carpeta nueva directamente bajo `$HOME/elaris-private`. `validatePrivateOutputTarget` ahora permite ese caso, manteniendo bloqueos de rutas externas, symlinks y destinos existentes. Se agregaron pruebas de carpeta directa y de flujo CLI completo con un fixture falso, sin tocar la evidencia del robot.
+
+**Asistente interactivo local:** `scripts/evidence-pack/create-g1-internal-authorization.mjs` pide titular, persona autorizante, referencia real del permiso, persona que registra y medio de autorización; exige confirmación escrita `AUTORIZO`, guarda la declaración en `$HOME/elaris-private` con modo 0600 y su hash SHA-256 del `field-evidence-v03.json`. La herramienta solo registra **la declaración del operador**; no prueba facultades legales ni autenticidad de un tercero. `authorizedAt` es la marca temporal de la declaración local; para referencias históricas usar `recordReference`.
+
+### Comandos Ubuntu WSL — informe interno, nunca subir a GitHub
+
+```bash
+cd /mnt/c/Users/alexi/Documents/Elaris-g1-evidence-bridge-v02
+git pull --ff-only
+node --check scripts/evidence-pack/create-g1-internal-authorization.mjs
+node --test tests/evidence-pack/g1-private-draft.test.mjs
+pnpm install --frozen-lockfile
+pnpm exec playwright install chromium
+
+A="$HOME/elaris-private/component-health-v03-validation-20261007T035703Z/run-a/field-evidence-v03.json"
+OUT="$HOME/elaris-private/g1-internal-real-draft-20261009-01"
+node scripts/evidence-pack/create-g1-internal-authorization.mjs "$A" --prepare-pdf "$OUT"
+```
+
+**Los cinco campos interactivos son hechos reales que debe aportar el operador.** Si el permiso original fue verbal, dejar constancia de quién, cuándo y mediante qué conversación se autorizó; **no inventar** referencia, nombre ni consentimiento de Siglo 21 si no corresponde. El botón `AUTORIZO` acepta exclusivamente la declaración de uso interno **sin compartición externa**.
+
+Resultados, si el comando termina `PRIVATE DRAFT CREATED`:
+- `$OUT/internal-g1-draft.html` — PDF source, interno;
+- `$OUT/internal-g1-draft.pdf` — documento privado de observaciones reales, no comercial;
+- `$OUT/internal-draft-manifest.json` — hashes SHA-256 y etiqueta `NOT_APPROVED`.
+
+El archivo de autorización con firma declarativa también queda únicamente en `$HOME/elaris-private`. La aplicación no lanza robot, no abre red ni modifica los archivos V0.3.
+
+**QA local posterior:** abrir `explorer.exe "$(wslpath -w "$OUT/internal-g1-draft.pdf")"` y comprobar que todas las fases, conteos descriptivos, fuentes y limitaciones se leen bien. No adjuntar PDF, screenshots ni SHA privado a tickets/chat público o servicios externos sin permiso específico. Se puede compartir sólo el resultado de tests, número de páginas y si aparecieron errores, sin observaciones sensibles.
+
+**Estado:** `CODE_READY_FOR_LOCAL_RUN / REAL_PDF_NOT_YET_GENERATED`; código en GitHub y tests adicionales requieren ejecución WSL. La aprobación de este borrador **interno** no es permiso para enviar el PDF a un broker, cliente, aseguradora ni tercero.
