@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
 import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
@@ -221,6 +222,42 @@ ${table(["Source contract","Recorded value"],[
 </main></body></html>`;
 }
 
+// This worktree can run without pnpm install: the earlier Evidence Pack V0.1
+// worktree already had a verified Playwright/Chromium installation in WSL.
+// Only use a dependency from another local worktree if explicitly configured.
+// No install, download, remote import, or network call is made here.
+export async function resolvePlaywrightChromium({
+  moduleRoot = process.env.ELARIS_PLAYWRIGHT_FROM,
+  importLocal = () => import("@playwright/test"),
+} = {}) {
+  try {
+    const local = await importLocal();
+    if (local?.chromium?.launch) return local.chromium;
+  } catch {
+    // The current worktree may contain an incomplete node_modules after an
+    // ENOMEM during pnpm install. An explicitly selected local copy is allowed.
+  }
+  if (!moduleRoot || !isAbsolute(moduleRoot)) {
+    die("Playwright unavailable. Set ELARIS_PLAYWRIGHT_FROM to the absolute path of an existing, installed local worktree (e.g. Elaris-evidence-pack-v0). Do not run pnpm install again.");
+  }
+  const base = resolve(moduleRoot);
+  const packageFile = join(base, "package.json");
+  if (!existsSync(packageFile) || lstatSync(packageFile).isSymbolicLink()) {
+    die("Fallback worktree must contain a real package.json");
+  }
+  const manifest = JSON.parse(readFileSync(packageFile,"utf8"));
+  if (manifest.name !== "elaris") {
+    die("Fallback worktree is not a verified Elaris package");
+  }
+  try {
+    const fallback = createRequire(packageFile)("@playwright/test");
+    if (!fallback?.chromium?.launch) die("Fallback Playwright has no Chromium launcher");
+    return fallback.chromium;
+  } catch (err) {
+    die("Playwright unavailable in the explicitly selected Elaris worktree: " + (err?.code ?? err?.message ?? "unknown"));
+  }
+}
+
 export function validateAuthorization(auth, sourceDigest) {
   if (!auth || auth.schemaVersion !== "elaris-field-internal-use/v1" ||
       auth.status !== "AUTHORIZED_FOR_LOCAL_INTERNAL_REVIEW" ||
@@ -317,7 +354,7 @@ export async function main(argv) {
   writeFileSync(htmlFile,html,{flag:"wx",mode:0o600});
   manifest.outputSha256["internal-g1-draft.html"]=sha256(readFileSync(htmlFile));
   if(opts.pdf){
-    const {chromium}=await import("@playwright/test");
+    const chromium=await resolvePlaywrightChromium();
     const browser=await chromium.launch({headless:true});
     try {
       const page=await browser.newPage();
