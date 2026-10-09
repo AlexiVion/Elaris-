@@ -174,7 +174,7 @@ function reportHtml(s, auth) {
     const tr = (r, tag) => "<tr>" + r.map(x=>"<"+tag+">"+e(x)+"</"+tag+">").join("")+"</tr>";
     return "<table><thead>"+tr(head,"th")+"</thead><tbody>"+rows.map(r=>tr(r,"td")).join("")+"</tbody></table>";
   };
-  return \`<!doctype html><html lang="en"><head><meta charset="utf-8">
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <title>Elaris — G1 Field Evidence Internal Draft</title>
 <style>
 body{font:13px/1.55 Arial,Helvetica,sans-serif;background:#edf3f8;color:#15334d;margin:0}
@@ -193,32 +193,32 @@ th{background:#e7f0fb} tr{break-inside:avoid} p{margin:8px 0} li{margin:8px 0}
 <p>Descriptive evidence from a previously recorded Component Health V0.3 analysis. No robot control or live connection.</p>
 <div class="warning"><b>Internal use only.</b> Not a customer-facing insurance or safety report. Data-owner permission is recorded for local preparation only; redistributing this PDF is not approved.</div>
 <div class="metadata">
-<div><b>Analysis</b><p>\${e(s.analysisId)}</p></div>
-<div><b>System</b><p>\${e(s.robot)} (identity limited to model)</p></div>
+<div><b>Analysis</b><p>${e(s.analysisId)}</p></div>
+<div><b>System</b><p>${e(s.robot)} (identity limited to model)</p></div>
 <div><b>Engine</b><p>Component Health V0.3 / same-session IDLE reference</p></div>
 <div><b>Evidence class</b><p>OBSERVED / SENSITIVE, with HUMAN_CONFIRMED phases</p></div>
-<div><b>Local review authorized by</b><p>\${e(auth.authorizedBy)}</p></div>
+<div><b>Local review authorized by</b><p>${e(auth.authorizedBy)}</p></div>
 <div><b>Purpose</b><p>Private internal technical preparation only</p></div>
 </div>
-<h2>01 / Session overview</h2><p>\${e(s.phaseCount)} labeled phases. The report preserves observational uncertainties; counts are not a condition rating.</p>
-\${table(["Phase","Frames","Observed slots / 29","Unresolved slots","Telemetry window (UTC)"],s.phaseRows.map(p=>[
+<h2>01 / Session overview</h2><p>${e(s.phaseCount)} labeled phases. The report preserves observational uncertainties; counts are not a condition rating.</p>
+${table(["Phase","Frames","Observed slots / 29","Unresolved slots","Telemetry window (UTC)"],s.phaseRows.map(p=>[
 p.id,p.frameCount,String(p.observedSlots)+"/29",p.unresolvedSlots,p.observedStart+" — "+p.observedEnd
 ]))}
 <h2>02 / Data quality and interpretation</h2>
-<p><b>\${e(s.qualityFindingCount)} descriptive findings</b>. These are quality/semantics items, <b>not robot defects or incidents</b>.</p>
-\${table(["Finding group","Records"],s.qualityTypes.map(x=>[x.key,x.count]))}
+<p><b>${e(s.qualityFindingCount)} descriptive findings</b>. These are quality/semantics items, <b>not robot defects or incidents</b>.</p>
+${table(["Finding group","Records"],s.qualityTypes.map(x=>[x.key,x.count]))}
 <h2>03 / Provenance</h2>
-\${table(["Source contract","Recorded value"],[
+${table(["Source contract","Recorded value"],[
 ["Analysis ID",s.analysisId],["Input fingerprint (prefix)",s.inputFingerprintPrefix],
 ["Source V0.3 JSON SHA-256",s.sourceReportSha256],
 ["Reference policy",s.referenceRule],["Source data class",s.sourceClassification],
 ["Export authorization","NOT APPROVED"],
 ])}
 <h2>04 / Limitations and required review</h2>
-<ul>\${s.limitations.map(x=>"<li>"+e(x)+"</li>").join("")}</ul>
+<ul>${s.limitations.map(x=>"<li>"+e(x)+"</li>").join("")}</ul>
 <div class="warning">SENSITIVE — LOCAL INTERNAL DRAFT ONLY. Never send to a broker, insurer, other company, or public platform without separately documented owner approval and human validation.</div>
 <p class="note">Elaris | Field evidence draft. No actual insurance coverage/underwriting conclusions.</p>
-</main></body></html>\`;
+</main></body></html>`;
 }
 
 export function validateAuthorization(auth, sourceDigest) {
