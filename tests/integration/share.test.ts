@@ -12,8 +12,16 @@ vi.mock("next/headers", () => ({
   cookies: () => ({ get: () => ({ value: (globalThis as Record<string, unknown>).__ELARIS_TEST_VIEWER }) }),
 }));
 
-process.env.DATABASE_URL = "file:./test-share.db";
-copyFileSync(resolve("prisma/dev.db"), resolve("prisma/test-share.db"));
+// Use a separately named throwaway copy of the seeded DB. The isolated
+// Evidence Pack gate supplies both variables so it never touches dev.db.
+// Defaults preserve the existing local test workflow.
+const seededDb = process.env.ELARIS_TEST_SEEDED_DB ?? "prisma/dev.db";
+const testDbName = process.env.ELARIS_TEST_SHARE_DB_NAME ?? "test-share.db";
+if (!/^[A-Za-z0-9._-]+\.db$/.test(testDbName) || testDbName.includes("..")) {
+  throw new Error("Invalid share test-only SQLite filename");
+}
+process.env.DATABASE_URL = `file:./${testDbName}`;
+copyFileSync(resolve(seededDb), resolve("prisma", testDbName));
 
 let shareActions: typeof import("@/lib/actions/share");
 let shareDb: typeof import("@/lib/db/share");
