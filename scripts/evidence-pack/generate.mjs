@@ -123,6 +123,10 @@ export function csv(rows) {
 }
 
 export function renderHtml(data) {
+  const knownCount = data.facts.filter((x) => x.status === "SYNTHETIC").length;
+  const unknownCount = data.facts.filter((x) => x.status === "UNKNOWN").length;
+  const missingEvidenceCount = data.evidence.filter((x) => x.status === "UNKNOWN").length;
+  const openGapCount = data.gaps.filter((x) => x.status === "OPEN").length;
   const fields = table(["Field", "Value", "Class", "Source"], data.facts.map((x) => [
     x.label, x.value ?? "NOT PROVIDED", x.status, x.sourceId ?? "—"
   ]));
@@ -151,6 +155,10 @@ h2{font-size:19px;margin:30px 0 12px;color:#12365e;page-break-after:avoid}
 .subtitle{color:#4c637d;font-size:15px;max-width:660px}
 .badge{display:inline-block;border-radius:6px;background:#fff2ca;color:#7a5500;border:1px solid #f0d67c;font-size:11px;font-weight:bold;letter-spacing:.08em;padding:7px 11px;margin:14px 0}
 .metadata{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;padding:20px;background:#f4f8ff;border-radius:8px}
+.summary-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}
+.summary-stat{background:#f4f8ff;border:1px solid #dce9f7;border-radius:6px;padding:11px 10px}
+.summary-stat strong{display:block;font-size:23px;line-height:1.1;color:#19497b}
+.summary-stat span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#5e7490;margin-top:5px}
 dt{font-size:10px;color:#5a7896;text-transform:uppercase;letter-spacing:.08em}dd{margin:3px 0 0;font-weight:600;overflow-wrap:anywhere}
 .lead{background:#edf5ff;border-left:4px solid #1c6fe7;padding:13px 16px;border-radius:0 6px 6px 0}
 .table-wrap{overflow:visible}table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11px}
@@ -160,10 +168,27 @@ tbody tr:nth-child(even){background:#f8fbff}
 .warning{border:1px solid #f0d67c;background:#fff9e8;padding:14px;margin-top:26px;border-radius:7px}
 .small{color:#5b6c7c;font-size:11px}
 footer{border-top:1px solid #d9e5f0;margin-top:40px;padding-top:16px;font-size:11px;color:#657c93}
-@page{size:A4;margin:16mm}
-@media print{body{background:white}.page{padding:0;box-shadow:none;margin:0;max-width:none}
-h2{page-break-after:avoid}tr{break-inside:avoid}.metadata{break-inside:avoid}
-header{page-break-inside:avoid}footer{font-size:9px}}
+@page{size:A4;margin:12mm}
+@media print{
+body{background:white;font-size:11px;line-height:1.35}
+.page{padding:0;box-shadow:none;margin:0;max-width:none}
+header{padding-bottom:12px;margin-bottom:14px;border-bottom-width:3px;page-break-inside:avoid}
+h1{font-size:27px;line-height:1.1;margin:6px 0}
+h2{font-size:16px;margin:16px 0 7px;page-break-after:avoid}
+.subtitle{font-size:11px}
+.badge{margin:7px 0;padding:5px 8px;font-size:9px}
+.metadata{padding:13px;gap:8px 14px;break-inside:avoid}
+dt{font-size:8px}dd{font-size:11px;margin-top:2px}
+.summary-strip{gap:6px;margin:9px 0;break-inside:avoid}
+.summary-stat{padding:7px 7px}
+.summary-stat strong{font-size:17px}
+.summary-stat span{font-size:7px;margin-top:2px}
+td,th{padding:6px 5px;font-size:9px;line-height:1.3}
+.small{font-size:9px;margin:4px 0 7px}
+.warning{margin-top:12px;padding:9px;font-size:9px;line-height:1.35}
+footer{font-size:8px;margin-top:16px;padding-top:8px}
+tr{break-inside:avoid}
+}
 </style></head><body><main class="page">
 <header><div class="kicker">ELARIS  /  TECHNICAL EVIDENCE SERVICES</div>
 <h1>Physical AI<br>Technical Evidence Pack</h1>
@@ -177,6 +202,12 @@ header{page-break-inside:avoid}footer{font-size:9px}}
 <div><dt>Purpose</dt><dd>Technical evidence preparation — demonstration</dd></div>
 <div style="grid-column:1/-1"><dt>Declared scope</dt><dd>${e(data.scope)}</dd></div>
 </dl>
+<section class="summary-strip" aria-label="Documentary overview">
+<div class="summary-stat"><strong>${knownCount}</strong><span>Fictional fields</span></div>
+<div class="summary-stat"><strong>${unknownCount}</strong><span>Unknown fields</span></div>
+<div class="summary-stat"><strong>${missingEvidenceCount}</strong><span>Missing evidence entries</span></div>
+<div class="summary-stat"><strong>${openGapCount}</strong><span>Open questions</span></div>
+</section>
 <h2>01 / System and deployment facts</h2><p class="small">Unknown means not provided; synthetic values do not represent field observations.</p>${fields}
 <h2>02 / Evidence inventory</h2><p class="small">A synthetic evidence item illustrates a document category; it does not prove a test occurred.</p>${inventory}
 <h2>03 / Information gaps and reviewer questions</h2><p class="small">Priorities are documentary follow-up only, not physical risk or actuarial severity.</p>${questions}
@@ -242,6 +273,12 @@ export async function generate(inputPath, outputPath, { pdf = false, overwrite =
       await browser.close();
     }
   }
+  // Digest each output for transfer-integrity checks. This is a plain SHA256
+  // manifest (not a signature, a trusted clock, or a chain of custody).
+  const contentNames = Object.keys(exports).concat(pdf ? ["report.pdf"] : []);
+  manifest.outputSha256 = Object.fromEntries(contentNames.map((name) => [
+    name, createHash("sha256").update(readFileSync(resolve(out, name))).digest("hex")
+  ]));
   // Write the manifest only once every requested output (including PDF)
   // was produced successfully: an incomplete export must not look complete.
   writeFileSync(resolve(out, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n", { flag: overwrite ? "w" : "wx" });
