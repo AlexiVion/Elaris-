@@ -175,6 +175,7 @@ body{background:white;font-size:11px;line-height:1.35}
 header{padding-bottom:12px;margin-bottom:14px;border-bottom-width:3px;page-break-inside:avoid}
 h1{font-size:27px;line-height:1.1;margin:6px 0}
 h2{font-size:16px;margin:16px 0 7px;page-break-after:avoid}
+.report-section-next-page{break-before:page;page-break-before:always}
 .subtitle{font-size:11px}
 .badge{margin:7px 0;padding:5px 8px;font-size:9px}
 .metadata{padding:13px;gap:8px 14px;break-inside:avoid}
@@ -210,7 +211,7 @@ tr{break-inside:avoid}
 </section>
 <h2>01 / System and deployment facts</h2><p class="small">Unknown means not provided; synthetic values do not represent field observations.</p>${fields}
 <h2>02 / Evidence inventory</h2><p class="small">A synthetic evidence item illustrates a document category; it does not prove a test occurred.</p>${inventory}
-<h2>03 / Information gaps and reviewer questions</h2><p class="small">Priorities are documentary follow-up only, not physical risk or actuarial severity.</p>${questions}
+<h2 class="report-section-next-page">03 / Information gaps and reviewer questions</h2><p class="small">Priorities are documentary follow-up only, not physical risk or actuarial severity.</p>${questions}
 <h2>04 / Source and provenance register</h2>${sources}
 <section class="warning"><strong>Authority and validity limitations.</strong> This pack contains fictional demonstration data. Elaris does not certify robots, approve operations, estimate premiums, calculate insurability or decide insurance coverage. No PAIDS compliance or forensic chain of custody is claimed. A responsible human must validate a future real dossier and the right to disclose every source.</section>
 <footer>Elaris · Draft service format V0 · For commercial illustration only · Never use as an actual insurance submission.</footer>
