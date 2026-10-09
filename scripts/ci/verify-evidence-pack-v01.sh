@@ -25,8 +25,9 @@ case "$tmp_db" in
 esac
 export DATABASE_URL="file:./$(basename "$tmp_db")"
 export NEXT_TELEMETRY_DISABLED=1
-# Do not make seed/test helpers silently consume a previously configured DB.
-unset ELARIS_TEST_SEEDED_DB || true
+# Integration tests use the freshly seeded temporary DB, not prisma/dev.db.
+export ELARIS_TEST_SEEDED_DB="$tmp_db"
+export ELARIS_TEST_ACTIONS_DB_NAME="$(basename "${tmp_db%.db}-actions.db")"
 
 cleanup() {
   status=$?
