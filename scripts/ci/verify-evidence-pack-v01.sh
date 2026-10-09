@@ -28,6 +28,7 @@ export NEXT_TELEMETRY_DISABLED=1
 # Integration tests use the freshly seeded temporary DB, not prisma/dev.db.
 export ELARIS_TEST_SEEDED_DB="$tmp_db"
 export ELARIS_TEST_ACTIONS_DB_NAME="$(basename "${tmp_db%.db}-actions.db")"
+export ELARIS_TEST_SHARE_DB_NAME="$(basename "${tmp_db%.db}-share.db")"
 
 cleanup() {
   status=$?
