@@ -117,7 +117,7 @@ Si A1/A2 no se confirman, priorizar otros actores del mapa, no abandonar la misi
 
 ## BOOP-T11 — G1 Real Field Evidence Bridge V0.2a (2026-10-09)
 
-**Owner técnico:** Alexi · **Actor piloto:** Humandroid A04/A05, no comprador asegurador · **Estado:** `CODE_COMMITTED / PENDING_WSL_LOCAL_GATE / NO_REAL_FILE_INSPECTED`.
+**Owner técnico:** Alexi · **Actor piloto:** Humandroid A04/A05, no comprador asegurador · **Estado:** `REAL_V03_SOURCE_INSPECTION_PASS / PRIVATE_DRAFT_AUTHORIZATION_PENDING`.
 
 **Necesidad específica:** probar que la capa Elaris de expedientes puede organizar los resultados técnicos **existentes** del Unitree G1 real sin fabricar observaciones, alterar datos originales ni imponer un modelo asegurador.
 
@@ -138,3 +138,6 @@ Si A1/A2 no se confirman, priorizar otros actores del mapa, no abandonar la misi
 **Prohibido:** nueva captura sin protocolo, comandos del robot, simplificar `mode: REAL` en el Evidence Pack V0.1, publicar informes internos, scoring/diagnóstico/MGA.
 
 **Documentación:** [G1 Field Evidence Bridge v0.2a](g1-field-evidence-bridge-v02.md). **Rama:** `feat/evidence-pack-g1-field-draft-v02`, basada en PR #25 (dependencia apilada).
+
+
+**BOOP-T11 segundo gate (2026-10-09):** `inspect` ejecutado en WSL sobre dos salidas privadas reales `run-a` y `run-b`. Ambos: ID `CH-A03-5D9D0A2922AD460F245F`, 8 fases, 1.615 registros de calidad y SHA-256 del output pack verificados por el adaptador; `cmp -s` confirmó identidad exacta de los dos JSON. **No se ejecutó `prepare`, no se generó PDF real ni se aprobó exportación**. Próximo gate: validación humana de permiso de preparación local y de su titularidad, luego ensayo privado con QA.
