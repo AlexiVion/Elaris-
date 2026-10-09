@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
-import { existsSync, lstatSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { createInterface } from "node:readline/promises";
 import { inspectPack, validateAuthorization } from "./g1-private-draft.mjs";
 
@@ -67,6 +68,6 @@ async function main() {
   }finally {rl.close();}
 }
 
-if (process.argv[1] && import.meta.url === new URL("file://"+resolve(process.argv[1])).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   main().catch(e=>{console.error(e.message);process.exitCode=1;});
 }
