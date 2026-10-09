@@ -29,8 +29,8 @@
 ### WS2 — Producto/entregable (Alexi)
 | ID | Acción | Entregable verificable | Prioridad | Estado |
 |---|---|---|---|---|
-| BOOP-T01 | Construir esquema de dossier técnico semiautomático | generador offline: HTML/CSV/manifest + PDF opcional, datos sintéticos | P0 | LOCAL_COMPONENT_GATE_PASS |
-| BOOP-T02 | Crear demo 100% `SYNTHETIC` con disclosure | fixture y render determinista para generar un pack, revisión visual pendiente | P0 | LOCAL_COMPONENT_GATE_PASS / VISUAL_PENDING |
+| BOOP-T01 | Construir esquema de dossier técnico semiautomático | generador offline: HTML/CSV/manifest + PDF opcional, datos sintéticos | P0 | FULL_LOCAL_GATE_PASS / VISUAL_REVIEW_PENDING |
+| BOOP-T02 | Crear demo 100% `SYNTHETIC` con disclosure | fixture y render determinista para generar un pack, revisión visual pendiente | P0 | FULL_LOCAL_GATE_PASS / VISUAL_PENDING |
 | BOOP-T03 | Ejecutar tiempo de producción real de dossier | coste/hora, quality review, errores, margen | P0 | NOT_STARTED |
 | BOOP-T04 | Finalizar gate local DC-051 (PR23), sin mezclar con investigación | tests, lint, build, E2E PASS | P0 | IN_PROGRESS_EXTERNAL |
 | BOOP-T05 | Diseñar legal/permissions checklist para intake | contrato/protocolo aprobados por asesor cuando corresponda | P0 | NOT_STARTED |
@@ -104,4 +104,4 @@ Si A1/A2 no se confirman, priorizar otros actores del mapa, no abandonar la misi
 - **Acceptance:** fail-closed on REAL input and unsupported source ID; synthetic watermark; CLI/test sample; no new dependencies/DB; local suite/build pending external run.
 - **Branch:** `feat/technical-evidence-pack-offline-v0` (stacked on research PR #24; does not depend on unfinished DC051).
 - **Owner action after PR:** run local offline CLI and tests, inspect PDF quality, record reproducible results; **do not merge without verification**.
-- **Current state (2026-10-09):** `LOCAL_COMPONENT_GATE_PASS` — 9/9 Node tests, PDF generado, lint y typecheck PASS según log WSL del usuario. **Pendientes:** nuevo PDF aún no inspeccionado visualmente, `pnpm test` global y `pnpm build`; **no** hay validación comercial ni intake real. [Registro local](evidence-pack-v01-local-verification-2026-10-09.md).
+- **Current state (2026-10-09):** `FULL_LOCAL_GATE_PASS` — Evidence Pack CLI/PDF, 9/9 Node tests, lint, typecheck, suite general y Next.js build de 59 páginas pasaron en gate aislado WSL. **Pendientes:** revisión visual del nuevo PDF y validación comercial. Sin intake real, sin E2E ni deployment público. [Gate final](evidence-pack-v01-build-gate-2026-10-09.md).
