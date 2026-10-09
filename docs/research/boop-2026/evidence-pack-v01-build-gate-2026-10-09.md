@@ -1,5 +1,5 @@
 # BOOP-T01/T02 — Build gate V0.1: diagnóstico y aislamiento SQLite
-**Fecha:** 2026-10-09 · **Estado:** `BUILD_FAILED_ENVIRONMENT_NOT_INITIALIZED / FIX_COMMITTED_PENDING_LOCAL_RERUN`.  
+**Fecha:** 2026-10-09 · **Estado final del gate automatizado:** `FULL_LOCAL_GATE_PASS` (log WSL recibido 17:00); registros anteriores conservados para auditoría.  
 **Contexto:** worktree `/mnt/c/Users/alexi/Documents/Elaris-evidence-pack-v0`, rama `local/evidence-pack-v0`; log proporcionado por Alexi (aprox. 7.998 líneas), centrado en stderr del build.
 
 ## 1. Evidencia recibida
@@ -63,3 +63,30 @@ git pull --ff-only
 bash scripts/ci/verify-evidence-pack-v01.sh
 ```
 No reportar `FULL_GATE_PASS` ni `BUILD_PASS` hasta ver resultados nuevos. La revisión visual del PDF V0.1 sigue pendiente.
+
+## 8. Tercer gate — FULL LOCAL GATE PASS
+
+**Evidencia WSL proporcionada por Alexi:** rama actualizada `4adb3b2..d594453`; ejecución de `bash scripts/ci/verify-evidence-pack-v01.sh`, log local `/home/ubuntu/elaris-evidence-gate-20261009-170003.log`.
+
+**Resultado explícito:** `GATE PASS` y última línea `=== EVIDENCE PACK V0.1 FULL LOCAL GATE PASS ===`.
+
+El script es fail-fast. Por alcanzar esa salida final, ejecutó con exit code 0 todas las etapas previstas en su versión auditada:
+- Prisma Client generation / migrations / status sobre **SQLite temporal**;
+- seed de demostración en DB temporal;
+- tests específicos Evidence Pack (9 tests, comprobados anteriormente; el extracto final de este log no muestra el detalle individual);
+- `pnpm lint`, `pnpm typecheck`;
+- `pnpm test` general (PASÓ, cantidad exacta no visible en las últimas 100 líneas compartidas);
+- `pnpm build`: Next.js 14.2.15, `Compiled successfully`, `Generating static pages (59/59)`, `Finalizing page optimization`, trazas finalizadas y exit 0.
+
+**Causa anterior resuelta:** las dos suites de integración (acciones y Share) ahora utilizan copias SQLite temporales distintas cuando el gate se ejecuta; no leen `prisma/dev.db` dentro de este gate.
+
+**Nota temporal y alcance:** este build se validó con una base de datos temporal inicializada que el script elimina al salir. No demuestra que una instancia Next.js independiente esté lista para servir datos tras ejecutar el gate. Tampoco acredita flujos E2E con Playwright ni un deploy 24/7.
+
+### Pendientes que NO bloquean el cierre del gate unitario/build
+1. Inspección visual del PDF generado por la última versión de V0.1; solo se ha verificado previamente la generación del archivo.
+2. Validación comercial del formato del expediente con Juanma y un actor sectorial.
+3. Diseño y aceptación legal/técnica de la ruta **REAL** (actualmente rechazada intencionalmente).
+4. Revisar dependencias de ramas apiladas PR #25 → #24 → #22 antes de cualquier merge.
+5. Revisión de presentación pública / E2E si se prepara una demo interactiva de plataforma.
+
+**Decisión:** `FULL_LOCAL_GATE_PASS` para implementación offline sintética; **PR #25 sigue draft** hasta revisión visual y reconciliación de dependencias.
