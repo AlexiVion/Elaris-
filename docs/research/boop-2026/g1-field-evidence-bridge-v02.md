@@ -110,3 +110,20 @@ La parte de captura y análisis real del G1 existe como antecedente verificable 
 - El paquete permanece `SENSITIVE`, sin autorización verificada para compartir/descargar un PDF real.
 
 **Próxima comprobación segura de solo lectura:** ejecutar el subcomando `inspect` sobre los dos informes localmente. Solo comunica metadatos mínimos y no escribe archivos ni accede al robot. Compartir únicamente la salida sintética de estado/cantidad, no los ficheros privados ni el manifiesto de datos reales. La generación `prepare` continúa bloqueada hasta autorización auténtica de análisis interno.
+
+## Segundo gate WSL — análisis REAL verificado, 2026-10-09
+
+**Evidencia aportada por operador:** después de actualizar la rama `d4c86d6..b9e3ade`, Alexi ejecutó `inspect --input` directamente contra cada artefacto privado en `$HOME/elaris-private/component-health-v03-validation-20261007T035703Z/`:
+- `run-a/field-evidence-v03.json`: `ELARIS G1 V0.3 PRIVATE EVIDENCE — VERIFIED PACK`, ID `CH-A03-5D9D0A2922AD460F245F`, **8** fases, **1.615** quality records, `NO FILES WRITTEN; EXPORT NOT APPROVED`.
+- `run-b/field-evidence-v03.json`: exactamente el mismo estado, ID y conteos.
+- `cmp -s "$A" "$B"`: **PASS**, informes `run-a` y `run-b` byte a byte idénticos.
+- El `inspect` incluye verificación de SHA-256 de los archivos declarados en `checksums.sha256` y el esquema V0.3; el resultado fue PASS en ambos paquetes. No se adjuntaron ni copiaron fuentes reales.
+- Los dos directorios son ejecuciones repetidas del mismo análisis real, no dos capturas independientes ni dos robots.
+
+**Estado técnico:** `REAL_V03_SOURCE_INSPECTION_PASS`. La conexión offline con un artefacto observado y verificado del G1 **funciona**, no es una prueba con fixture sintético. Validación de Node test: 9/9 PASS, registrada en el primer gate.
+
+**Aún bloqueado por permisos:** no consta evidencia de consentimiento del titular para elaborar un nuevo documento privado ni para revelar hallazgos. El modo `prepare` **NO se ejecutó** y no se generó informe con datos reales. El hecho de que `inspect` no escriba archivos no cambia la clasificación SENSITIVE de los datos.
+
+**Próxima decisión humana:** confirmar con Humandroid (y con cualquier otro titular de datos contractual relevante, incluida la sede institucional si aplica) la autorización explícita de **preparación de reporte privado interno** para el análisis indicado, sin compartirlo externamente. Una vez validado el permiso, `prepare` podrá producir el primer borrador local, con sello NO APPROVED FOR EXPORT y QA humano. El uso comercial/asegurador necesita un gate separado, con destinatarios aprobados.
+
+**NO inferir:** informe comercial terminado, sistema asegurador/actuarial, diagnóstico de salud, robot seguro, certificación o conformidad PAIDS.
