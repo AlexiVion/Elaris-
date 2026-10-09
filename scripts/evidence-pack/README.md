@@ -1,6 +1,6 @@
 # Elaris — Offline Technical Evidence Pack V0
 
-**Status:** `FULL_LOCAL_GATE_PASS / VISUAL_AND_COMMERCIAL_REVIEW_PENDING` (2026-10-09).  
+**Status:** `SYNTHETIC_DEMO_ACCEPTED / REAL_INTAKE_NOT_IMPLEMENTED` (2026-10-09).  
 **Owner:** Alexi (technical); **commercial reviewer:** Juanma.  
 **Task:** `BOOP-T01/T02-V0` in [research backlog](../../docs/research/boop-2026/execution-and-decision-log.md). GitHub Issues are disabled in this repository (HTTP 410), so this is the versioned task record.  
 **Strategy:** [Boop benchmark](../../docs/research/boop-2026/README.md) and [horizontal Elaris vision](../../docs/company/long-term-vision-industrial-intelligence.md).
@@ -105,3 +105,12 @@ Inspect `out/elaris-evidence-demo-v02/report.pdf` and confirm **the complete 03 
 
 ## Quality gate
 Juanma should be able to show this package to a prospect to explain **what work Elaris performs**, while plainly stating it is fictional. A user must never be able to mistake this document for a licensed insurer's underwriting opinion or a certified physical robot test.
+
+
+## Final V0.1 acceptance — real PDF independently inspected
+
+The user regenerated the synthetic dossier into `out/elaris-evidence-demo-v02` after the intentional print page break and uploaded the entire 7-file package. Independent inspection confirmed **2 A4 pages**, the complete documentary questions section at the top of page 2, no clipped tables, all four CSVs parse, and each of the six outputs matches the SHA-256 in the manifest. The earlier full local gate passed, and the focused Node tests (9/9) passed after the final CSS revision.
+
+**Approved:** synthetic demonstration and internal technical handoff to Juanma. **Not approved:** real customer intake, underwriting use, PAIDS compliance or commercial value. See [artifact audit final signoff](../../docs/research/boop-2026/evidence-pack-v01-artifact-audit-2026-10-09.md).
+
+Next, implement a rights-gated real-document pathway in **separate V0.2 branch/PR**; scope: [Evidence Pack V0.2 secure intake specification](../../docs/research/boop-2026/evidence-pack-v02-real-intake-spec.md).
