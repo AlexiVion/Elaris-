@@ -132,6 +132,8 @@ test("explicit local-only owner authorization is bound to exact input SHA256",()
     authorizedBy:"Fictional test operator",
     dataOwner:"Fictional test organization",
     recordReference:"TEST-AUTH-001",
+    attestedBy:"Fictional operator",
+    authorizationBasis:"Fictional in-person review meeting",
     authorizedAt:"2026-10-09T00:00:00Z",
     sourceReportSha256:digest
   };
@@ -170,6 +172,8 @@ test("full prepare CLI creates a PRIVATE synthetic-fixture HTML with authorizati
     authorizedBy:"Synthetic fixture reviewer",
     dataOwner:"Synthetic fixture organization",
     recordReference:"FIXTURE-ONLY-0001",
+    attestedBy:"Synthetic fixture reviewer",
+    authorizationBasis:"Fictional permission discussion",
     authorizedAt:"2026-10-09T12:00:00Z",
     sourceReportSha256:f.digest
   };
@@ -257,4 +261,50 @@ test("Playwright fallback fails closed without explicit trusted Elaris module ro
     }),
     /not a verified Elaris package/
   );
+});
+
+
+test("placeholder authorization fields never unlock REAL internal PDF",()=>{
+  const digest="d".repeat(64);
+  const valid={
+    schemaVersion:"elaris-field-internal-use/v1",
+    status:"AUTHORIZED_FOR_LOCAL_INTERNAL_REVIEW",
+    purpose:"PREPARE_DESCRIPTIVE_G1_FIELD_DRAFT",
+    externalSharing:"PROHIBITED",
+    dataOwner:"Humandroid",
+    authorizedBy:"Named authorized representative",
+    recordReference:"Verbal meeting with representative on G1 data usage",
+    attestedBy:"Named recording operator",
+    authorizationBasis:"Internal robot evidence meeting in person",
+    authorizedAt:"2026-10-09T18:00:00Z",
+    sourceReportSha256:digest
+  };
+  assert.equal(validateAuthorization(valid,digest).dataOwner,"Humandroid");
+  for(const bad of [
+    {authorizedBy:"Todos"},
+    {authorizedBy:"Equipo"},
+    {recordReference:"."},
+    {attestedBy:"."},
+    {authorizationBasis:"."},
+    {recordReference:"sin dato"},
+    {attestedBy:"desconocido"}
+  ]){
+    assert.throws(()=>validateAuthorization({...valid,...bad},digest),/permission record/);
+  }
+});
+
+test("record builder refuses vague attestation rather than creating local artifacts",()=>{
+  const params={
+    digest:"e".repeat(64),
+    dataOwner:"Humandroid",
+    authorizedBy:"Person approving internally",
+    recordReference:"Actual meeting ref with identifiable provenance",
+    attestedBy:"Person recording locally",
+    authorizationBasis:"Verbal authorization in identified meeting",
+    now:new Date("2026-10-09T18:00:00Z")
+  };
+  assert.equal(buildInternalAuthorization(params).externalSharing,"PROHIBITED");
+  assert.throws(()=>buildInternalAuthorization({...params,authorizedBy:"Todos"}),/permission record/);
+  assert.throws(()=>buildInternalAuthorization({...params,recordReference:"."}),/permission record/);
+  assert.throws(()=>buildInternalAuthorization({...params,attestedBy:"."}),/permission record/);
 });
