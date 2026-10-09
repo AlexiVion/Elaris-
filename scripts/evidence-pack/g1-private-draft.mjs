@@ -265,10 +265,10 @@ export function meaningfulAuthorizationField(value, minLetters = 5, minChars = 5
   if (!plain(value)) return false;
   const normalized = value.trim().normalize("NFKC").toLocaleLowerCase("es");
   if (normalized.length < minChars) return false;
-  if (/^(todos?|todas?|everyone|all|anyone|anybody|equipo|team|unknown|desconocid[oa]s?|n\\/?a|no aplica|ninguno|ninguna|s\\/?d|pendiente|sin dato|sin nombre)$/.test(normalized)) {
+  if (/^(todos?|todas?|everyone|all|anyone|anybody|equipo|team|unknown|desconocid[oa]s?|n\/?a|no aplica|ninguno|ninguna|s\/?d|pendiente|sin dato|sin nombre)$/.test(normalized)) {
     return false;
   }
-  return [...normalized.matchAll(/\\p{L}/gu)].length >= minLetters;
+  return [...normalized.matchAll(/\p{L}/gu)].length >= minLetters;
 }
 
 export function validateAuthorization(auth, sourceDigest) {
