@@ -18,8 +18,15 @@ vi.mock("next/headers", () => ({
 }));
 
 // Point Prisma at a fresh copy of the seeded DB before anything imports it.
-process.env.DATABASE_URL = "file:./test-actions.db";
-copyFileSync(resolve("prisma/dev.db"), resolve("prisma/test-actions.db"));
+// The default preserves historical local behavior. The offline gate uses
+// distinct temporary source/target DBs to avoid touching prisma/dev.db.
+const seededDb = process.env.ELARIS_TEST_SEEDED_DB ?? "prisma/dev.db";
+const testDbName = process.env.ELARIS_TEST_ACTIONS_DB_NAME ?? "test-actions.db";
+if (!/^[A-Za-z0-9._-]+\.db$/.test(testDbName) || testDbName.includes("..")) {
+  throw new Error("Invalid test-only SQLite filename");
+}
+process.env.DATABASE_URL = `file:./${testDbName}`;
+copyFileSync(resolve(seededDb), resolve("prisma", testDbName));
 
 type Actions = typeof import("@/lib/actions/changes");
 type Prisma = typeof import("@/lib/db/prisma")["prisma"];
