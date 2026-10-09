@@ -1,6 +1,6 @@
 # Elaris — Offline Technical Evidence Pack V0
 
-**Status:** `IMPLEMENTED_PENDING_LOCAL_VERIFICATION`.  
+**Status:** `LOCAL_COMPONENT_GATE_PASS / FULL_REPO_AND_VISUAL_REVIEW_PENDING` (2026-10-09).  
 **Owner:** Alexi (technical); **commercial reviewer:** Juanma.  
 **Task:** `BOOP-T01/T02-V0` in [research backlog](../../docs/research/boop-2026/execution-and-decision-log.md). GitHub Issues are disabled in this repository (HTTP 410), so this is the versioned task record.  
 **Strategy:** [Boop benchmark](../../docs/research/boop-2026/README.md) and [horizontal Elaris vision](../../docs/company/long-term-vision-industrial-intelligence.md).
@@ -54,6 +54,10 @@ pnpm build
 - PDF print CSS was made more compact after an independent visual inspection of V0, in which the 3-page output showed an awkward table split and excessive whitespace on page 3.
 - **The compact print revision has not yet been re-rendered in the user WSL environment.** Re-run the `--pdf` command into a fresh output path, inspect PDF page count, wrapping, clipping, legends, limits and source table; record visual findings in PR #25.
 - Previous rendered PDF shows that Chromium export works, but the revised layout must be reviewed separately.
+
+## Registro de la verificación local V0.1
+
+El 2026-10-09, Alexi ejecutó el gate en WSL sobre la revisión `0c61ea5`: **9/9 Node tests, PDF generado, `pnpm lint` PASS y `pnpm typecheck` PASS**. Registro formal: [local gate](../../docs/research/boop-2026/evidence-pack-v01-local-verification-2026-10-09.md). Siguen pendientes la inspección visual del PDF actualizado, `pnpm test` general y `pnpm build`.
 
 ## Built-in fail-closed design
 1. Only `schemaVersion: elaris-evidence-pack/v0` and `mode: SYNTHETIC` are supported.
