@@ -60,3 +60,17 @@ Commmit `0944f92a`: `scripts/evidence-pack/generate.mjs` agrega clase `report-se
 
 ## 7. Riesgo comercial y límites
 V0.1 ejemplifica **ordenamiento de fuentes**. No demuestra que una aseguradora compre ese informe ni qué campos exige en un submission real. Antes de V0.2 con datos de terceros, acordar contractualmente licencias, custodia, protección de datos, revisión humana y política de borrado. Mantener Elaris horizontal para los 20 actores.
+
+
+## 8. Nueva generación tras corrección CSS — registro del usuario
+
+**Fecha:** 2026-10-09. El usuario hizo `git pull --ff-only` en Ubuntu WSL del worktree `Elaris-evidence-pack-v0`, actualizando `d594453..b029632` (incluye commit de `break-before:page` para sección 03).
+
+**Verificación ejecutada después de actualizar:**
+- `node --test tests/evidence-pack/pack.test.mjs`: **9 tests PASS, 0 FAIL**, incluyendo comprobación de la regla de paginación.
+- `node scripts/evidence-pack/generate.mjs --input examples/evidence-pack/synthetic-insurance-intake.json --out out/elaris-evidence-demo-v02 --pdf`: **EXIT SUCCESS**; el CLI informó HTML, cuatro CSV, manifiesto y `report.pdf`.
+- Se invocó `explorer.exe` para abrir el PDF en Windows sin error visible.
+
+**Límite de validación:** el PDF recién generado `out/elaris-evidence-demo-v02/report.pdf` no está adjunto en este turno. Por tanto, **no se ha inspeccionado su distribución real de páginas** y no se certifica que sección 03 inicie efectivamente página 2. El `FULL LOCAL GATE PASS` de Next.js corresponde a la ejecución anterior a esta última modificación únicamente de CSS/test. La segunda carpeta `v02` es una **iteración de la demo V0.1**, no un nuevo Product System ni el flujo V0.2 de datos reales.
+
+**Estado:** `SYNTHETIC_OFFLINE_GENERATION_PASS / PDF_VISUAL_SIGNOFF_PENDING`. Siguiente paso: recibir/inspeccionar PDF v02; después preparar alcance de V0.2 con contratos, procedencia y tratamiento autorizado de documentación real.
