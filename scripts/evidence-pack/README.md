@@ -59,6 +59,21 @@ pnpm build
 
 El 2026-10-09, Alexi ejecutó el gate en WSL sobre la revisión `0c61ea5`: **9/9 Node tests, PDF generado, `pnpm lint` PASS y `pnpm typecheck` PASS**. Registro formal: [local gate](../../docs/research/boop-2026/evidence-pack-v01-local-verification-2026-10-09.md). Siguen pendientes la inspección visual del PDF actualizado, `pnpm test` general y `pnpm build`.
 
+## Full repository build verification without touching prisma/dev.db
+
+The first `pnpm build` attempt on this new WSL worktree failed with Prisma `P2021` (missing SQLite tables during Next.js prerender), because the database used for prerender was not migrated and seeded. This is **not evidence of an Evidence Pack generator failure**.
+
+**Never fix this using `pnpm db:reset` or `pnpm db:seed` against your normal `prisma/dev.db`**. The seed deletes and recreates demo rows. The dedicated gate uses a uniquely named throwaway SQLite file and copies it into another uniquely named DB for action integration tests.
+
+```bash
+git pull --ff-only
+bash scripts/ci/verify-evidence-pack-v01.sh
+```
+
+This gate runs Prisma Client generation, migrations/status, seed on the isolated DB, 9 component tests, lint, typecheck, full Vitest, and Next.js build. It cleans up the specifically generated temporary DBs on exit and prints PASS only if all stages succeed. It has **not yet been re-run on WSL** after creation.
+
+[Build failure, root-cause and isolated gate record](../../docs/research/boop-2026/evidence-pack-v01-build-gate-2026-10-09.md).
+
 ## Built-in fail-closed design
 1. Only `schemaVersion: elaris-evidence-pack/v0` and `mode: SYNTHETIC` are supported.
 2. Every synthetic fact and listed synthetic document references a declared synthetic source; UNKNOWN carries `null` value/source.
