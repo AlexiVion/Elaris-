@@ -34,6 +34,10 @@ cleanup() {
   trap - EXIT
   # Only these specifically generated, unique temp files are touched.
   rm -f -- "$tmp_db" "$tmp_db-journal" "$tmp_db-wal" "$tmp_db-shm"
+  # Integration tests create a dedicated copy with the same unique prefix.
+  for extra in "$repo_root/prisma/$ELARIS_TEST_ACTIONS_DB_NAME" "$repo_root/prisma/$ELARIS_TEST_ACTIONS_DB_NAME-journal" "$repo_root/prisma/$ELARIS_TEST_ACTIONS_DB_NAME-wal" "$repo_root/prisma/$ELARIS_TEST_ACTIONS_DB_NAME-shm"; do
+    if [[ -f "$extra" ]]; then unlink -- "$extra"; fi
+  done
   if (( status == 0 )); then
     echo "=== EVIDENCE PACK V0.1 FULL LOCAL GATE PASS ==="
   else
