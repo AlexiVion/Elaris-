@@ -48,7 +48,7 @@ function checkPathNoSymlink(path) {
 function privateExisting(path, root, kind = "file") {
   if (!isAbsolute(path)) die("Require absolute private path");
   const candidate = resolve(path);
-  if (!isIn(root, candidate) || candidate === root) die("Input must be inside $HOME/elaris-private");
+  if (!isIn(root, candidate) || (candidate === root && kind !== "directory")) die("Input must be inside $HOME/elaris-private");
   checkPathNoSymlink(candidate);
   const canon = realpathSync(candidate);
   if (!isIn(root, canon)) die("Private path escapes root");
@@ -234,6 +234,20 @@ export function validateAuthorization(auth, sourceDigest) {
   return auth;
 }
 
+// Validate the destination *before* creating any output. The direct child
+// $HOME/elaris-private/<new-directory> is valid, as is a nested existing
+// directory; existing targets, external roots and symlinks fail closed.
+export function validatePrivateOutputTarget(out, root) {
+  if (typeof out !== "string" || !isAbsolute(out)) die("Output requires absolute path");
+  const target = resolve(out);
+  if (!isIn(root,target) || target===root || existsSync(target)) {
+    die("Output must be a NEW private directory under $HOME/elaris-private");
+  }
+  const parent = privateExisting(dirname(target),root,"directory");
+  checkPathNoSymlink(parent);
+  return target;
+}
+
 export function inspectPack(reportPath, root) {
   const reportFile = privateExisting(reportPath, root);
   if (basename(reportFile) !== REPORT_NAME) die("Expected field-evidence-v03.json");
@@ -287,12 +301,7 @@ export async function main(argv) {
     return;
   }
   const authorization = validateAuthorization(JSON.parse(readFileSync(privateExisting(opts["--authorization"],root),"utf8")), digest);
-  const out = opts["--out"];
-  if (!isAbsolute(out)) die("Output requires absolute path");
-  const target = resolve(out);
-  if (!isIn(root,target) || target===root || existsSync(target)) die("Output must be a NEW private directory under $HOME/elaris-private");
-  const parent = privateExisting(dirname(target),root,"directory");
-  checkPathNoSymlink(parent);
+  const target = validatePrivateOutputTarget(opts["--out"], root);
   mkdirSync(target,{mode:0o700});
   const html = reportHtml(summary,authorization);
   const manifest = {
