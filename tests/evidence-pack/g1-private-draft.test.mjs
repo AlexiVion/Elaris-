@@ -7,7 +7,7 @@ import { buildInternalAuthorization } from "../../scripts/evidence-pack/create-g
 import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  inspectPack, parseChecksumRegistry, validateV03, summarizeV03, validateAuthorization, validatePrivateOutputTarget
+  inspectPack, parseChecksumRegistry, validateV03, summarizeV03, validateAuthorization, validatePrivateOutputTarget, resolvePlaywrightChromium
 } from "../../scripts/evidence-pack/g1-private-draft.mjs";
 
 const root=mkdtempSync(join(tmpdir(),"elaris-private-g1-fixture-"));
@@ -222,4 +222,39 @@ test("interactive authorization record builder requires actual claimed provenanc
   assert.equal(record.authorizedAt,"2026-10-09T15:30:00.000Z");
   assert.throws(()=>buildInternalAuthorization({...params,recordReference:""}),/metadata/);
   assert.throws(()=>buildInternalAuthorization({...params,digest:"invalid"}),/metadata/);
+});
+
+
+test("Playwright fallback resolves from existing local Elaris worktree without installation",async()=>{
+  const worktree=join(root,"already-installed-worktree");
+  const packagePath=join(worktree,"node_modules","@playwright","test");
+  mkdirSync(packagePath,{recursive:true});
+  writeFileSync(join(worktree,"package.json"),'{"name":"elaris","version":"0.1.0"}');
+  writeFileSync(join(packagePath,"index.js"),
+    'exports.chromium={launch:function(){return "LOCAL_FIXTURE_BROWSER";}};');
+  const chromium=await resolvePlaywrightChromium({
+    moduleRoot:worktree,
+    importLocal:async()=>{throw new Error("Current worktree install incomplete (ENOMEM)");}
+  });
+  assert.equal(chromium.launch(),"LOCAL_FIXTURE_BROWSER");
+});
+
+test("Playwright fallback fails closed without explicit trusted Elaris module root",async()=>{
+  await assert.rejects(
+    resolvePlaywrightChromium({
+      moduleRoot:"",
+      importLocal:async()=>{throw new Error("Missing");}
+    }),
+    /Set ELARIS_PLAYWRIGHT_FROM/
+  );
+  const foreign=join(root,"foreign-package");
+  mkdirSync(foreign);
+  writeFileSync(join(foreign,"package.json"),'{"name":"untrusted"}');
+  await assert.rejects(
+    resolvePlaywrightChromium({
+      moduleRoot:foreign,
+      importLocal:async()=>{throw new Error("Missing");}
+    }),
+    /not a verified Elaris package/
+  );
 });
