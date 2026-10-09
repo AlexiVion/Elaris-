@@ -85,6 +85,8 @@ test("offline build emits HTML, CSVs and manifest with the SHA256 of source JSON
   assert.equal(Object.keys(manifest.outputSha256).length, 5);
   assert.ok(html.includes('aria-label="Documentary overview"'));
   assert.ok(html.includes("Missing evidence entries"));
+  assert.ok(html.includes('<h2 class="report-section-next-page">03 / Information gaps'));
+  assert.ok(html.includes(".report-section-next-page{break-before:page;page-break-before:always}"));
   await assert.rejects(() => generate(fixture, out), /report.html already exists/);
 });
 
