@@ -163,3 +163,39 @@ El archivo de autorización con firma declarativa también queda únicamente en 
 **QA local posterior:** abrir `explorer.exe "$(wslpath -w "$OUT/internal-g1-draft.pdf")"` y comprobar que todas las fases, conteos descriptivos, fuentes y limitaciones se leen bien. No adjuntar PDF, screenshots ni SHA privado a tickets/chat público o servicios externos sin permiso específico. Se puede compartir sólo el resultado de tests, número de páginas y si aparecieron errores, sin observaciones sensibles.
 
 **Estado:** `CODE_READY_FOR_LOCAL_RUN / REAL_PDF_NOT_YET_GENERATED`; código en GitHub y tests adicionales requieren ejecución WSL. La aprobación de este borrador **interno** no es permiso para enviar el PDF a un broker, cliente, aseguradora ni tercero.
+
+## Gate WSL de dependencias: tests PASS, pnpm ENOMEM (2026-10-09)
+
+El operador actualizó a `402704b` y ejecutó:
+- `node --check` del bridge y del asistente interactivo: PASS.
+- `node --test tests/evidence-pack/g1-private-draft.test.mjs`: **12/12 PASS** (incluye nuevos tests de carpeta privada y prepare sintético).
+- `pnpm install --frozen-lockfile`: **ERR_PNPM_ENOMEM**, al procesar ~478 paquetes en una tienda pnpm del volumen Windows `/mnt/c/Users/alexi/.pnpm-store`. Instalación NO completada, no es fallo de datos G1 ni del adapter.
+- `pnpm exec playwright install chromium`: **Command "playwright" not found**, consecuencia de la instalación interrumpida.
+- `prepare` con datos reales: **NO EJECUTADO**, ningún PDF real creado.
+
+### Solución implementada sin instalación nueva
+`scripts/evidence-pack/g1-private-draft.mjs` acepta una dependencia Playwright **ya instalada en otro worktree local** a través de `ELARIS_PLAYWRIGHT_FROM`. Primero intenta su Playwright local; si ese está ausente/incompleto, usa `createRequire` desde el `package.json` del worktree Elaris indicado (sin red, sin descargas). Se exige paquete `name=elaris`. Se agregaron tests de fallback válido y error cerrado sin raíz externa.
+
+El antiguo worktree `Elaris-evidence-pack-v0` ya había generado PDFs en este mismo WSL. Todavía debe verificarse que su `node_modules/@playwright/test` se encuentre disponible y que el navegador Chromium siga instalado. **No declarar fix operativo hasta el próximo gate local.**
+
+### Ejecución recomendada, sin pnpm install
+```bash
+cd /mnt/c/Users/alexi/Documents/Elaris-g1-evidence-bridge-v02
+git pull --ff-only
+node --check scripts/evidence-pack/g1-private-draft.mjs
+node --test tests/evidence-pack/g1-private-draft.test.mjs
+
+export ELARIS_PLAYWRIGHT_FROM="/mnt/c/Users/alexi/Documents/Elaris-evidence-pack-v0"
+node - <<'NODE'
+const {createRequire}=require('node:module');
+const {join}=require('node:path');
+const r=createRequire(join(process.env.ELARIS_PLAYWRIGHT_FROM,'package.json'));
+console.log("Playwright ya instalado:",r.resolve('@playwright/test'));
+NODE
+
+A="$HOME/elaris-private/component-health-v03-validation-20261007T035703Z/run-a/field-evidence-v03.json"
+OUT="$HOME/elaris-private/g1-internal-real-draft-20261009-01"
+node scripts/evidence-pack/create-g1-internal-authorization.mjs "$A" --prepare-pdf "$OUT"
+```
+
+Si la última instrucción falla, registrar sólo el error técnico y la existencia del archivo esperado, **no subir PDF, autorización ni registros reales**. El asistente requiere una declaración verídica de permiso del dueño de datos, ligada al SHA-256 exacto y restringida a elaboración interna, NO distribución externa. Evitar repetir `pnpm install` mientras WSL no tenga memoria suficiente.
