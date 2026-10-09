@@ -114,3 +114,27 @@ Si A1/A2 no se confirman, priorizar otros actores del mapa, no abandonar la misi
 - **Owner técnico:** Alexi. **Validación comercial:** Juanma.
 - **Prohibido:** convertir `mode: REAL` en un simple flag, incluir carpetas privadas en Git, crear rating asegurador o MGA, reclamar PAIDS.
 - **Especificación y gates:** [Evidence Pack V0.2 — secure real-client intake](evidence-pack-v02-real-intake-spec.md).
+
+## BOOP-T11 — G1 Real Field Evidence Bridge V0.2a (2026-10-09)
+
+**Owner técnico:** Alexi · **Actor piloto:** Humandroid A04/A05, no comprador asegurador · **Estado:** `CODE_COMMITTED / PENDING_WSL_LOCAL_GATE / NO_REAL_FILE_INSPECTED`.
+
+**Necesidad específica:** probar que la capa Elaris de expedientes puede organizar los resultados técnicos **existentes** del Unitree G1 real sin fabricar observaciones, alterar datos originales ni imponer un modelo asegurador.
+
+**Entrada fuente:** el output pack verificado de Component Health V0.3 `field-evidence-v03.json` + `checksums.sha256` + cuatro artefactos complementarios, clasificados SENSITIVE; información documentada en `docs/product/component-health/v0.3-evidence-engine.md`.
+
+**Entregable técnico actual:** `scripts/evidence-pack/g1-private-draft.mjs`:
+- `inspect` valida integridad y schema, sin escritura y sin capturar datos del robot;
+- `prepare` produce informe HTML/PDF **INTERNO** únicamente con autorización local por caso y SHA exacto; exportación externa bloqueada;
+- `tests/evidence-pack/g1-private-draft.test.mjs` cubre validación de hashes, directorios, autorización y honestidad del resumen sobre fixture artificial.
+
+**Gates de cierre:**
+1. Local `node --test tests/evidence-pack/g1-private-draft.test.mjs` PASS.
+2. Local `inspect` sobre output privado **auténtico** V0.3 PASS; identificador coherente con registro histórico si es Dataset #002.
+3. Humandroid confirma por medio verificable si la elaboración de un informe interno está dentro de los permisos originales o requiere autorización adicional. No publicar información en GitHub, repositorio, chats o cloud.
+4. `prepare` y revisión visual privada SÓLO después de autorización aplicable. La lectura ya existente del G1 no concede automáticamente derechos comerciales.
+5. V0.2b requiere proceso de redacción/revisión, permisos por destinatario y autorización de exportación independiente para entrega cliente. No implementado.
+
+**Prohibido:** nueva captura sin protocolo, comandos del robot, simplificar `mode: REAL` en el Evidence Pack V0.1, publicar informes internos, scoring/diagnóstico/MGA.
+
+**Documentación:** [G1 Field Evidence Bridge v0.2a](g1-field-evidence-bridge-v02.md). **Rama:** `feat/evidence-pack-g1-field-draft-v02`, basada en PR #25 (dependencia apilada).
