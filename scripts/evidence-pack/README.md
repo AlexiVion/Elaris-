@@ -23,7 +23,7 @@ Outputs:
 - `evidence_inventory.csv` — example evidence classes, not test results;
 - `open_questions.csv` — gaps and required reviewers;
 - `sources.csv` — source IDs, custodians and types;
-- `manifest.json` — fixture input SHA-256, generated time and non-claims.
+- `manifest.json` — input JSON SHA-256, **SHA-256 for every generated output** (excluding the manifest itself), generated time and non-claims. Digests help transfer-integrity checks; they are not cryptographic signatures or forensics proof.
 
 To generate a **PDF in addition** (Chromium browser installed):
 ```bash
@@ -47,6 +47,13 @@ pnpm build
 ```
 
 **Note:** these checks were **not run** by GitHub connector. On a local machine, keep the database/test environment safe; this CLI itself is independent of Prisma, SQLite and the unresolved DC051 gate.
+
+## PDF layout and demonstration QA
+
+- The generator includes a **documentary overview** counting synthetic examples, unknown fields, missing evidence entries, and open follow-up questions. These are not risk scores or insurance metrics.
+- PDF print CSS was made more compact after an independent visual inspection of V0, in which the 3-page output showed an awkward table split and excessive whitespace on page 3.
+- **The compact print revision has not yet been re-rendered in the user WSL environment.** Re-run the `--pdf` command into a fresh output path, inspect PDF page count, wrapping, clipping, legends, limits and source table; record visual findings in PR #25.
+- Previous rendered PDF shows that Chromium export works, but the revised layout must be reviewed separately.
 
 ## Built-in fail-closed design
 1. Only `schemaVersion: elaris-evidence-pack/v0` and `mode: SYNTHETIC` are supported.
