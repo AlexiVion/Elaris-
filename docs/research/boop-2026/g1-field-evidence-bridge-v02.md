@@ -97,3 +97,16 @@ La parte de captura y análisis real del G1 existe como antecedente verificable 
 - Humandroid/propietario: confirmar alcance de uso, titularidad y destinatarios.
 
 **Repositorio:** documentos y software; **datos del robot y autorización auténtica**: sólo almacenamiento privado.
+
+## Registro WSL — primer gate del adaptador, 2026-10-09
+
+**Fuente:** log terminal provisto por Alexi (no se recibieron documentos sensibles).
+- Worktree `local/g1-evidence-bridge-v02` creado desde `feat/evidence-pack-g1-field-draft-v02` en commit `d4c86d6`.
+- `node --check scripts/evidence-pack/g1-private-draft.mjs`: PASS (sin errores).
+- `node --test tests/evidence-pack/g1-private-draft.test.mjs`: **9 tests PASS, 0 FAIL**, usando fixtures de test, no material real del G1.
+- El comando `find` identificó **dos** artefactos `field-evidence-v03.json` dentro de `$HOME/elaris-private/component-health-v03-validation-20261007T035703Z/`, subdirectorios `run-a` y `run-b`.
+- Se trata de ejecuciones A/B del procesamiento V0.3 documentado; **NO** dos robots independientes.
+- Ningún `inspect` se ejecutó aún sobre esos archivos según el log recibido: integridad, schema y cifras reales siguen `PENDING_REAL_FILE_INSPECT`.
+- El paquete permanece `SENSITIVE`, sin autorización verificada para compartir/descargar un PDF real.
+
+**Próxima comprobación segura de solo lectura:** ejecutar el subcomando `inspect` sobre los dos informes localmente. Solo comunica metadatos mínimos y no escribe archivos ni accede al robot. Compartir únicamente la salida sintética de estado/cantidad, no los ficheros privados ni el manifiesto de datos reales. La generación `prepare` continúa bloqueada hasta autorización auténtica de análisis interno.
