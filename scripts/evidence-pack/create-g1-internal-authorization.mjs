@@ -4,7 +4,7 @@ import { homedir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createInterface } from "node:readline/promises";
-import { inspectPack, validateAuthorization } from "./g1-private-draft.mjs";
+import { inspectPack, validateAuthorization, main as runPrivateDraft } from "./g1-private-draft.mjs";
 
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const privateRoot = join(homedir(), "elaris-private");
@@ -36,8 +36,9 @@ export function buildInternalAuthorization({ digest, dataOwner, authorizedBy, re
 }
 
 async function main() {
-  if (process.argv.length !== 3 || !isAbsolute(process.argv[2])) {
-    throw new Error("Usage: node scripts/evidence-pack/create-g1-internal-authorization.mjs /absolute/private/field-evidence-v03.json");
+  const fullDraft = process.argv.length === 5 && process.argv[3] === "--prepare-pdf" && isAbsolute(process.argv[4]);
+  if (!isAbsolute(process.argv[2] ?? "") || !(process.argv.length === 3 || fullDraft)) {
+    throw new Error("Usage: node scripts/evidence-pack/create-g1-internal-authorization.mjs /absolute/private/field-evidence-v03.json [--prepare-pdf /absolute/new/private/output-dir]");
   }
   if (!existsSync(privateRoot) || lstatSync(privateRoot).isSymbolicLink()) {
     throw new Error("Private evidence root missing or symlink");
@@ -65,6 +66,18 @@ async function main() {
     console.log("INTERNAL AUTHORIZATION RECORD CREATED");
     console.log("FILE:",target);
     console.log("EXTERNAL SHARING: PROHIBITED");
+    if (fullDraft) {
+      console.log("Preparing the PRIVATE PDF using the verified real V0.3 evidence...");
+      await runPrivateDraft([
+        "prepare",
+        "--input",resolve(process.argv[2]),
+        "--authorization",target,
+        "--out",resolve(process.argv[4]),
+        "--pdf",
+      ]);
+      console.log("PDF:",join(resolve(process.argv[4]),"internal-g1-draft.pdf"));
+      console.log("PRIVATE ONLY; NOT APPROVED FOR EXTERNAL SHARING");
+    }
   }finally {rl.close();}
 }
 
