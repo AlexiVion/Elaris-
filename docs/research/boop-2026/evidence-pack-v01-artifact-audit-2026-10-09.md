@@ -74,3 +74,24 @@ V0.1 ejemplifica **ordenamiento de fuentes**. No demuestra que una aseguradora c
 **Límite de validación:** el PDF recién generado `out/elaris-evidence-demo-v02/report.pdf` no está adjunto en este turno. Por tanto, **no se ha inspeccionado su distribución real de páginas** y no se certifica que sección 03 inicie efectivamente página 2. El `FULL LOCAL GATE PASS` de Next.js corresponde a la ejecución anterior a esta última modificación únicamente de CSS/test. La segunda carpeta `v02` es una **iteración de la demo V0.1**, no un nuevo Product System ni el flujo V0.2 de datos reales.
 
 **Estado:** `SYNTHETIC_OFFLINE_GENERATION_PASS / PDF_VISUAL_SIGNOFF_PENDING`. Siguiente paso: recibir/inspeccionar PDF v02; después preparar alcance de V0.2 con contratos, procedencia y tratamiento autorizado de documentación real.
+
+## 9. CIERRE — segunda entrega V0.1, verificación visual final
+
+**Fecha de comprobación:** 2026-10-09. **Salida local del usuario:** `out/elaris-evidence-demo-v02`; siete archivos adjuntados para inspección independientes. No se trata del producto V0.2 de clientes reales.
+
+### Hashes, tabla y paginación verificados directamente
+- Los **6 archivos exportados** (`report.html`, cuatro CSV y `report.pdf`) coinciden **byte por byte en SHA-256** con `manifest(2).json.outputSha256`. Se comprobó cada archivo adjunto. El PDF mide **45.995 bytes** y el HTML **8.747 bytes**.
+- Case `ELARIS-DEMO-001`, manifiesto con estado `SYNTHETIC_DEMO_ONLY`, generado `2026-10-09T17:27:43.611Z`. SHA-256 del **input** sólo consta en el manifiesto y no fue independientemente cotejado con un JSON input adjunto.
+- Los CSV parsean: **8 facts** (5 ficticios, 3 unknown), **3 evidence items** (1 ficticio/placeholder y 2 desconocidos), **3 open documentary gaps**, **3 source entries**.
+- PDF renderizado e inspeccionado: **2 páginas A4**, sin páginas vacías, texto cortado ni tablas incompletas. **Página 1: secciones 01 y 02 completas**. **Página 2: comienza con encabezado 03, las tres preguntas GAP-001/002/003, sección 04 con SRC-001/002/003, descargo y pie**.
+- La corrección CSS `break-before:page` quedó **visualmente validada**, además de los **9/9 Node tests** comunicados tras la modificación.
+- La página 2 mantiene espacio sin utilizar, aceptable para una **demo inicial ilustrativa**. No confundir aprobación de layout con aprobación comercial por broker/aseguradora.
+
+### Decisión de cierre técnica
+`EVIDENCE_PACK_V0_1_SYNTHETIC_DEMO_FINAL_PDF_SIGNOFF = PASS`
+
+**Gate de la demo sintética:** `DONE` con la prueba de suite general/Next.js 59/59 previa a la modificación limitada de CSS/test, y test específico 9/9 + generación de PDF posterior. Si se exigiese cerrar la rama con suite completa exactamente en el último HEAD, se puede repetir el gate antes del merge; no se atribuye un build general posterior sin evidencia.
+
+**No autorizado ni validado:** procesamiento real de terceros, coberturas/seguros, firma de datos, PAIDS, información aseguradora real, valor comercial, recepción/reutilización de archivos Humandroid. Se mantienen los permisos y decisiones humanas como condiciones del próximo trabajo.
+
+**Siguiente ingeniería:** diseño e implementación en tarea y PR separados de intake documental REAL, con autorización por caso, cadena explícita de fuentes, QA humano y exportación sólo a destinatarios aprobados. No levantar un SaaS ni instalar RDR/actuaría para ese primer servicio.
