@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
@@ -77,6 +78,13 @@ test("offline build emits HTML, CSVs and manifest with the SHA256 of source JSON
   assert.equal(manifest.status, "SYNTHETIC_DEMO_ONLY");
   assert.equal(manifest.sourceInputSha256.length, 64);
   assert.ok(manifest.nonClaims.includes("NO_INSURANCE_DECISION"));
+  for (const [name, expectedDigest] of Object.entries(manifest.outputSha256)) {
+    const actual = createHash("sha256").update(readFileSync(join(out, name))).digest("hex");
+    assert.equal(actual, expectedDigest, `Output hash mismatch: ${name}`);
+  }
+  assert.equal(Object.keys(manifest.outputSha256).length, 5);
+  assert.ok(html.includes('aria-label="Documentary overview"'));
+  assert.ok(html.includes("Missing evidence entries"));
   await assert.rejects(() => generate(fixture, out), /report.html already exists/);
 });
 
