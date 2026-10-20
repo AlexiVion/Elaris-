@@ -102,7 +102,12 @@ test("exhaustive local report builds 8 chapters, 29 dossiers, 1624 signal rows w
   assert.match(reportHtml,/Hallazgos trazables para revisi.n humana/);
   assert.match(reportHtml,/findings-ledger.json/);
   assert.match(reportHtml,/Slots no resueltos: 8/);
-  assert.match(reportHtml,/<figure class="signal-plot">/);
+  // A valid zero-delta synthetic source must show an explicit no-data note,
+  // not fabricate a chart merely to satisfy a UI assertion.
+  assert.doesNotMatch(reportHtml,/<figure class="signal-plot">/);
+  assert.match(reportHtml,/No hay incrementos positivos medidos aptos para graficar/);
+  assert.doesNotMatch(reportHtml,/Diferencia: 14172/);
+  assert.match(reportHtml,/no contiene un total independiente y verificable/);
   assert.match(reportHtml,/Comparaciones entre subsistemas/);
   assert.ok(existsSync(join(out,"quality-findings.csv")));
   assert.equal(statSync(out).mode&0o777,0o700);
@@ -184,6 +189,13 @@ test("subsystem summary preserves signed changes and excludes uncertain semantic
   assert.equal(legs.expectedSlots,12);
   assert.equal(legs.comparableSlots,11);
   assert.equal(legs.excludedSlots,1);
+  const html=readFileSync(join(out,"g1-exhaustive-report.html"),"utf8");
+  assert.match(html,/<figure class="signal-plot">/);
+  assert.match(html,/Fictional joint 3/);
+  const barForTurning=html.split('<figure class="signal-plot">').find(x=>x.includes("Variaciones del torque estimado: TURNING"));
+  assert.ok(barForTurning,"TURNING phase must render eligible change");
+  assert.match(barForTurning.split("</figure>")[0],/Fictional joint 3/);
+  assert.doesNotMatch(barForTurning.split("</figure>")[0],/Fictional joint 5/);
   assert.equal(legs.largestPositive.oemIndex,3);
   assert.equal(legs.largestPositive.signedDelta,11);
   assert.equal(legs.largestNegative.oemIndex,4);
