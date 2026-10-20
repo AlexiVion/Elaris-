@@ -125,7 +125,7 @@ function validateReportEvidence(source) {
   return {phases: 8, oemSlots: 29, phaseSlots: 232, signalRows: 1624};
 }
 
-function analyze(source) {
+function analyze(source, findingsLedger) {
   validateReportEvidence(source);
   if(!Array.isArray(source.phases) || source.phases.length!==8) fail("Expected eight observed phases");
   const phases=source.phases, seenPhases=new Set();
@@ -237,6 +237,28 @@ function analyze(source) {
   }
   section.push(tab(["Fase","Grupo anatomico","Articulacion con mayor incremento positivo","Delta absP95"],byGroup));
   section.push(p("La fase TURNING representa una actividad mecanicamente distinta de IDLE, por lo que aumentos de magnitud no acreditan anomalía. Los componentes y la geometria deben interpretarse con la tarea y la semantica OEM."));
+
+  section.push(h(2,"4.3. Hallazgos trazables para revisión humana"));
+  section.push(p("Esta selección editorial procede del registro determinístico findings-ledger.json, que contiene las referencias exactas. No sustituye el análisis de ingeniería humana ni permite inferir averías."));
+  const notable = findingsLedger.items
+    .filter(x => x.kind==="COMPONENT_COMPARISON" &&
+      x.interpretationGate==="DESCRIPTIVE_ONLY" &&
+      typeof x.observed?.signedAbsP95Delta==="number" &&
+      Number.isFinite(x.observed.signedAbsP95Delta) &&
+      x.observed.signedAbsP95Delta>0)
+    .sort((a,b)=>b.observed.signedAbsP95Delta-a.observed.signedAbsP95Delta)
+    .slice(0,16);
+  section.push(tab(["Claim","Fase","Articulación","Δ absP95 torque estimado","Cobertura","Qué significa","Verificación"],notable.map(x=>[
+    x.claimId,x.phaseId,x.componentName,fmt(x.observed.signedAbsP95Delta),
+    x.observed.coverage==null?"NO OBSERVADO":fmt(x.observed.coverage*100,1)+"%",
+    x.interpretation,x.followUp
+  ])));
+  const unresolvedClaims=findingsLedger.items.filter(x=>x.kind==="UNRESOLVED_SLOT");
+  section.push(p("Slots no resueltos: "+unresolvedClaims.length+" observaciones por fase; no son diagnóstico de fallas."));
+  section.push(tab(["Claim","Fase","Slot OEM","Interpretación","Siguiente verificación"],unresolvedClaims.map(x=>[
+    x.claimId,x.phaseId,x.oemIndex,x.limitation,x.followUp
+  ])));
+  section.push(p("Todos los hallazgos y la matriz de calidad se conservan en findings-ledger.json con sourceRefs del esquema V0.3. El autor técnico debe revisar y cerrar cada claim relevante antes de difusión."));
   section.push(h(2,"5. Analisis detallado por fase"));
   for(const phase of phases) {
     const q=source.quality.phaseQuality.find(x=>x.phaseId===phase.phaseId)||{};
@@ -323,8 +345,8 @@ export async function main(argv) {
   const root=realpathSync(PRIVATE_ROOT);
   const {analysis,digest}=inspectPack(input,root);
   const dest=validatePrivateOutputTarget(out,root);
-  const report=analyze(analysis);
   const findingsLedger=buildG1FindingsLedger(analysis,digest);
+  const report=analyze(analysis,findingsLedger);
   const styled="<html lang='es'><head><meta charset='utf-8'><style>"+
     "body{font:11px/1.55 Arial,sans-serif;color:#18364f;padding:22px}h1{font-size:26px}h2{font-size:19px;color:#234f79;border-bottom:1px solid #bdd0e0;margin-top:24px}h3{font-size:15px;color:#264f6d;margin-top:22px}table{border-collapse:collapse;width:100%;font-size:9px;table-layout:fixed;margin:12px 0 18px}tr{break-inside:avoid}th,td{border-bottom:1px solid #d5dfe8;padding:4px;overflow-wrap:anywhere;text-align:left}th{background:#e7f0f8}figure.signal-plot{max-width:1050px;margin:18px auto 20px;break-inside:avoid}figure.signal-plot svg{width:100%;height:auto;display:block}figcaption{font-size:11px;color:#394c60}@page{size:A4 landscape;margin:13mm}@media print{body{padding:0;font-size:10px}table{font-size:9px}th,td{padding:3px}h2,h3{break-after:avoid}}"+
     "</style></head><body>"+report.html+"</body></html>";
