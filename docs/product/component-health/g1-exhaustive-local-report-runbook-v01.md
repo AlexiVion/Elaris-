@@ -57,3 +57,39 @@ Si falla PDF por falta de Chromium, generar SIN `--pdf` en un **nuevo** director
 **Estado constatado desde GitHub:** el código y el test están commiteados; no se ha ejecutado este nuevo generador sobre archivos privados desde ChatGPT. No declarar PASS de sus tests hasta recibir su salida WSL.
 
 **Posterior:** terminar revisión técnica del informe exhaustivo y sólo luego derivar una versión ejecutiva/sanitizada separada.
+
+
+## Actualización de ingeniería M1+M2 — 2026-10-19 (pendiente de gate WSL)
+
+Se añadió validación fail-closed de identidad del OEM, esquema de 8 fases × 29 slots, 7 señales, cobertura, muestras, timestamps y QA; también se generan hallazgos reproducibles como **registro privado independiente** y una selección revisable dentro del PDF. Ningún claim acredita fallas físicas.
+
+Nuevo artefacto generado bajo salida privada:
+- **findings-ledger.json**: identificador de análisis, checksum de fuente, registros de ventanas de fase, diferencias descriptivas frente a IDLE, slots no resueltos, grupos QA, referencias a la fuente, alternativas, limitaciones, verificaciones recomendadas y estado de revisión humana pendiente.
+- **manifest.json** registra cantidad de claims y revisión pendiente.
+
+**Una única verificación focalizada** (no repetir el gate V2 ya aprobado, no abrir jobs nuevos):
+
+~~~bash
+cd /mnt/c/Users/alexi/Documents/Elaris-g1-evidence-bridge-v02
+git status --short
+git pull --ff-only
+node --check scripts/evidence-pack/g1-exhaustive-local-report.mjs
+node --check scripts/evidence-pack/g1-report-findings.mjs
+node --test tests/evidence-pack/g1-exhaustive-local-report.test.mjs
+~~~
+
+Sólo si la suite da PASS, usar el paquete ya verificado y crear **una salida nueva**:
+
+~~~bash
+A="$HOME/elaris-private/component-health-v03-validation-20261007T035703Z/run-a/field-evidence-v03.json"
+OUT="$HOME/elaris-private/g1-exhaustive-report-20261019-v03"
+export ELARIS_PLAYWRIGHT_FROM="/mnt/c/Users/alexi/Documents/Elaris-evidence-pack-v0"
+node scripts/evidence-pack/g1-exhaustive-local-report.mjs \
+  --input "$A" --out "$OUT" --pdf
+test -s "$OUT/findings-ledger.json" && test -s "$OUT/g1-exhaustive-report.pdf" && echo "G1_PRIVATE_REPORT_AND_LEDGER_GENERATED"
+explorer.exe "$(wslpath -w "$OUT/g1-exhaustive-report.pdf")"
+~~~
+
+Usar otra ruta si v03 ya existe. No reejecutar el asistente interactivo de autorización durante iteraciones internas. La salida sigue **SENSITIVE / NOT APPROVED FOR EXPORT**. Si el permiso de uso existente no cubre trabajo interno, detenerse antes de procesar datos reales. Los registros de permisos y derechos siguen fuera de GitHub.
+
+**Estado hasta que se ejecute WSL:** código y tests sintéticos commiteados; NO afirmamos PASS, precisión del informe real, revisión humana ni finalización de M1/M2.
