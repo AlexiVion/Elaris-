@@ -1,0 +1,95 @@
+import { createHash } from "node:crypto";
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync, statSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { test, after } from "node:test";
+import assert from "node:assert/strict";
+
+const base=mkdtempSync(join(tmpdir(),"elaris-g1-exhaustive-"));
+after(()=>rmSync(base,{recursive:true,force:true}));
+const digest = x => createHash("sha256").update(x).digest("hex");
+const SCRIPT=resolve("scripts/evidence-pack/g1-exhaustive-local-report.mjs");
+const channels=["joint.position","joint.velocity","joint.torque_estimate","motor.voltage",
+  "motor.temperature.casing","motor.temperature.winding","motor.state_code"];
+function fixture(home){
+  const root=join(home,"elaris-private");mkdirSync(root,{recursive:true});
+  const pack=join(root,"v03-synthetic");mkdirSync(pack);
+  const components=Array.from({length:29},(_,i)=>({
+    oemIndex:i,componentId:"test-g1-joint-"+i,componentName:"Fictional joint "+i,
+    slotStatus:i===28?"OBSERVED_UNRESOLVED_SLOT":"OBSERVED_USABLE",
+    availability:"OBSERVED",
+    signals:Object.fromEntries(channels.map(name=>[name,{
+      semanticsStatus:name==="joint.torque_estimate"?"NORMALIZED_ESTIMATE":"NORMALIZED_OBSERVATION",
+      summary:{signal:name,unit:name==="joint.position"?"rad":null,samples:10,uniqueTimestamps:10,coverage:1,quality:"INFORMATIVE",
+        min:-2,p05:-1,mean:-0.5,p50:-0.4,p95:0.8,max:1,absP95:1,first:-2,last:1,delta:3}
+    }])),
+    comparisonsToIdle:{},newStateCodesVsIdle:[]
+  }));
+  const names=["IDLE_BASELINE","WAIST_YAW","LEFT_SHOULDER_ROLL","LEFT_SHOULDER_PITCH",
+    "LOCOMOTION_FORWARD_BACK","TURNING","MIXED_OPERATION","RECOVERY_IDLE"];
+  const report={
+    schemaVersion:"0.3.0",evidenceClass:"OBSERVED",sourceClassification:"SENSITIVE",
+    assessment:"DESCRIPTIVE_OPERATIONAL_EVIDENCE",
+    robot:{manufacturer:"Unitree",model:"G1",componentSlots:29},
+    run:{analysisId:"CH-A03-FICTIONAL-REPORT",engineVersion:"component-health-evidence-engine-v03",
+      inputFingerprint:"a".repeat(64),
+      inputs:{
+        observed:{sessionId:"SYNTHETIC",sessionState:"OPEN",workingCopyKind:"REKEYED_DERIVATIVE",
+          plaintextEquivalence:"NOT_INDEPENDENTLY_VERIFIED",sourceIntegrity:{verified:true},workingCopyIntegrity:{verified:true}},
+        historicalBaseline:{sessionId:"FAKE",sessionState:"FINALIZED",workingCopyKind:"REKEYED_DERIVATIVE",
+          sourceIntegrity:{verified:true},workingCopyIntegrity:{verified:true}}
+      }},
+    reference:{phaseId:"IDLE_BASELINE",rule:"SAME_SESSION_IDLE_PRIMARY",
+      historicalBaselineRole:"SECONDARY_CONTEXT_ONLY"},
+    phases:names.map((name,i)=>({phaseId:name,label:"Fictional "+name,
+      contextEvidenceClass:"HUMAN_CONFIRMED",declaredStart:"2026-10-06T00:00:00Z",declaredEnd:"2026-10-06T00:00:30Z",
+      observedTelemetryStart:"2026-10-06T00:00:01Z",observedTelemetryEnd:"2026-10-06T00:00:29Z",
+      frameCount:100+i,jointEventCount:29000,componentSlots:29,observedComponentCount:29,components})),
+    operationalFingerprints:{},quality:{maxCoverage:1,phaseQuality:names.map(phaseId=>({phaseId,
+      declaredDurationMs:30000,observedDurationMs:28000,observedStartLagMs:1000,observedEndGapMs:1000,
+      missingComponentSlots:0,lowCoverageSignalCount:0,duplicateSignalSampleCount:0,
+      maxCoverage:1,medianInterFrameGapMs:100,maxInterFrameGapMs:100})),
+      findings:[{code:"UNRESOLVED_COMPONENT_SLOT",severity:"WARNING",phaseId:"IDLE_BASELINE",
+        componentId:"test-g1-joint-28",message:"Synthetic fixture only."}]},
+    limitations:["Fixture, no real robot evidence."]
+  };
+  const payload={"field-evidence-v03.json":JSON.stringify(report),"field-evidence-v03.md":"SYNTHETIC",
+    "analysis-run.json":"{}","quality-v03.json":"{}","phase-manifest.json":"{}"};
+  for(const [name,data] of Object.entries(payload))writeFileSync(join(pack,name),data);
+  writeFileSync(join(pack,"checksums.sha256"),Object.entries(payload).map(([name,data])=>digest(data)+"  "+name).join("\n")+"\n");
+  return {root,reportPath:join(pack,"field-evidence-v03.json")};
+}
+test("exhaustive local report builds 8 chapters, 29 dossiers, 1624 signal rows without permission claims",()=>{
+  const home=join(base,"home-one");mkdirSync(home);
+  const f=fixture(home);const out=join(f.root,"private-development-report");
+  const original=readFileSync(f.reportPath);
+  const result=spawnSync(process.execPath,[SCRIPT,"--input",f.reportPath,"--out",out],
+    {cwd:process.cwd(),env:{...process.env,HOME:home},encoding:"utf8"});
+  assert.equal(result.status,0,result.stderr);
+  assert.match(result.stdout,/G1 EXHAUSTIVE LOCAL DRAFT CREATED/);
+  const manifest=JSON.parse(readFileSync(join(out,"manifest.json"),"utf8"));
+  assert.equal(manifest.phases,8);assert.equal(manifest.joints,29);assert.equal(manifest.signalRows,1624);
+  assert.equal(manifest.findings,1);
+  assert.equal(manifest.exportApproval,"NOT_APPROVED");
+  assert.equal(manifest.ownerAuthorizationAsserted,false);
+  assert.equal(manifest.shareStatus,"LOCAL_ONLY");
+  assert.equal(readFileSync(join(out,"component-signals.csv"),"utf8").trimEnd().split("\n").length,1625);
+  assert.match(readFileSync(join(out,"g1-exhaustive-report.html"),"utf8"),/NOT APPROVED FOR EXPORT/);
+  assert.ok(existsSync(join(out,"quality-findings.csv")));
+  assert.equal(statSync(out).mode&0o777,0o700);
+  assert.equal(statSync(join(out,"g1-exhaustive-report.html")).mode&0o777,0o600);
+  assert.equal(Buffer.compare(original,readFileSync(f.reportPath)),0);
+});
+test("exhaustive local report refuses overwrites and destinations outside private root",()=>{
+  const home=join(base,"home-two");mkdirSync(home);
+  const f=fixture(home);const out=join(f.root,"never-overwrite");
+  const args=[SCRIPT,"--input",f.reportPath,"--out",out];
+  const env={...process.env,HOME:home};
+  assert.equal(spawnSync(process.execPath,args,{env,encoding:"utf8"}).status,0);
+  const duplicate=spawnSync(process.execPath,args,{env,encoding:"utf8"});
+  assert.notEqual(duplicate.status,0);
+  const external=spawnSync(process.execPath,[SCRIPT,"--input",f.reportPath,"--out",join(home,"public")],{env,encoding:"utf8"});
+  assert.notEqual(external.status,0);
+  assert.equal(existsSync(join(home,"public")),false);
+});
