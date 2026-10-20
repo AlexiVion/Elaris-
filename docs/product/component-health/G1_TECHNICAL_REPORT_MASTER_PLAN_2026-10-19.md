@@ -142,3 +142,11 @@ Todo en `$HOME/elaris-private/<salida-nueva>`. No duplicar archivos G1 reales en
 El operador actualizó la rama a `b35c97b` y ejecutó el gate focalizado con `node --check` para el generador y el módulo de hallazgos, más `node --test tests/evidence-pack/g1-exhaustive-local-report.test.mjs`: **3 pruebas PASS, 0 FAIL**. Se incluyen la generación sintética, rechazo de salidas inseguras y los casos negativos de datos/QA. **Esto valida el código en fixtures sintéticos, no todavía la nueva generación V3 con el G1 real.** No publicar ni exponer esos datos.
 
 **Pendiente de aceptación M1/M2:** generación privada V3 y QA sobre las métricas, fuentes y formato. Cualquier código posterior a `b35c97b` necesita prueba focalizada nueva antes de declarar PASS.
+
+## M3 — Primera implementación de análisis por subsistema (19/10/2026)
+
+**Código preparado, todavía no verificado por el operador:** nuevo módulo `g1-report-subsystems.mjs` y su integración con el generador. Produce 21 filas (7 fases vs `IDLE_BASELINE` × 3 grupos anatómicos) con recuento de slots esperados, comparables y excluidos; mediana de diferencia *con signo* en `absP95` de torque estimado; mayores incrementos/descensos cuando los hay, referencias por joint, cobertura y razones de exclusión. **No suma torques de articulaciones ni asigna salud, falla o severidad.**
+
+Se genera `subsystem-evidence.json` y `subsystem-evidence.csv` **solo bajo la carpeta privada local**, y el PDF reemplaza la vieja tabla que seleccionaba máximos sin descartar correctamente semántica no confirmada. Se amplió el test sintético para comprobar comparaciones 21/21, exclusión del slot OEM no resuelto, cambios positivos y negativos ficticios y salida sin diagnósticos.
+
+**Gate pendiente:** en WSL ejecutar una sola suite focalizada (4 tests esperados), comprobar que el análisis real produce 21 filas además de 8 fases / 29 slots / 1.624 filas y que ningún slot no resuelto se trate como comparable; generar un PDF V3 en directorio nuevo y hacer control de cifras y legibilidad. No marcar M3 DONE hasta revisar resultados reales.
