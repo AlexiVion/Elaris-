@@ -136,3 +136,9 @@ Todo en `$HOME/elaris-private/<salida-nueva>`. No duplicar archivos G1 reales en
 3. Revisión humana de la nueva sección de hallazgos, consistencia de fuentes y unidades.
 
 **NEXT:** recibir resultado del gate, resolver cualquier falla concreta, luego avanzar a M3 e informe principal independiente del anexo. No pedir otra captura ni publicar resultados sensibles.
+
+## Gate de pruebas informado — 19/10/2026
+
+El operador actualizó la rama a `b35c97b` y ejecutó el gate focalizado con `node --check` para el generador y el módulo de hallazgos, más `node --test tests/evidence-pack/g1-exhaustive-local-report.test.mjs`: **3 pruebas PASS, 0 FAIL**. Se incluyen la generación sintética, rechazo de salidas inseguras y los casos negativos de datos/QA. **Esto valida el código en fixtures sintéticos, no todavía la nueva generación V3 con el G1 real.** No publicar ni exponer esos datos.
+
+**Pendiente de aceptación M1/M2:** generación privada V3 y QA sobre las métricas, fuentes y formato. Cualquier código posterior a `b35c97b` necesita prueba focalizada nueva antes de declarar PASS.
