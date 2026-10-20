@@ -24,7 +24,7 @@ function fixture(home){
       summary:{signal:name,unit:name==="joint.position"?"rad":null,samples:10,uniqueTimestamps:10,coverage:1,quality:"INFORMATIVE",
         min:-2,p05:-1,mean:-0.5,p50:-0.4,p95:0.8,max:1,absP95:1,first:-2,last:1,delta:3}
     }])),
-    comparisonsToIdle:{},newStateCodesVsIdle:[]
+    comparisonsToIdle:{"joint.torque_estimate":{absP95Delta:i+0.5}},newStateCodesVsIdle:[]
   }));
   const names=["IDLE_BASELINE","WAIST_YAW","LEFT_SHOULDER_ROLL","LEFT_SHOULDER_PITCH",
     "LOCOMOTION_FORWARD_BACK","TURNING","MIXED_OPERATION","RECOVERY_IDLE"];
@@ -80,6 +80,8 @@ test("exhaustive local report builds 8 chapters, 29 dossiers, 1624 signal rows w
   assert.match(reportHtml,/Lectura cuantitativa preliminar/);
   assert.match(reportHtml,/OBSERVACION NO RESUELTA/);
   assert.match(reportHtml,/A4 landscape/);
+  assert.match(reportHtml,/<figure class="signal-plot">/);
+  assert.match(reportHtml,/Lectura por subsistema/);
   assert.ok(existsSync(join(out,"quality-findings.csv")));
   assert.equal(statSync(out).mode&0o777,0o700);
   assert.equal(statSync(join(out,"g1-exhaustive-report.html")).mode&0o777,0o600);
