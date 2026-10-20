@@ -71,6 +71,17 @@ test("exhaustive local report builds 8 chapters, 29 dossiers, 1624 signal rows w
   const manifest=JSON.parse(readFileSync(join(out,"manifest.json"),"utf8"));
   assert.equal(manifest.phases,8);assert.equal(manifest.joints,29);assert.equal(manifest.signalRows,1624);
   assert.equal(manifest.findings,1);
+  const ledger=JSON.parse(readFileSync(join(out,"findings-ledger.json"),"utf8"));
+  assert.equal(ledger.schemaVersion,"elaris-g1-findings-ledger/v01");
+  assert.equal(ledger.exportApproval,"NOT_APPROVED");
+  assert.equal(ledger.reviewStatus,"REVIEW_PENDING");
+  assert.equal(ledger.items.length,manifest.structuredClaims);
+  assert.equal(ledger.items.filter(x=>x.kind==="PHASE_OBSERVATION").length,8);
+  assert.equal(ledger.items.filter(x=>x.kind==="UNRESOLVED_SLOT").length,8);
+  assert.equal(ledger.items.filter(x=>x.kind==="COMPONENT_COMPARISON").length,7*29);
+  assert.equal(ledger.items.filter(x=>x.kind==="EVIDENCE_QUALITY").length,1);
+  assert.ok(ledger.items.every(x=>x.equipmentHealthAssessment==="NOT_ASSESSED"&&x.reviewerStatus==="REVIEW_PENDING"));
+  assert.equal(new Set(ledger.items.map(x=>x.claimId)).size,ledger.items.length);
   assert.equal(manifest.exportApproval,"NOT_APPROVED");
   assert.equal(manifest.ownerAuthorizationAsserted,false);
   assert.equal(manifest.shareStatus,"LOCAL_ONLY");
