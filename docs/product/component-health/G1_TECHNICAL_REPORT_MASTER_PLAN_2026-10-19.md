@@ -101,7 +101,7 @@ Todo en `$HOME/elaris-private/<salida-nueva>`. No duplicar archivos G1 reales en
 - Usar únicamente una suite focalizada de Node sintético por cambio; no abrir workflows grandes, reinstalar PNPM ni gastar tokens/servicios de IA.
 - Generar sobre G1 real sólo en WSL con `inspect`, permisos existentes y directorio nuevo. Los borradores previos permanecen intactos.
 - Compartir con el chat solo salidas `PASS/FAIL`, metadatos no sensibles y capturas previamente autorizadas. No pegar el registro de autorización, hashes, CSV ni mediciones privadas.
-- Tras cada hito, actualizar este documento y el issue maestro con `DONE / NEXT / BLOCKED / EVIDENCE`, enlazar commit y explicar qué falta. Ningún «PASS» antes de que corran las pruebas.
+- Tras cada hito, actualizar este documento y el PR #26 (las issues están deshabilitadas en este repositorio) con `DONE / NEXT / BLOCKED / EVIDENCE`, enlazar commit y explicar qué falta. Ningún «PASS» antes de que corran las pruebas.
 - La autorización es un gate real para compartir, no un formulario repetitivo en el bucle de desarrollo.
 
 ## 6. Estado al crear el plan
