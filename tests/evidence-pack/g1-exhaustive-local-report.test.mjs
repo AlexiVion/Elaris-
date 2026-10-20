@@ -10,6 +10,7 @@ const base=mkdtempSync(join(tmpdir(),"elaris-g1-exhaustive-"));
 after(()=>rmSync(base,{recursive:true,force:true}));
 const digest = x => createHash("sha256").update(x).digest("hex");
 const SCRIPT=resolve("scripts/evidence-pack/g1-exhaustive-local-report.mjs");
+const REVIEW=resolve("scripts/evidence-pack/g1-review-audit.mjs");
 const channels=["joint.position","joint.velocity","joint.torque_estimate","motor.voltage",
   "motor.temperature.casing","motor.temperature.winding","motor.state_code"];
 function fixture(home){
@@ -113,6 +114,23 @@ test("exhaustive local report builds 8 chapters, 29 dossiers, 1624 signal rows w
   assert.equal(statSync(out).mode&0o777,0o700);
   assert.equal(statSync(join(out,"g1-exhaustive-report.html")).mode&0o777,0o600);
   assert.equal(Buffer.compare(original,readFileSync(f.reportPath)),0);
+  // Read-only review on generated fictional evidence, then private checklist.
+  const auditOut=join(f.root,"review-audit");
+  const review=spawnSync(process.execPath,[REVIEW,"--input",f.reportPath,"--draft",out,"--out",auditOut],
+    {cwd:process.cwd(),env:{...process.env,HOME:home},encoding:"utf8"});
+  assert.equal(review.status,0,review.stderr);
+  assert.match(review.stdout,/G1 PRIVATE REVIEW AUDIT PASS/);
+  const assessment=JSON.parse(readFileSync(join(auditOut,"review-audit.json"),"utf8"));
+  assert.equal(assessment.technicalStatus,"AUTOMATED_COHERENCE_PASS_HUMAN_REVIEW_PENDING");
+  assert.equal(assessment.claimsChecked,8+8+203+1);
+  assert.equal(assessment.subsystemRowsChecked,21);
+  assert.equal(assessment.humanReviewStatus,"PENDING");
+  assert.equal(assessment.exportApproval,"NOT_APPROVED");
+  const checklist=readFileSync(join(auditOut,"review-checklist.md"),"utf8");
+  assert.match(checklist,/REVIEW_PENDING/);
+  assert.match(checklist,/Ningún ítem está aprobado automáticamente/);
+  assert.equal(statSync(auditOut).mode&0o777,0o700);
+
 });
 test("exhaustive local report refuses overwrites and destinations outside private root",()=>{
   const home=join(base,"home-two");mkdirSync(home);
@@ -205,4 +223,30 @@ test("subsystem summary preserves signed changes and excludes uncertain semantic
   assert.equal(x.noDiagnostics,true);
   assert.equal(x.humanReview,"PENDING");
   assert.equal(x.exportApproval,"NOT_APPROVED");
+});
+
+
+test("review gate rejects tampering even when attacker updates manifest checksum",()=>{
+  const home=join(base,"review-forged-artifact");mkdirSync(home);
+  const {root,reportPath}=fixture(home);
+  const output=join(root,"private-draft");
+  const run=spawnSync(process.execPath,[SCRIPT,"--input",reportPath,"--out",output],
+    {cwd:process.cwd(),env:{...process.env,HOME:home},encoding:"utf8"});
+  assert.equal(run.status,0,run.stderr);
+  const ledgerPath=join(output,"findings-ledger.json");
+  const ledger=JSON.parse(readFileSync(ledgerPath,"utf8"));
+  const numeric=ledger.items.find(x=>x.kind==="COMPONENT_COMPARISON");
+  assert.ok(numeric);
+  numeric.observed.signedAbsP95Delta=12345; // forged fictional measurement
+  writeFileSync(ledgerPath,JSON.stringify(ledger));
+  const manifestPath=join(output,"manifest.json");
+  const manifest=JSON.parse(readFileSync(manifestPath,"utf8"));
+  manifest.outputs["findings-ledger.json"]=digest(readFileSync(ledgerPath));
+  writeFileSync(manifestPath,JSON.stringify(manifest));
+  const auditDir=join(root,"should-not-create-review");
+  const check=spawnSync(process.execPath,[REVIEW,"--input",reportPath,"--draft",output,"--out",auditDir],
+    {cwd:process.cwd(),env:{...process.env,HOME:home},encoding:"utf8"});
+  assert.notEqual(check.status,0,"forged measurement must fail review gate");
+  assert.match(check.stderr,/Comparison value differs from source/);
+  assert.equal(existsSync(auditDir),false);
 });
