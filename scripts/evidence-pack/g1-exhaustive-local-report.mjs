@@ -19,7 +19,7 @@ const val = x => x === undefined || x === null || x === "" ? "—" : String(x);
 const esc = x => val(x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const csvField = x => {
   const v = x === undefined || x === null ? "" : String(x);
-  const safe = /^[\s]*[=+\-@]/.test(v) ? "'" + v : v;
+  const safe = typeof x === "number" && Number.isFinite(x) ? v : (/^[\s]*[=+\-@]/.test(v) ? "'" + v : v);
   return '"' + safe.replace(/"/g,'""') + '"';
 };
 const csv = rows => rows.map(row=>row.map(csvField).join(",")).join("\n")+"\n";
