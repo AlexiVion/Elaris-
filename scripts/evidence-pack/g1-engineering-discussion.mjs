@@ -6,8 +6,10 @@ const clean = x => String(x ?? "NO DISPONIBLE").replace(/[\r\n|]/g," ").slice(0,
 function evidenceFor(joint,signal){
   const s=joint.signals?.[signal]?.summary;
   const c=joint.comparisonsToIdle?.[signal];
-  if(joint.slotStatus!=="OBSERVED_USABLE"||!s||!ok(s.coverage)||s.coverage<=0||
-    !ok(c?.absP95Delta))return "SIN CONTRASTE INTERPRETABLE";
+  if(joint.slotStatus!=="OBSERVED_USABLE"||
+    joint.signals?.[signal]?.semanticsStatus!=="NORMALIZED_OBSERVATION"||
+    !s||!ok(s.coverage)||s.coverage<=0||!ok(c?.absP95Delta))
+    return "SIN CONTRASTE INTERPRETABLE";
   return "Δ absP95 "+v(c.absP95Delta)+"; cobertura "+v(s.coverage*100)+
     "%; unidad fuente "+clean(s.unit??"NO VALIDADA")+
     "; semántica "+clean(joint.signals[signal].semanticsStatus);
@@ -39,7 +41,7 @@ export function buildG1EngineeringDiscussion({source,ledger,subsystems}){
     "",
     "La referencia es IDLE_BASELINE de la MISMA sesión. Se contrastan agregados V0.3, NO series temporales crudas ni estudios repetidos. Cambios de absP95 del canal torque ESTIMADO no son umbrales OEM ni pruebas de fallos físicos. Se informan posición/velocidad como contexto cuando hay muestras comparables, no como prueba independiente de ejecución de órdenes.",
     "",
-    "El Dataset #002 está salvado con integridad de archivos, pero su sesión permanece OPEN. Los frames preservados en la captura original y los asignados a fases deben reconciliarse con el manifiesto y los timestamps originales; ninguna diferencia de contadores demuestra pérdida por sí sola. La variante exacta OEM y los códigos de estado requieren confirmación documental.",
+    "Estado del registro de sesión observada: "+clean(source.run?.inputs?.observed?.sessionState)+". La integridad verificada del archivo no implica que la captura se haya FINALIZED de forma ordenada. Los frames preservados en origen y los asignados a fases deben reconciliarse con el manifiesto y los timestamps originales; ninguna diferencia de contadores demuestra pérdida por sí sola. La variante OEM y los códigos de estado requieren confirmación documental.",
     "",
     "## Cronología y calidad por fase",""
   ];
