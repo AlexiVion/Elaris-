@@ -178,3 +178,38 @@ test -s "$REVIEW/review-worklist.csv" && test -s "$REVIEW/review-memo.md" &&
 Todos los archivos permanecen locales con clasificación SENSITIVE / NOT APPROVED FOR EXPORT. El CSV es la lista de trabajo: **no editar la versión generada**; si hace falta registrar decisiones técnicas, crear una copia dentro del espacio privado con revisor, fecha, motivación y referencia original. No cargar al chat, al repositorio público ni a servicios externos sin autorización expresa de uso de datos y destinatarios.
 
 **Lo que sigue:** revisar primero calidad y semántica de las señales; luego el slot no resuelto, fases y ventanas; finalmente los contrastes de torque estimado, contexto de movimiento, unidades, fuentes y conclusiones del volumen principal. La ordenación es por dependencia de calidad de la evidencia, **no por severidad mecánica**. El programa no firma ni aprueba el trabajo.
+
+
+## Borrador privado de discusión técnica: 21 apartados de ingeniería (2026-10-20)
+
+El operador ya validó la suite anterior **5/5 PASS**. El código agregado desde entonces genera un borrador interpretativo preliminar para revisión humana; aún requiere su gate sintético.
+
+**Única tanda focalizada (sin regenerar el PDF V3):**
+
+~~~bash
+cd /mnt/c/Users/alexi/Documents/Elaris-g1-evidence-bridge-v02
+git pull --ff-only
+node --check scripts/evidence-pack/g1-engineering-discussion.mjs &&
+node --check scripts/evidence-pack/g1-review-audit.mjs &&
+node --test tests/evidence-pack/g1-exhaustive-local-report.test.mjs
+~~~
+
+Si pasa, un único comando reutiliza el V0.3 íntegro y el directorio V3 para crear otra carpeta privada de auditoría, sin cambios destructivos:
+
+~~~bash
+A="$HOME/elaris-private/component-health-v03-validation-20261007T035703Z/run-a/field-evidence-v03.json"
+DRAFT="$HOME/elaris-private/g1-exhaustive-report-20261019-v03"
+REVIEW="$HOME/elaris-private/g1-review-audit-20261020-v03"
+if test -e "$REVIEW"; then
+  echo "DESTINO EXISTENTE: CAMBIAR NOMBRE"
+else
+  node scripts/evidence-pack/g1-review-audit.mjs \
+    --input "$A" --draft "$DRAFT" --out "$REVIEW"
+fi
+test -s "$REVIEW/engineering-discussion-draft.md" &&
+  echo "PRIVATE_ENGINEERING_DISCUSSION_READY_FOR_HUMAN_REVIEW"
+~~~
+
+En la nueva carpeta privada: engineering-discussion-draft.md incluye 8 cronologías y 21 bloques fase/grupo; review-worklist.csv conserva los 224 claims del corpus real; review-memo.md prioriza las preguntas. No colocar textos derivados, hashes ni información de titulares en GitHub. El estado permanece HUMAN REVIEW PENDING / NO EXPORT.
+
+**No confundir:** pruebas sintéticas, auditoría SHA, generación de resumen y aprobación científica son cuatro etapas diferentes. El siguiente paso es revisión de unidades, contexto operacional y conclusiones por revisor competente; después redactar y maquetar el informe final técnico, no seguir multiplicando PDFs de datos.
