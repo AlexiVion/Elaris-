@@ -123,3 +123,23 @@ fi
 ~~~
 
 Revisar localmente el manifiesto con 8 fases, 29 articulaciones, 1624 filas de señales, 1615 registros QA y 21 filas de subsistemas. No enviar al chat ni guardar en GitHub PDF, CSV, JSON o hashes de evidencia real. Todo sigue SENSITIVE / NOT APPROVED FOR EXPORT. El gate siguiente es una sola revisión del documento con fuentes, unidades, exclusiones y formato.
+
+## Corrección del test SVG tras V3 — 20/10/2026
+
+La suite sintética de V3 registró **3 PASS / 1 FAIL**. El único fallo fue editorial en el test: exigía un gráfico con cambios positivos pese a que sus datos ficticios tenían `absP95Delta=0` en todas las articulaciones. La ejecución real V3 posterior **sí produjo** el PDF y los anexos (224 claims; 21 comparaciones).
+
+La nueva prueba distingue explícitamente: (a) cero cambios positivos: se muestra una nota sin SVG inventado; (b) cambios positivos ficticios elegibles: se produce un SVG; (c) un canal con semántica OEM sin confirmar nunca aparece como barra interpretada. También se elimina la resta estática de 15.000 frames del motor (la reconciliación 15.000 vs 14.912 permanece documentada para análisis del caso real, no para cualquier fixture).
+
+**Único gate correctivo; NO repetir la generación real ya completada:**
+
+~~~bash
+cd /mnt/c/Users/alexi/Documents/Elaris-g1-evidence-bridge-v02
+git status --short
+git pull --ff-only
+node --check scripts/evidence-pack/g1-exhaustive-local-report.mjs &&
+node --check scripts/evidence-pack/g1-report-findings.mjs &&
+node --check scripts/evidence-pack/g1-report-subsystems.mjs &&
+node --test tests/evidence-pack/g1-exhaustive-local-report.test.mjs
+~~~
+
+**Criterio PASS:** cuatro tests, cuatro aprobados, cero fallos. Si vuelve a fallar, no generar otro PDF: registrar únicamente el mensaje breve del test, NO todo el HTML (Node imprime un objeto enorme). La V3 privada existente se conserva intacta; las mejoras de visualización se aplicarán al siguiente render cuando la revisión técnica lo justifique.
