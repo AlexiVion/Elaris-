@@ -196,3 +196,13 @@ Tras el gate V3 confirmado (`5/5`, auditoría privada **224 claims / 21 subsiste
 **Corrección concreta commiteada:** el test compara count, filas, IDs únicos y cabecera CSV con `assessment.claimsChecked` del fixture sintético, no con el número real 224; además corrige el separador de líneas del test CSV. **Todavía no existe PASS del test corregido en WSL; requiere una sola corrida focalizada.**
 
 **Cierre epistemológico:** la creación de una lista con 224 elementos **no significa revisión científica de 224 hallazgos**, ni aprobación o diagnóstico. El siguiente trabajo será revisión humana por carril (semántica/QA antes de comparaciones), explicitando cuestiones abiertas y referencia de cada conclusión. No regenerar el G1 ni el PDF para corregir el test.
+
+## Cierre del gate sintético de la cola humana — 20/10/2026
+
+**Evidencia del operador:** `git pull --ff-only` dejó la rama en `6b4faea`. El test focalizado `node --test tests/evidence-pack/g1-exhaustive-local-report.test.mjs` devolvió **5 PASS / 0 FAIL / 0 SKIP** (2,81 s). La corrección del fixture sintético 220 vs. V3 real 224 queda **VALIDADA**.
+
+**Estado acumulado:** V3 privado ya generado; auditoría privada de V3 completa en sentido automático (224 claims / 21 comparaciones, hashes y correspondencias PASS); `review-worklist.csv` y `review-memo.md` privados ya creados, y ahora su código tiene gate sintético PASS. **No hay revisión humana completada ni permiso de exportación.**
+
+**NO hacer de nuevo:** captura del robot, generación del PDF V3, auditoría de V3, suite de 5 pruebas. Salvo cambio de código posterior que requiera gate focalizado.
+
+**Siguiente tarea real:** redactar secciones de análisis de ingeniería que crucen torque estimado con posición/velocidad y calidad de canal, etiquetadas `PRELIMINAR/REVISIÓN PENDIENTE`, usando únicamente V0.3 local. Esta tarea no puede declarar diagnóstico de falla ni salud, y debe separar dato medido de interpretación. La revisión humana deberá resolver incertidumbres OEM y de ventanas antes de finalizar el volumen principal.
