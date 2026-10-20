@@ -129,6 +129,23 @@ test("exhaustive local report builds 8 chapters, 29 dossiers, 1624 signal rows w
   const checklist=readFileSync(join(auditOut,"review-checklist.md"),"utf8");
   assert.match(checklist,/REVIEW_PENDING/);
   assert.match(checklist,/Ningún ítem está aprobado automáticamente/);
+  const worklist=JSON.parse(readFileSync(join(auditOut,"review-worklist.json"),"utf8"));
+  assert.equal(worklist.claimCount,224);
+  assert.equal(worklist.humanReview,"PENDING");
+  assert.equal(worklist.exportApproval,"NOT_APPROVED");
+  assert.equal(worklist.safetySemantics,"EVIDENCE_REVIEW_ONLY_NOT_HARDWARE_RISK_OR_FAILURE_SEVERITY");
+  assert.equal(worklist.rows.length,224);
+  assert.equal(new Set(worklist.rows.map(x=>x.claimId)).size,224);
+  assert.ok(worklist.rows.every(x=>x.reviewDecision==="PENDING_HUMAN_REVIEW" &&
+    x.humanReviewer===null && x.physicalRiskRanking==="NOT_ASSESSED" &&
+    x.exportApproval==="NOT_APPROVED"));
+  assert.equal(Object.values(worklist.counts).reduce((a,b)=>a+b,0),224);
+  assert.equal(readFileSync(join(auditOut,"review-worklist.csv"),"utf8")
+    .trimEnd().split("\\n").length,225);
+  const memo=readFileSync(join(auditOut,"review-memo.md"),"utf8");
+  assert.match(memo,/Orden de revisión técnica/);
+  assert.match(memo,/no contiene una firma ni concede autorización alguna/i);
+  assert.equal(statSync(join(auditOut,"review-worklist.csv")).mode&0o777,0o600);
   assert.equal(statSync(auditOut).mode&0o777,0o700);
 
 });
