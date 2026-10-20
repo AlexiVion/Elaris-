@@ -176,3 +176,12 @@ Se genera `subsystem-evidence.json` y `subsystem-evidence.csv` **solo bajo la ca
 **Interpretación exacta:** los hashes y la correspondencia entre paquetes/anexos/comparaciones alcanzaron el criterio automático programado. El gate NO certifica la interpretación física, no confirma semántica OEM, calidad científica de las conclusiones ni derecho de distribución.
 
 **Siguiente hito activo:** M4a — organizar los 224 claims por revisión humana, con campos de decisión explícitos y clasificación de prioridad de *revisión de evidencia*, jamás severidad física. Registrar el resultado en un directorio nuevo sin modificar la V3, el corpus ni el checklist ya emitido. Antes de afirmar cierre científico, exigir persona revisora, método y resolución documental de cada punto crítico o limitación explícita.
+
+## Bloque de revisión humana preparado — 20/10/2026 (código nuevo NO probado aún)
+
+Tras el gate V3 confirmado (`5/5`, auditoría privada **224 claims / 21 subsistemas**, revisión humana pendiente), se añadió la **cola de revisión estructurada**:
+- `scripts/evidence-pack/g1-review-worklist.mjs`: transforma el ledger ya auditado en cinco carriles: calidad/semántica, mapeo de slots OEM, ventanas de captura, comparaciones no resueltas y comparaciones descriptivas. **No clasifica riesgo ni severidad física**.
+- Se integra con `g1-review-audit.mjs` para generar `review-worklist.json`, `review-worklist.csv` y `review-memo.md` en **un directorio privado nuevo**. 224 de 224 claims siguen `PENDING_HUMAN_REVIEW`, sin firma ni autoaprobación; el memo plantea preguntas científicas discriminantes.
+- Test focalizado sintético ampliado: exige 224 IDs únicos, conteo total por carril, 225 líneas del CSV (cabecera + filas), sin aprobaciones ni etiquetas de falla física.
+
+**Gate pendiente:** la nueva ampliación necesita `node --check` y la suite focalizada WSL; **NO** marcarlo como PASS antes de recibir ese resultado. Una vez PASS, ejecutar la auditoría existente `g1-review-audit.mjs` con la V3 verificada pero salida de auditoría NUEVA; no modificar `g1-review-audit-20261020-v01`. Luego el equipo debe completar decisiones científicas individualmente o documentar limitaciones agrupadas sin afirmar conclusión física que no se sostiene.
