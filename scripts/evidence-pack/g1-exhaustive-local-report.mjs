@@ -102,6 +102,25 @@ function analyze(source) {
   section.push(h(2,"4. Calidad y limitaciones"));
   section.push(tab(["Codigo","Registros"],[...codeCounts.entries()].sort((a,b)=>b[1]-a[1])));
   section.push(p("Hallazgos de datos no equivalen a averias. El detalle completo con fase, componente y codigo se encuentra en quality-findings.csv."));
+  section.push(h(2,"4.1. Lectura cuantitativa preliminar (sin diagnostico)"));
+  section.push(p("Se destacan cambios en absP95 del torque ESTIMADO frente a IDLE_BASELINE de la misma sesion. La tabla ordena diferencias ABSOLUTAS positivas, no solo ratios: un ratio grande con referencia cercana a cero puede ser poco informativo. No define normalidad, riesgo ni causalidad."));
+  const highlights=[];
+  for(const phase of phases) {
+    if(phase.phaseId==="IDLE_BASELINE")continue;
+    const rows=(source.operationalFingerprints?.[phase.phaseId]||[])
+      .filter(x=>Number.isFinite(x.idleAbsP95)&&Number.isFinite(x.observedAbsP95))
+      .map(x=>({name:x.componentName,idle:x.idleAbsP95,observed:x.observedAbsP95,
+        delta:x.observedAbsP95-x.idleAbsP95,ratio:x.ratio}))
+      .filter(x=>x.delta>0).sort((a,b)=>b.delta-a.delta);
+    for(const item of rows.slice(0,4)) highlights.push([
+      phase.phaseId,item.name,fmt(item.idle),fmt(item.observed),fmt(item.delta),
+      Number.isFinite(item.ratio)?fmt(item.ratio):"—"
+    ]);
+  }
+  section.push(highlights.length?tab(["Fase","Articulacion","Idle absP95","Fase absP95","Incremento absoluto","Ratio"],highlights):
+    p("No hay comparaciones positivas validas para mostrar."));
+  section.push(p("Estos resultados son DESCRIPTIVOS y dependen del contexto operacional y la semantica del canal. No comparar como si todas las fases tuvieran la misma exigencia mecanica."));
+  section.push(p("Integridad de la revision pendiente: reconciliar contador de captura frente a asignaciones por fase y validar las unidades/escala OEM antes de usar umbrales."));
   section.push(h(2,"5. Analisis detallado por fase"));
   for(const phase of phases) {
     const q=source.quality.phaseQuality.find(x=>x.phaseId===phase.phaseId)||{};
@@ -134,6 +153,23 @@ function analyze(source) {
           s?.samples,fmt(s?.mean),fmt(s?.p95),fmt(s?.absP95),fmt(k?.meanDelta),fmt(k?.absP95Ratio)];
       });
     })));
+    const statusByPhase=phases.map(x=>x.components.find(z=>z.oemIndex===index)?.slotStatus);
+    const unresolved=statusByPhase.filter(x=>x==="OBSERVED_UNRESOLVED_SLOT").length;
+    if(unresolved) section.push(p("OBSERVACION NO RESUELTA: "+unresolved+"/"+phases.length+
+      " fases conservan OBSERVED_UNRESOLVED_SLOT. La presencia de muestras y 100% de cobertura no valida comportamiento fisico ni diagnostica falla; hace falta discriminar configuracion, OEM mapping y respuesta real bajo prueba autorizada."));
+    const comparable=phases.filter(x=>x.phaseId!=="IDLE_BASELINE").map(x=>{
+      const joint=x.components.find(z=>z.oemIndex===index);
+      const torque=joint?.comparisonsToIdle?.["joint.torque_estimate"];
+      const observed=joint?.signals?.["joint.torque_estimate"]?.summary;
+      return {phase:x.phaseId,delta:torque?.absP95Delta,level:observed?.absP95};
+    }).filter(x=>Number.isFinite(x.delta)&&Number.isFinite(x.level));
+    if(comparable.length&&unresolved===0){
+      comparable.sort((a,b)=>b.delta-a.delta);
+      const peak=comparable[0];
+      section.push(p("COMPARACION DESCRIPTIVA: mayor incremento de absP95 en torque estimado frente a reposo durante "+
+        peak.phase+" (diferencia "+fmt(peak.delta)+", absP95 de fase "+fmt(peak.level)+
+        "). No es indice de desgaste, alarma ni calidad de movimiento."));
+    }
     section.push(p("Resultados completos por canal (min/p05/p50/max/first/last/state-code) en component-signals.csv. Datos ausentes no se convierten en cero."));
   }
   section.push(h(2,"7. Registro de preguntas tecnicas abiertas"));
@@ -165,7 +201,7 @@ export async function main(argv) {
   const dest=validatePrivateOutputTarget(out,root);
   const report=analyze(analysis);
   const styled="<html lang='es'><head><meta charset='utf-8'><style>"+
-    "body{font:11px/1.55 Arial,sans-serif;color:#18364f;padding:22px}h1{font-size:26px}h2{font-size:19px;color:#234f79;border-bottom:1px solid #bdd0e0;margin-top:24px}h3{font-size:15px;color:#264f6d;margin-top:22px}table{border-collapse:collapse;width:100%;font-size:9px;table-layout:fixed;margin:12px 0 18px}tr{break-inside:avoid}th,td{border-bottom:1px solid #d5dfe8;padding:4px;overflow-wrap:anywhere;text-align:left}th{background:#e7f0f8}@page{size:A4;margin:13mm}@media print{body{padding:0;font-size:9px}table{font-size:7px}th,td{padding:2px}h2,h3{break-after:avoid}}"+
+    "body{font:11px/1.55 Arial,sans-serif;color:#18364f;padding:22px}h1{font-size:26px}h2{font-size:19px;color:#234f79;border-bottom:1px solid #bdd0e0;margin-top:24px}h3{font-size:15px;color:#264f6d;margin-top:22px}table{border-collapse:collapse;width:100%;font-size:9px;table-layout:fixed;margin:12px 0 18px}tr{break-inside:avoid}th,td{border-bottom:1px solid #d5dfe8;padding:4px;overflow-wrap:anywhere;text-align:left}th{background:#e7f0f8}@page{size:A4 landscape;margin:13mm}@media print{body{padding:0;font-size:10px}table{font-size:9px}th,td{padding:3px}h2,h3{break-after:avoid}}"+
     "</style></head><body>"+report.html+"</body></html>";
   let pdf=null;
   if(wantPdf) {
