@@ -150,6 +150,15 @@ test("exhaustive local report builds 8 chapters, 29 dossiers, 1624 signal rows w
   assert.match(memo,/Orden de revisión técnica/);
   assert.match(memo,/no contiene una firma ni concede autorización alguna/i);
   assert.equal(statSync(join(auditOut,"review-worklist.csv")).mode&0o777,0o600);
+  const discussion=readFileSync(join(auditOut,"engineering-discussion-draft.md"),"utf8");
+  assert.match(discussion,/Discusión técnica preliminar por fase y subsistema/);
+  assert.match(discussion,/HUMAN REVIEW PENDING/);
+  assert.match(discussion,/NOT APPROVED FOR EXPORT/);
+  assert.equal((discussion.match(/^#### /gm)||[]).length,21);
+  assert.equal((discussion.match(/^### /gm)||[]).length,15);
+  assert.doesNotMatch(discussion,/15000 capturados|14912 asignados/);
+  assert.match(discussion,/SIN CONTRASTE INTERPRETABLE|No hay incrementos positivos comparables/);
+  assert.equal(statSync(join(auditOut,"engineering-discussion-draft.md")).mode&0o777,0o600);
   assert.equal(statSync(auditOut).mode&0o777,0o700);
 
 });
