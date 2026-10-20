@@ -44,7 +44,88 @@ const svgBars=(title,rows)=>{
     '</svg><figcaption>Cambios absolutos descriptivos de absP95 de torque estimado respecto de IDLE_BASELINE; no son fallas ni umbrales.</figcaption></figure>';
 };
 function fail(msg){throw new Error("G1 comprehensive local draft: "+msg);}
+
+/**
+ * Structural and semantic checks for a truthful analytical dossier.
+ * This validates the SOURCE MODEL only, never diagnoses physical equipment.
+ * Missing numerical fields are allowed; invalid present fields are rejected.
+ */
+function validateReportEvidence(source) {
+  const phases = source.phases;
+  if (!Array.isArray(phases) || phases.length !== 8) fail("Expected 8 phases");
+  const phaseIds = new Set(), identities = new Map();
+  const numericFields = [
+    "coverage", "min", "p05", "mean", "p50", "p95", "max",
+    "absP95", "first", "last", "delta", "transitions"
+  ];
+  const comparisonFields = [
+    "baselineMean", "observedMean", "meanDelta",
+    "baselineP95", "observedP95", "p95Delta",
+    "baselineAbsP95", "observedAbsP95", "absP95Delta",
+    "absP95Ratio", "rangeDelta"
+  ];
+  for (const phase of phases) {
+    if (!phase?.phaseId || phaseIds.has(phase.phaseId)) fail("Missing or duplicate phase ID");
+    phaseIds.add(phase.phaseId);
+    if (!Array.isArray(phase.components) || phase.components.length !== 29) fail("Expected 29 slots");
+    const localSlots = new Set();
+    for (const comp of phase.components) {
+      const idx = comp?.oemIndex;
+      if (!Number.isInteger(idx) || idx < 0 || idx >= 29 || localSlots.has(idx))
+        fail("Duplicate or invalid OEM index in " + phase.phaseId);
+      localSlots.add(idx);
+      const id = String(comp.componentId ?? "");
+      const name = String(comp.componentName ?? "");
+      if (!id.trim() || !name.trim()) fail("Missing component identity in " + phase.phaseId);
+      const prior = identities.get(idx);
+      if (prior && (prior.id !== id || prior.name !== name))
+        fail("Inconsistent component identity across phases for OEM " + idx);
+      identities.set(idx, {id,name});
+      for (const signal of SIGNALS) {
+        const entry = comp.signals?.[signal];
+        if (!entry || typeof entry !== "object") fail("Missing signal " + signal + " in " + phase.phaseId);
+        const s = entry.summary;
+        if (s == null) continue; // unobserved is NOT zero
+        if (typeof s !== "object") fail("Invalid signal summary in " + phase.phaseId);
+        for (const field of numericFields) {
+          const v = s[field];
+          if (v != null && (typeof v !== "number" || !Number.isFinite(v)))
+            fail("Invalid summary number: " + field + " in " + phase.phaseId);
+        }
+        if (s.coverage != null && (s.coverage < 0 || s.coverage > 1))
+          fail("Signal coverage out of range");
+        for (const field of ["samples", "uniqueTimestamps"]) {
+          const v = s[field];
+          if (v != null && (!Number.isSafeInteger(v) || v < 0))
+            fail("Invalid " + field + " in " + phase.phaseId);
+        }
+        if (s.samples != null && s.uniqueTimestamps != null && s.uniqueTimestamps > s.samples)
+          fail("More unique timestamps than samples in " + phase.phaseId);
+        const cmp = comp.comparisonsToIdle?.[signal];
+        if (cmp == null) continue;
+        if (typeof cmp !== "object") fail("Invalid idle comparison");
+        for (const field of comparisonFields) {
+          const v=cmp[field];
+          if (v != null && (typeof v !== "number" || !Number.isFinite(v)))
+            fail("Invalid comparison number: " + field + " in " + phase.phaseId);
+        }
+      }
+    }
+  }
+  const qa = source.quality?.phaseQuality;
+  if (!Array.isArray(qa) || qa.length !== 8) fail("Exactly one QA row required for each phase");
+  const qaIds = new Set();
+  for (const q of qa) {
+    if (!phaseIds.has(q?.phaseId) || qaIds.has(q.phaseId)) fail("Missing or duplicate QA phase");
+    qaIds.add(q.phaseId);
+  }
+  if (identities.size !== 29 || !phaseIds.has("IDLE_BASELINE"))
+    fail("Incomplete component or reference matrix");
+  return {phases: 8, oemSlots: 29, phaseSlots: 232, signalRows: 1624};
+}
+
 function analyze(source) {
+  validateReportEvidence(source);
   if(!Array.isArray(source.phases) || source.phases.length!==8) fail("Expected eight observed phases");
   const phases=source.phases, seenPhases=new Set();
   const jointIds=new Map(),signalRows=[],qualityRows=[],findingRows=[];
