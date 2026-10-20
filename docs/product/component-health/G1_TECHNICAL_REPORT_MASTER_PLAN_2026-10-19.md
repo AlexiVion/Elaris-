@@ -206,3 +206,14 @@ Tras el gate V3 confirmado (`5/5`, auditoría privada **224 claims / 21 subsiste
 **NO hacer de nuevo:** captura del robot, generación del PDF V3, auditoría de V3, suite de 5 pruebas. Salvo cambio de código posterior que requiera gate focalizado.
 
 **Siguiente tarea real:** redactar secciones de análisis de ingeniería que crucen torque estimado con posición/velocidad y calidad de canal, etiquetadas `PRELIMINAR/REVISIÓN PENDIENTE`, usando únicamente V0.3 local. Esta tarea no puede declarar diagnóstico de falla ni salud, y debe separar dato medido de interpretación. La revisión humana deberá resolver incertidumbres OEM y de ventanas antes de finalizar el volumen principal.
+
+## M4a — Primer borrador técnico interpretativo preparado (20/10/2026)
+
+**Base verificada por el operador:** suite previa **5/5 PASS** y cola real de revisión `g1-review-audit-20261020-v02` creada correctamente con **224 claims / 21 filas**, cinco grupos, todas las decisiones pendientes. No se han aprobado conclusiones científicas ni autorizado difusión.
+
+**Nuevo trabajo en rama, todavía SIN gate WSL:**
+- Módulo puro `scripts/evidence-pack/g1-engineering-discussion.mjs`: a partir del V0.3 ya validado y los anexos de auditoría produce `engineering-discussion-draft.md` **únicamente local**. Estructura: método/límites; 8 ventanas declaradas vs observadas con QA; 7 fases operativas × 3 grupos anatómicos con las comparaciones admisibles y exclusiones; para cambios de torque estimado referenciados, contextualiza posición y velocidad solo si hay canal observable, cobertura y comparación válida; preguntas técnicas abiertas y conclusiones necesariamente provisionales.
+- Se integró a `g1-review-audit.mjs` y se añadieron aserciones sintéticas para comprobar 21 apartados, 15 encabezados de fase, exclusión de conteos fijos de 15.000/14.912 y estado de revisión/privacidad.
+- **Crucial:** este borrador NO es el informe científico final, NO prueba actuación física ni diagnostica el robot. Se debe revisar línea a línea según las fuentes privadas. Tampoco modifica PDF, JSON, manifest ni auditorías existentes.
+
+**Único gate pendiente:** suite focalizada WSL de Node sobre el último commit. Sólo si PASS, ejecutar el auditor sobre el mismo V0.3 y la V3 en una carpeta nueva; NO regenerar PDF ni abrir jobs múltiples. Ver runbook. No marcar M4a DONE sin revisión técnica.
