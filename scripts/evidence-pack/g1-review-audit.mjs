@@ -8,6 +8,7 @@ import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "nod
 import { pathToFileURL } from "node:url";
 import { inspectPack, validatePrivateOutputTarget } from "./g1-private-draft.mjs";
 import { analyzeG1Subsystems } from "./g1-report-subsystems.mjs";
+import { buildG1ReviewWorklist, g1ReviewMemo, g1WorklistCsv } from "./g1-review-worklist.mjs";
 
 const SHA = x=>createHash("sha256").update(x).digest("hex");
 const fail = message=>{ throw new Error("G1 local review audit: "+message); };
@@ -222,11 +223,19 @@ export async function main(argv){
   const assessment=auditPrivateReport({source:analysis,sourceDigest:digest,
     ledger,subsystems:subsystem,manifest,outputHashes:verified});
   const md=markdownChecklist(assessment);
+  const worklist=buildG1ReviewWorklist({ledger,subsystems:subsystem});
+  if(worklist.claimCount!==assessment.claimsChecked)fail("Review index omits verified claims");
+  const memo=g1ReviewMemo(worklist);
+  const worklistCsv=g1WorklistCsv(worklist);
   mkdirSync(out,{mode:0o700});
   writeFileSync(join(out,"review-audit.json"),JSON.stringify(assessment,null,2)+"\n",{flag:"wx",mode:0o600});
   writeFileSync(join(out,"review-checklist.md"),md,{flag:"wx",mode:0o600});
+  writeFileSync(join(out,"review-worklist.json"),JSON.stringify(worklist,null,2)+"\n",{flag:"wx",mode:0o600});
+  writeFileSync(join(out,"review-worklist.csv"),worklistCsv,{flag:"wx",mode:0o600});
+  writeFileSync(join(out,"review-memo.md"),memo,{flag:"wx",mode:0o600});
   console.log("G1 PRIVATE REVIEW AUDIT PASS — HUMAN REVIEW PENDING; NO EXPORT");
   console.log("Claims:",assessment.claimsChecked,"Subsystem rows:",assessment.subsystemRowsChecked);
+  console.log("Review worklist:",worklist.claimCount,"pending entries across",Object.keys(worklist.counts).length,"lanes");
   console.log("Private checklist:",out);
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)
