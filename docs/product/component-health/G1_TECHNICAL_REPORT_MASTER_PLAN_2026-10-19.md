@@ -1,0 +1,120 @@
+# Elaris — Plan maestro de cierre del informe técnico Unitree G1
+
+**Fecha:** 2026-10-19  
+**Estado:** PLAN APROBABLE / IMPLEMENTACIÓN POR GATES PENDIENTE  
+**Producto:** Component Health / Field Evidence Audit  
+**Rama de trabajo:** `feat/evidence-pack-g1-field-draft-v02`  
+**PR de integración:** #26 (DRAFT; base `feat/technical-evidence-pack-offline-v0`, **NO** `main`)  
+**Fuente real:** paquete V0.3 privado verificado localmente; jamás subirlo ni sus derivados a GitHub.
+**Política:** el repositorio `AlexiVion/Elaris-` es PÚBLICO. Ningún dato real ni hash/ID sensible/registro de consentimiento se introduce en commits, issues, logs de CI o comentarios de PR.
+
+## 0. Decisión central
+
+El objetivo **no** es alargar el PDF de tablas ni producir un documento ejecutivo/comercial ahora.
+
+Generar un **informe técnico integral, científico en sus límites y útil para ingeniería**, mediante un pipeline reproducible:
+
+**Paquete V0.3 verificado → validación semántica y calidad → métricas comparativas → hallazgos trazables → revisión humana → volumen principal técnico + anexos completos + manifiesto privado.**
+
+No hay captura nueva ni necesidad de volver a pedir atestaciones durante cada iteración interna. La verificación del permiso de uso y la autorización de compartir versiones son gates **separados**, sin falsificar ni inferir derechos.
+
+### Definición de terminado (dos cierres separados)
+
+**Cierre técnico interno:** fuente y salidas trazables; método y unidades explícitos; hallazgos por subsistema/fase con valores verificables, preguntas pendientes y acciones concretas; anexos exhaustivos; revisión humana de precisión y de diseño; controles de consistencia automatizados; documentación de diferencias no resueltas; archivo privado etiquetado `SENSITIVE / INTERNAL REVIEW / NOT APPROVED FOR EXPORT`.
+
+**Cierre compartible/comercial:** se hace **después**, generando un archivo sanitizado independiente, con revisión legal/técnica y autorización auténtica vinculada a versión, derivados, finalidad y destinatarios. No se presume ninguna autorización por el hecho de generar el PDF.
+
+## 1. Auditoría de situación: qué sí y qué no
+
+- Verificación local del paquete V0.3 ya reportada como PASS; 8 fases, 29 slots por fase, 7 familias de señales, 1.624 filas de cobertura de esquema y registros QA. **Filas no equivalen a mediciones independientes ni a 1.624 señales con semántica OEM validada.**
+- Generador V2 ejecutado con pruebas focalizadas 2/2 PASS y salida privada. El PDF V2 tiene ~80 páginas, mayormente tablas; carencia de análisis interpretativo suficiente y escasa navegación.
+- `OPEN`/salvaged con integridad de archivos no significa captura `FINALIZED`, equivalencia de plaintext verificada por tercero ni custodia legal certificada.
+- Diferencia captura versus asignación a ventanas de fase: investigar denominador usando timestamps y filtros, **no** llamar pérdida o corrupción de datos hasta demostrarlo.
+- Calidad: timestamps duplicados, ceros constantes, semántica OEM, fin de fase declarado diferente del observado, slot RightWristYaw sin resolver. Clasificar por **calidad de evidencia**, no «fallas del robot».
+- Estadísticas de torque **estimado** comparadas con `IDLE_BASELINE` de la misma sesión. No derivar umbral de alarma, salud, severidad, seguridad, conformidad, vida útil, diagnósticos OEM o predicciones.
+- La nueva ampliación de interpretación por subsistemas y gráficas SVG fue escrita en la rama **después** de la V2; hasta ejecutar su prueba focalizada y el render real, permanece **NO VERIFICADA**.
+
+## 2. Entregables: un producto técnico, tres piezas
+
+**A — Informe técnico principal:** portada/confidencialidad/versión/revisores, índice navegable, objetivos y preguntas, diseño del experimento, equipos/canales/fases, instrumentación y adquisición, integridad y límites, estadística y semántica, cronología y continuidad, resultados por sistema corporal y por fase, hallazgos comentados por evidencia, conclusiones respaldadas, acciones discriminantes y exclusiones. Extensión determinada por relevancia (sin objetivo artificial de páginas).
+
+**B — Anexo técnico exhaustivo:** 29 fichas de articulaciones; para cada una 8 fases × 7 señales donde los datos existan, unidades/semántica/cobertura/samples/percentiles/comparación interna, flags, preguntas; matriz 29×8; diccionario OEM/canales; tablas completas. La ausencia se representa como `NULL / NO OBSERVADO / SEMÁNTICA SIN CONFIRMAR`, nunca como «0» ni como «normal».
+
+**C — Paquete reproducible privado:** CSV/JSON de señales y QA, registro de hallazgos/afirmaciones con fuentes, manifiesto con checksums de entradas y salidas, versión de motor/código, registro interno de revisiones y resultado de control de formato. El paquete no contiene autorización ficticia.
+
+Todo en `$HOME/elaris-private/<salida-nueva>`. No duplicar archivos G1 reales en repositorios, issues o CI. No subir el PDF como artefacto de Actions.
+
+## 3. Secuencia priorizada y condiciones de avance
+
+### M0 — Congelar contrato editorial y base verificable (P0)
+**Trabajo:** este plan y alcance; fijar análisis V0.3 por SHA en manifiesto *privado*; identificar versión actual del script y PR base; conservar V1/V2 inmutables; definir qué datos no se pueden interpretar por falta de semántica.
+**Gate:** documentación del esquema, diccionario de señales, campos desconocidos y matriz fuente→afirmación; no se modifica el robot ni el paquete. 
+**Entrega:** versión `G1_TECHNICAL_REPORT_CONTRACT_V1` + tabla de riesgos.
+
+### M1 — Validación de integridad, universos y exactitud (P0; PRIMER BLOQUE DE CÓDIGO)
+**Trabajo:** 
+1. Pruebas con fixtures sintéticos para ID de fases/slots, 29×8, las 7 familias, duplicados, nulos, números no finitos, índices OEM y enum no validado.
+2. Reconciliación explícita entre frames preservados, frames asignados, samples de canal y timestamps; nunca dividir conteos con denominadores distintos. Distinguir `sample` de `frame`.
+3. QA de `summary`, `comparisonsToIdle`, cobertura/qualifiers, checksum de salida y que el CSV serialice numéricos negativos sin corrupción.
+4. Etiqueta de evidencia insuficiente y de OEM no confirmado; tests de que no aparezcan `PASS`, `FAULT`, `HEALTHY` por inferencia.
+**Gate:** suite focalizada PASS con casos negativos; `inspect` PASS en privado; faltantes expresados como `UNRESOLVED`, no encubiertos.
+**Entrega:** `g1-evidence-validation.json` local y test sintético nuevo; sin raw en Git.
+
+### M2 — Motor de hallazgos interpretables y trazables (P0)
+**Trabajo:** cada hallazgo lleva `claim_id, phase, joint, channel, observed_metric, comparator, provenance, reliability, meaning, alternative_explanations, limitation, verification_action, reviewer_status`. Clasificación `OBSERVED / HUMAN_DECLARED / DERIVED / OEM_CONFIRMED / UNRESOLVED / NOT_ASSESSED`; `OEM_CONFIRMED` sólo con referencia auténtica. Separar prioridad para INVESTIGAR CALIDAD de severidad de avería.
+**Gate:** cada conclusión tiene evidencia V0.3 y puede regenerarse sin IA; cero afirmaciones diagnósticas sin validación externa.
+**Entrega:** `findings-ledger.json` privado + párrafos técnicos reproducibles sobre locomoción, giros, hombros, cintura, recuperación y slot sin resolver.
+
+### M3 — Análisis de ingeniería por fase, articulación y subsistema (P0)
+**Trabajo:** normalizar las comparaciones con reposo *dentro de la misma sesión*; mostrar diferencia absoluta con signo y ratio sólo si denominador válido, no confundir magnitud con riesgo. Estudiar patrones de posición/velocidad/torque estimado, cobertura, calidad, respuesta relativa por grupos anatómicos. Contrastar articulación solicitada con el resto sin inferir que órdenes implican movimiento exitoso. Preguntas abiertas sobre fase, state codes y relojes.
+**Gate:** toda cifra/etiqueta de figura corresponde a fila de anexo y tiene unidad/estado semántico; no inventar series temporales a partir de agregados.
+**Entrega:** capítulos técnicos por subsistema y 29 comentarios individuales sin diagnóstico.
+
+### M4 — Visualización y diseño editorial profesional (P1)
+**Trabajo:** volumen principal sin tablas kilométricas, gráficos de comparación entre fases y grupos con escala, denominador, notas de canal y legibilidad; matriz cobertura 29×8; línea temporal declarado vs observado; visual de distribución de QA; barras SVG descriptivas sólo cuando sustento. Volumen anexo con tablas paginadas, encabezados repetidos, índice, página, identificador de fuente y enlaces cruzados. No crear gráficos de señales continuas sin series temporales reales.
+**Gate:** revisión de PDF a imágenes de portada, índice, gráficos, tablas intermedias y final; no cortes, solapes ni fuentes ilegibles; figura numerada y accesible.
+**Entrega:** `G1 Technical Report INTERNAL vNext.pdf` y anexo separado en privado.
+
+### M5 — Revisión científica y cierre técnico (P1)
+**Trabajo:** dos rondas acotadas, no infinitas: QA automática y revisión humana técnica/editorial (Alexi + Juanma o revisor competente). Reconciliar discrepancias o registrar `OPEN QUESTION` con prueba discriminante. Comprobar vocabulario, unidades, sesgos de comparación, fuentes, afirmaciones sensibles, decisión next-steps y consistencia PDF/CSV.
+**Gate:** checklist firmado en registro local, manifest checksums PASS, revisión de todos los hallazgos altos, sin `TBD` ocultos, clasificación interna clara.
+**Entrega:** `INTERNAL TECHNICAL REVIEW COMPLETE`, no «certificado», no «habilitado para clientes».
+
+### M6 — Versión comercial (P2, FUERA DEL CIERRE ACTUAL)
+**Trabajo:** sólo después de M5 y con permiso verificable para esta versión/destinatarios, crear extracto anonimizado o evidencia sintética. Convertir el sistema en un SKU repetible y probarlo con compradores. Documento ejecutivo derivado y propuesta de venta.
+**Gate:** autorización explícita y validación de mensaje comercial independiente.
+**Entrega:** `CLIENT-SHAREABLE` sólo cuando esté efectivamente aprobado.
+
+## 4. Backlog inmediato sin dispersión
+
+- **T1 — Fijar pruebas negativas de calidad de datos y semántica** (M1).
+- **T2 — Extraer matriz de afirmaciones/observaciones a ledger privado** (M2).
+- **T3 — Crear capítulos por subsistema y acciones de verificación** (M3).
+- **T4 — Reestructurar el PDF en cuerpo técnico + anexo navegable** (M4).
+- **T5 — QA visual, firma técnica y gate de integridad** (M5).
+
+**Dependencias:** T1 → T2 → T3 → T4 → T5. Las gráficas SVG actuales son un incremento **experimental** que pasa por T1 y T4; no reemplazan la interpretación.
+
+## 5. Política de ejecución: evitar trabajo repetido
+
+- Continuar en la rama y PR existentes; no crear una rama nueva ni múltiples PRs paralelos.
+- Usar únicamente una suite focalizada de Node sintético por cambio; no abrir workflows grandes, reinstalar PNPM ni gastar tokens/servicios de IA.
+- Generar sobre G1 real sólo en WSL con `inspect`, permisos existentes y directorio nuevo. Los borradores previos permanecen intactos.
+- Compartir con el chat solo salidas `PASS/FAIL`, metadatos no sensibles y capturas previamente autorizadas. No pegar el registro de autorización, hashes, CSV ni mediciones privadas.
+- Tras cada hito, actualizar este documento y el issue maestro con `DONE / NEXT / BLOCKED / EVIDENCE`, enlazar commit y explicar qué falta. Ningún «PASS» antes de que corran las pruebas.
+- La autorización es un gate real para compartir, no un formulario repetitivo en el bucle de desarrollo.
+
+## 6. Estado al crear el plan
+
+| Gate | Estado |
+|---|---|
+| Paquete V0.3 / generación V2 en WSL | PASS informado por operador |
+| Tests focalizados V2 (2/2) | PASS informado por operador |
+| Nueva ampliación SVG / subsistemas | CÓDIGO COMMITTEADO; TESTS NO EJECUTADOS EN WSL |
+| Reconciliación de todos los contadores | PENDIENTE |
+| Hallazgos interpretados por evidencia | PENDIENTE |
+| Capítulos de ingeniería independientes de tablas | PENDIENTE |
+| QA visual y científica de versión final | PENDIENTE |
+| Autorización de difusión del caso real | NO APROBADA |
+
+**Próxima acción autónoma:** comenzar T1 con código/tests sintéticos en esta rama. Pedir un único pase focalizado WSL cuando el cambio esté listo; sin detenerse a regenerar PDFs de datos reales durante la planificación.
