@@ -93,3 +93,33 @@ explorer.exe "$(wslpath -w "$OUT/g1-exhaustive-report.pdf")"
 Usar otra ruta si v03 ya existe. No reejecutar el asistente interactivo de autorización durante iteraciones internas. La salida sigue **SENSITIVE / NOT APPROVED FOR EXPORT**. Si el permiso de uso existente no cubre trabajo interno, detenerse antes de procesar datos reales. Los registros de permisos y derechos siguen fuera de GitHub.
 
 **Estado hasta que se ejecute WSL:** código y tests sintéticos commiteados; NO afirmamos PASS, precisión del informe real, revisión humana ni finalización de M1/M2.
+
+## Gate consolidado M1+M2+M3: una sola ejecución focalizada
+
+El PASS anterior de 3/3 pruebas corresponde al código anterior. La nueva integración añade un módulo de subsistemas y una cuarta prueba sintética, aún no ejecutados por el operador.
+
+~~~bash
+cd /mnt/c/Users/alexi/Documents/Elaris-g1-evidence-bridge-v02
+git status --short
+git pull --ff-only
+node --check scripts/evidence-pack/g1-exhaustive-local-report.mjs
+node --check scripts/evidence-pack/g1-report-findings.mjs
+node --check scripts/evidence-pack/g1-report-subsystems.mjs
+node --test tests/evidence-pack/g1-exhaustive-local-report.test.mjs
+~~~
+
+Sólo si PASS y el trabajo interno está autorizado, crear una única salida nueva:
+
+~~~bash
+A="$HOME/elaris-private/component-health-v03-validation-20261007T035703Z/run-a/field-evidence-v03.json"
+OUT="$HOME/elaris-private/g1-exhaustive-report-20261019-v03"
+export ELARIS_PLAYWRIGHT_FROM="/mnt/c/Users/alexi/Documents/Elaris-evidence-pack-v0"
+if test -e "$OUT"; then echo "OUT YA EXISTE: ELEGIR OTRO NOMBRE"; else
+  node scripts/evidence-pack/g1-exhaustive-local-report.mjs --input "$A" --out "$OUT" --pdf
+fi
+if test -s "$OUT/g1-exhaustive-report.pdf" && test -s "$OUT/findings-ledger.json" && test -s "$OUT/subsystem-evidence.json"; then
+  echo "G1_PRIVATE_REPORT_LEDGER_SUBSYSTEMS_GENERATED"
+fi
+~~~
+
+Revisar localmente el manifiesto con 8 fases, 29 articulaciones, 1624 filas de señales, 1615 registros QA y 21 filas de subsistemas. No enviar al chat ni guardar en GitHub PDF, CSV, JSON o hashes de evidencia real. Todo sigue SENSITIVE / NOT APPROVED FOR EXPORT. El gate siguiente es una sola revisión del documento con fuentes, unidades, exclusiones y formato.
