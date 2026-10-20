@@ -7,6 +7,7 @@ import { isAbsolute, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { inspectPack, validatePrivateOutputTarget, resolvePlaywrightChromium } from "./g1-private-draft.mjs";
 import { buildG1FindingsLedger } from "./g1-report-findings.mjs";
+import { analyzeG1Subsystems } from "./g1-report-subsystems.mjs";
 
 const PRIVATE_ROOT = join(homedir(), "elaris-private");
 const SIGNALS = [
@@ -125,7 +126,7 @@ function validateReportEvidence(source) {
   return {phases: 8, oemSlots: 29, phaseSlots: 232, signalRows: 1624};
 }
 
-function analyze(source, findingsLedger) {
+function analyze(source, findingsLedger, subsystemEvidence) {
   validateReportEvidence(source);
   if(!Array.isArray(source.phases) || source.phases.length!==8) fail("Expected eight observed phases");
   const phases=source.phases, seenPhases=new Set();
@@ -218,26 +219,17 @@ function analyze(source, findingsLedger) {
     p("No hay comparaciones positivas validas para mostrar."));
   section.push(p("Estos resultados son DESCRIPTIVOS y dependen del contexto operacional y la semantica del canal. No comparar como si todas las fases tuvieran la misma exigencia mecanica."));
   section.push(p("Integridad de la revision pendiente: reconciliar contador de captura frente a asignaciones por fase y validar las unidades/escala OEM antes de usar umbrales."));
-  section.push(h(2,"4.2. Lectura por subsistema: respuesta operacional, no salud"));
-  section.push(p("Para cada fase se identifica la MAYOR variacion absoluta positiva del absP95 del torque estimado en piernas (joints 0-11), cintura (12-14) y miembros superiores (15-28). Esta seleccion no cuantifica carga total ni estado del robot."));
-  const groups=[["Piernas",0,11],["Cintura",12,14],["Miembros superiores",15,28]];
-  const byGroup=[];
-  for(const phase of phases){
-    if(phase.phaseId==="IDLE_BASELINE")continue;
-    for(const [name,lo,hi] of groups){
-      const candidates=phase.components.filter(c=>c.oemIndex>=lo&&c.oemIndex<=hi)
-        .map(c=>{const a=c.comparisonsToIdle?.["joint.torque_estimate"];
-          return {c,delta:a?.absP95Delta};})
-        .filter(x=>Number.isFinite(x.delta)&&x.delta>0)
-        .sort((a,b)=>b.delta-a.delta);
-      const top=candidates[0];
-      byGroup.push([phase.phaseId,name,top?.c.componentName??"No hay incremento positivo",
-        top?fmt(top.delta):"—"]);
-    }
-  }
-  section.push(tab(["Fase","Grupo anatomico","Articulacion con mayor incremento positivo","Delta absP95"],byGroup));
-  section.push(p("La fase TURNING representa una actividad mecanicamente distinta de IDLE, por lo que aumentos de magnitud no acreditan anomalía. Los componentes y la geometria deben interpretarse con la tarea y la semantica OEM."));
-
+  section.push(h(2,"4.2. Comparaciones entre subsistemas (descriptivas, no diagnósticas)"));
+  section.push(p("Cada fila corresponde a una fase y un grupo anatómico definido por índices OEM. Solo se comparan componentes observados, con slot utilizable, estimación normalizada y muestra comparable frente al reposo de LA MISMA SESIÓN. Se excluyen explícitamente señales no interpretables; la cantidad comparable no es una nota de salud."));
+  section.push(tab(["Fase","Grupo","Componentes comparables","Excluidos","Mediana Δ absP95","Mayor incremento observado","Mayor descenso observado"],
+    subsystemEvidence.rows.map(r=>[
+      r.phaseId,r.groupLabel,r.comparableSlots+"/"+r.expectedSlots,r.excludedSlots,
+      fmt(r.medianSignedDelta),
+      r.largestPositive?r.largestPositive.componentName+" ("+fmt(r.largestPositive.signedDelta)+")":"SIN INCREMENTO",
+      r.largestNegative?r.largestNegative.componentName+" ("+fmt(r.largestNegative.signedDelta)+")":"SIN DESCENSO"
+    ])));
+  section.push(p("La mediana representa cambios de magnitud por articulación dentro de este grupo; NO equivale a torque total ni carga mecánica del subsistema. Cada fila tiene trazabilidad de origen y exclusiones en subsystem-evidence.json."));
+  section.push(p("La comparación idle-operación no ajusta postura, velocidad, masa/carga ni perturbaciones, por lo que los incrementos no prueban anormalidad. Las unidades y límites OEM no están confirmados universalmente."));
   section.push(h(2,"4.3. Hallazgos trazables para revisión humana"));
   section.push(p("Esta selección editorial procede del registro determinístico findings-ledger.json, que contiene las referencias exactas. No sustituye el análisis de ingeniería humana ni permite inferir averías."));
   const notable = findingsLedger.items
@@ -346,7 +338,8 @@ export async function main(argv) {
   const {analysis,digest}=inspectPack(input,root);
   const dest=validatePrivateOutputTarget(out,root);
   const findingsLedger=buildG1FindingsLedger(analysis,digest);
-  const report=analyze(analysis,findingsLedger);
+  const subsystemEvidence=analyzeG1Subsystems(analysis);
+  const report=analyze(analysis,findingsLedger,subsystemEvidence);
   const styled="<html lang='es'><head><meta charset='utf-8'><style>"+
     "body{font:11px/1.55 Arial,sans-serif;color:#18364f;padding:22px}h1{font-size:26px}h2{font-size:19px;color:#234f79;border-bottom:1px solid #bdd0e0;margin-top:24px}h3{font-size:15px;color:#264f6d;margin-top:22px}table{border-collapse:collapse;width:100%;font-size:9px;table-layout:fixed;margin:12px 0 18px}tr{break-inside:avoid}th,td{border-bottom:1px solid #d5dfe8;padding:4px;overflow-wrap:anywhere;text-align:left}th{background:#e7f0f8}figure.signal-plot{max-width:1050px;margin:18px auto 20px;break-inside:avoid}figure.signal-plot svg{width:100%;height:auto;display:block}figcaption{font-size:11px;color:#394c60}@page{size:A4 landscape;margin:13mm}@media print{body{padding:0;font-size:10px}table{font-size:9px}th,td{padding:3px}h2,h3{break-after:avoid}}"+
     "</style></head><body>"+report.html+"</body></html>";
@@ -362,6 +355,8 @@ export async function main(argv) {
   const files={
     "g1-exhaustive-report.html":styled,
     "findings-ledger.json":JSON.stringify(findingsLedger,null,2)+"\n",
+    "subsystem-evidence.json":JSON.stringify(subsystemEvidence,null,2)+"\n",
+    "subsystem-evidence.csv":csv([["phase","subsystem","expectedSlots","comparableSlots","excludedSlots","medianSignedDelta","topPositiveOEM","topPositiveDelta","topNegativeOEM","topNegativeDelta","status"],...subsystemEvidence.rows.map(r=>[r.phaseId,r.groupId,r.expectedSlots,r.comparableSlots,r.excludedSlots,r.medianSignedDelta,r.largestPositive?.oemIndex,r.largestPositive?.signedDelta,r.largestNegative?.oemIndex,r.largestNegative?.signedDelta,r.status])]),
     "component-signals.csv":csv([["oemIndex","componentId","componentName","phaseId","slotStatus","availability",
       "signal","semanticsStatus","unit","samples","uniqueTimestamps","coverage","quality","min","p05","mean","p50","p95",
       "max","absP95","first","last","delta","stateCodes","transitions","idleMean","observedMean","meanDelta","idleP95",
@@ -377,6 +372,7 @@ export async function main(argv) {
     exportApproval:"NOT_APPROVED",ownerAuthorizationAsserted:false,
     shareStatus:"LOCAL_ONLY",phases:analysis.phases.length,joints:29,signalRows:report.signalRows.length,
     findings:report.findingRows.length,structuredClaims:findingsLedger.items.length,
+    subsystemRows:subsystemEvidence.rows.length,
     humanReview:"PENDING",phaseAllocatedFrames:report.totalFrames,outputs:{}};
   if(pdf)files["g1-exhaustive-report.pdf"]=pdf;
   for(const [name,bytes] of Object.entries(files)){
@@ -388,6 +384,7 @@ export async function main(argv) {
   console.log("G1 EXHAUSTIVE LOCAL DRAFT CREATED (SENSITIVE / NO EXPORT)");
   console.log("Phases:",manifest.phases,"Joints:",manifest.joints,"Signal rows:",manifest.signalRows,"QA findings:",manifest.findings);
   console.log("Findings ledger:",manifest.structuredClaims,"claims pending human review");
+  console.log("Subsystem comparisons:",manifest.subsystemRows,"rows pending human review");
   console.log("Private output:",dest);
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)
