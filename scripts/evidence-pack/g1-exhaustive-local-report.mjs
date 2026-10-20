@@ -190,8 +190,7 @@ function analyze(source, findingsLedger, subsystemEvidence) {
     x.phaseId,x.frameCount,x.declaredStart+" / "+x.declaredEnd,val(x.observedTelemetryStart)+" / "+val(x.observedTelemetryEnd),
     x.observedComponentCount+"/"+x.componentSlots
   ])));
-  section.push(p("Frames asignados a fases: "+totalFrames+". El registro historico de Dataset 002 indica 15000 frames preservados. Diferencia: "+
-    (15000-totalFrames)+". No equivale automaticamente a perdida o corrupcion; requiere revisar ventanas y denominadores."));
+  section.push(p("Frames asignados a ventanas de fase: "+totalFrames+". El contrato del reporte V0.3 no contiene un total independiente y verificable de frames de la captura completa: reconciliar contra el manifiesto de captura original en el entorno privado. No se pueden calcular frames perdidos ni un porcentaje de pérdida a partir de esta tabla."));
   section.push(h(2,"3. Semantica de señales y metodo"));
   section.push(p("Datos por joint y fase: seven familias de señales del V0.3, estadistica descriptiva, cobertura, calidad y comparacion con reposo de la MISMA sesion."));
   section.push(p("Un ratio de torque estimado no es probabilidad de riesgo ni diagnostico. Los canales voltage/state code requieren verificacion semantica OEM."));
@@ -205,17 +204,16 @@ function analyze(source, findingsLedger, subsystemEvidence) {
   const highlights=[];
   for(const phase of phases) {
     if(phase.phaseId==="IDLE_BASELINE")continue;
-    const rows=(source.operationalFingerprints?.[phase.phaseId]||[])
-      .filter(x=>Number.isFinite(x.idleAbsP95)&&Number.isFinite(x.observedAbsP95))
-      .map(x=>({name:x.componentName,idle:x.idleAbsP95,observed:x.observedAbsP95,
-        delta:x.observedAbsP95-x.idleAbsP95,ratio:x.ratio}))
-      .filter(x=>x.delta>0).sort((a,b)=>b.delta-a.delta);
-    for(const item of rows.slice(0,4)) highlights.push([
-      phase.phaseId,item.name,fmt(item.idle),fmt(item.observed),fmt(item.delta),
-      Number.isFinite(item.ratio)?fmt(item.ratio):"—"
+    const eligible=subsystemEvidence.rows.filter(x=>x.phaseId===phase.phaseId)
+      .flatMap(row=>row.topPositive)
+      .filter(x=>Number.isFinite(x.signedDelta)&&x.signedDelta>0)
+      .sort((a,b)=>b.signedDelta-a.signedDelta||a.oemIndex-b.oemIndex);
+    for(const x of eligible.slice(0,4)) highlights.push([
+      phase.phaseId,x.componentName,fmt(x.idleAbsP95),
+      fmt(x.observedAbsP95),fmt(x.signedDelta),"—"
     ]);
   }
-  section.push(highlights.length?tab(["Fase","Articulacion","Idle absP95","Fase absP95","Incremento absoluto","Ratio"],highlights):
+  section.push(highlights.length?tab(["Fase","Articulacion","Idle absP95","Fase absP95","Incremento absoluto","Ratio no calculado"],highlights):
     p("No hay comparaciones positivas validas para mostrar."));
   section.push(p("Estos resultados son DESCRIPTIVOS y dependen del contexto operacional y la semantica del canal. No comparar como si todas las fases tuvieran la misma exigencia mecanica."));
   section.push(p("Integridad de la revision pendiente: reconciliar contador de captura frente a asignaciones por fase y validar las unidades/escala OEM antes de usar umbrales."));
@@ -265,13 +263,13 @@ function analyze(source, findingsLedger, subsystemEvidence) {
       ["Señales de baja cobertura",q.lowCoverageSignalCount],
       ["Mediana gap frames (ms)",q.medianInterFrameGapMs],["Maximo gap frames (ms)",q.maxInterFrameGapMs]
     ]));
-    const deltas=phase.components.map(c=>({name:c.componentName,
-      delta:c.comparisonsToIdle?.["joint.torque_estimate"]?.absP95Delta}))
-      .filter(x=>Number.isFinite(x.delta)&&x.delta>0)
-      .sort((a,b)=>b.delta-a.delta);
+    const deltas=subsystemEvidence.rows.filter(x=>x.phaseId===phase.phaseId)
+      .flatMap(x=>x.topPositive)
+      .filter(x=>Number.isFinite(x.signedDelta)&&x.signedDelta>0)
+      .sort((a,b)=>b.signedDelta-a.signedDelta||a.oemIndex-b.oemIndex);
     if(phase.phaseId!=="IDLE_BASELINE")
       section.push(svgBars("Variaciones del torque estimado: "+phase.phaseId,
-        deltas.slice(0,7).map(x=>[x.name,x.delta])));
+        deltas.slice(0,7).map(x=>[x.componentName,x.signedDelta])));
     section.push(h(4,"Fingerprints de torque estimado vs reposo"));
     section.push(f.length?tab(["Joint","Idle absP95","Fase absP95","Ratio"],f.map(x=>[
       x.componentName,fmt(x.idleAbsP95),fmt(x.observedAbsP95),fmt(x.ratio)
