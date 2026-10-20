@@ -93,3 +93,83 @@ Usar un solo SKU como hipótesis inicial: **Field Evidence Audit** para integrad
 - `docs/research/boop-2026/technical-evidence-pack-template.md`
 
 Este documento propone un contrato de producto; **no certifica resultados del G1 ni modifica el estado de autorizaciones**.
+
+
+## Procedimiento operativo de cierre del primer G1 — 2026-10-19
+
+**Este runbook se limita a lo que es posible con el material YA capturado y permite un único gate de pruebas focalizado.** No descarga ni publica datos de Siglo 21. El informe original y la nueva salida permanecen bajo el directorio privado del operador.
+
+### Etapa A — Preflight + integridad (sin permisos nuevos, sin escribir evidencia)
+
+Ejecutar en Ubuntu WSL en el worktree de trabajo que ya existe, **si su ruta continúa vigente**. Revisar cambios locales antes de actualizar Git; no sobrescribir modificaciones no commiteadas.
+
+```bash
+cd /mnt/c/Users/alexi/Documents/Elaris-g1-evidence-bridge-v02
+git status --short
+git pull --ff-only
+node --check scripts/evidence-pack/g1-private-draft.mjs
+node --check scripts/evidence-pack/create-g1-internal-authorization.mjs
+node --test tests/evidence-pack/g1-private-draft.test.mjs
+
+A="$HOME/elaris-private/component-health-v03-validation-20261007T035703Z/run-a/field-evidence-v03.json"
+test -f "$A"
+node scripts/evidence-pack/g1-private-draft.mjs inspect --input "$A"
+```
+
+**Gate A PASS:** checks y suite focalizada pasan; `inspect` dice `VERIFIED PACK` sin escribir archivos, y el analysis ID coincide con el registro previo `CH-A03-5D9D0A2922AD460F245F`. Si no coincide, investigar antes de avanzar. No incluir hashes ni valores sensibles en GitHub/chat.
+
+### Etapa B — Registro legítimo y regeneración de borrador PRIVADO
+
+- Confirmar que el permiso **ya concedido** por el titular cubre efectivamente la preparación del informe interno; establecer fecha/medio/persona autorizante/referencia reales y facultades. El operador no puede inventar ni sustituir consentimiento de terceros.
+- **No usar el registro de autorización anterior con campos genéricos.** Conservar su artefacto anterior como `SUPERSEDED / UNREVIEWED`, no borrar.
+- Si el permiso es real y se conoce su alcance, ejecutar el asistente; sólo éste solicita por consola la atestación y confirma `AUTORIZO`. Esto **no concede derechos de difusión externa**:
+
+```bash
+cd /mnt/c/Users/alexi/Documents/Elaris-g1-evidence-bridge-v02
+export ELARIS_PLAYWRIGHT_FROM="/mnt/c/Users/alexi/Documents/Elaris-evidence-pack-v0"
+A="$HOME/elaris-private/component-health-v03-validation-20261007T035703Z/run-a/field-evidence-v03.json"
+OUT="$HOME/elaris-private/g1-internal-draft-20261019-01"
+node scripts/evidence-pack/create-g1-internal-authorization.mjs "$A" --prepare-pdf "$OUT"
+test -s "$OUT/internal-g1-draft.pdf"
+explorer.exe "$(wslpath -w "$OUT/internal-g1-draft.pdf")"
+```
+
+`OUT` debe ser un directorio **nuevo** y privado: cambiar el sufijo si ya existe. No repetir `pnpm install`: el gate previo tuvo `ERR_PNPM_ENOMEM`; reutilizar Playwright si sigue disponible. Si el permiso no se puede sustentar, **detenerse antes del asistente**.
+
+**Gate B PASS:** `PRIVATE DRAFT CREATED`, PDF no vacío, manifiesto y registro privado completos, salida etiquetada `SENSITIVE / NOT APPROVED FOR EXPORT`.
+
+### Etapa C — Revisión técnica y elaboración del INFORME, no sólo el listado de señales
+
+Revisión del PDF en el entorno local por Alexi y Juanma / revisor técnico apropiado. Construir una versión revisada usando la estructura del presente documento; la generación automática V0.2a existente **no** implementa todavía todo el relato ejecutivo recomendado aquí.
+
+Para cada hallazgo incluido en el informe final, guardar en privado una ficha:
+
+`ID | componente | fase | medición o QA observada | evidencia + versión | conclusión permitida | hipótesis NO probadas | próxima prueba | revisor`.
+
+Comprobaciones específicas de la sesión G1:
+- Dataset #001 = baseline finalizado; Dataset #002 = salvaged partial OPEN con integridad verificada, jamás FINALIZED.
+- Ocho fases humanas; distinguir ventana humana de ventana efectivamente observada, especialmente `RECOVERY_IDLE`.
+- Los 29 slots observados y las categorías de QA **no prueban** que 29 componentes estén sanos.
+- RightWristYaw OEM 28 = `STILL_UNRESOLVED`; no inferir avería mecánica.
+- Timestamps duplicados y phase-end gap = dudas de instrumento/semántica, no incidentes de robot.
+- `motorstate`, `vol` y códigos como `3104`: no asignar causa/umbral no validado.
+- Los 1.615 registros de calidad/semántica NO son 1.615 fallas.
+- Revisar todas las páginas: cortes, tablas, unidades, legibilidad, exactitud de notas, consistencia de fuentes, clasificación y disclaimer.
+
+**Gate C PASS (cierre técnico interno):** PDF completo con resumen ejecutivo, método, resultados y conclusiones limitadas, tabla de preguntas abiertas y plan de siguiente verificación; cada claim con fuente y revisión humana explícita. No hace falta otra visita al robot para **documentar honestamente los límites**.
+
+### Etapa D — Versión comercial / derechos de difusión (separado)
+
+No compartir la versión privada a prospectos, brokers, aseguradores, universidades ni otras entidades sin acuerdo verificable para **esa versión, sus datos/derivados, destinatarios y finalidad**, incluyendo derechos relevantes de Humandroid y la institución donde se capturó si aplica. Una autorización para análisis INTERNO no autoriza comercialización. Redactar/remover identificadores o cifras que el titular no habilite, sin perder honestidad metodológica.
+
+**Gate D PASS:** responsable técnico y titular autorizan por separado versión final sanitizada, destinatarios y uso permitido; la entrega conserva versión/fecha/manifest/integridad. En ausencia de autorización externa, sólo presentar una versión íntegramente sintética y rotulada, sin confundirla con el caso G1 real.
+
+### Estados y responsabilidad
+
+- **Estado constatado en GitHub a 2026-10-19:** borrador PDF privado real generado (2026-10-09), metadata de autorización incompleta, corrección de su validador en código, última ejecución de nuevos tests y QA final no registrados, publicación externa no autorizada.
+- **Alexi:** Gate A/B, revisión técnica y construcción del informe privado bajo permisos existentes.
+- **Juanma / revisor experto:** revisión de utilidad y precisión para el comprador; correcciones.
+- **Titular(es) de datos:** confirmación del alcance legal y gate D.
+- **Elaris:** fuente canónica de código, plan, resultados **sanitizados**, sin datos ni autorización privada en GitHub.
+
+**Próxima acción comprobable:** Gate A en WSL y reportar únicamente `PASS/FAIL` de la suite y de `inspect`; luego B si está sustentada la autorización interna. No abrir suites completas ni nuevas ramas salvo error focalizado.
