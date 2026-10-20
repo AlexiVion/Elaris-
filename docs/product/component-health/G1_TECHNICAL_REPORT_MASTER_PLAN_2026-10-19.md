@@ -165,3 +165,14 @@ Se genera `subsystem-evidence.json` y `subsystem-evidence.csv` **solo bajo la ca
 3. Se eliminó el número fijo de 15.000 frames del PDF generado automáticamente: en el fixture sintético provocaba un falso `14172` de diferencia. La reconciliación real 15.000 vs. 14.912 se mantiene como cuestión documental a resolver con las fuentes originales y el manifest, no como una resta universal del motor.
 
 **Estado:** V3 real generado; suite V3 anterior falló 1 aserción; fixes commiteados pero **no ejecutados aún en WSL**. La próxima acción es solamente `git pull --ff-only` + una suite focalizada. No regenerar la V3 para probar un assert. Posteriormente revisar y cerrar el ledger de 224 afirmaciones en privado, y recién entonces regenerar una versión siguiente.
+
+## Gate real de auditoría V3 — 20/10/2026
+
+**Comprobado por ejecución WSL del operador en el commit 1caee0c:**
+- `node --check scripts/evidence-pack/g1-review-audit.mjs` PASS.
+- Suite focalizada `g1-exhaustive-local-report.test.mjs`: **5 PASS, 0 FAIL**.
+- Auditoría real **V3 local PASS**: `G1 PRIVATE REVIEW AUDIT PASS — HUMAN REVIEW PENDING; NO EXPORT`. Resultado: **224 claims** y **21 filas de subsistemas**; checklist creado localmente bajo `$HOME/elaris-private/g1-review-audit-20261020-v01`.
+
+**Interpretación exacta:** los hashes y la correspondencia entre paquetes/anexos/comparaciones alcanzaron el criterio automático programado. El gate NO certifica la interpretación física, no confirma semántica OEM, calidad científica de las conclusiones ni derecho de distribución.
+
+**Siguiente hito activo:** M4a — organizar los 224 claims por revisión humana, con campos de decisión explícitos y clasificación de prioridad de *revisión de evidencia*, jamás severidad física. Registrar el resultado en un directorio nuevo sin modificar la V3, el corpus ni el checklist ya emitido. Antes de afirmar cierre científico, exigir persona revisora, método y resolución documental de cada punto crítico o limitación explícita.
