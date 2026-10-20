@@ -120,3 +120,19 @@ Todo en `$HOME/elaris-private/<salida-nueva>`. No duplicar archivos G1 reales en
 **Avance T1 (código en rama, aún NO probado en WSL):** se añadió una validación `validateReportEvidence` fail-closed para comprobar las identidades estables por OEM entre fases, las filas QA únicas, las estadísticas numéricas, la relación `uniqueTimestamps <= samples` y el rango de cobertura. Se añadieron cuatro escenarios negativos con paquetes totalmente sintéticos, incluidos fixtures independientes por fase. No se accedió a datos reales ni se abrió CI general.
 
 **Próxima acción:** ejecutar un **único** gate focalizado WSL de las pruebas del nuevo código. Sólo si pasa, regenerar borrador privado en directorio nuevo (sin autorización repetida) y continuar T2; no marcar M1 DONE por un commit no ejecutado.
+
+
+## Avance posterior — M1 + M2 (código completado, gate local pendiente)
+
+**M1/T1:** contrato defensivo de coherencia por índice OEM, identidad entre fases, 7 canales, summary, comparaciones, timestamps, muestras y QA (fase única). Casos negativos sintéticos contemplan identidad modificada, muestra inválida, máximo no numérico y QA duplicada. La fuente real no se tocó.
+
+**M2/T2:** módulo puro **scripts/evidence-pack/g1-report-findings.mjs**. Genera un ledger determinístico de ventanas de fase, contrastes descriptivos de torque estimado frente a reposo, observaciones de slots sin resolver y conteos agrupados de calidad, con fuente concreta, alternativas, limitaciones, acción y revisión pendiente. Se integra en el generador como **findings-ledger.json** privado, con conteo en el manifiesto; el PDF muestra una selección de claims que deben ser evaluados por humano. No atribuye diagnósticos ni daños.
+
+**Pruebas:** se ampliaron los tests existentes sintéticos y su listado de afirmaciones. Por el momento NO están ejecutados por el operador en esta revisión. El gate focalizado único y generación nueva están documentados en **g1-exhaustive-local-report-runbook-v01.md**.
+
+**Bloqueos reales para afirmar M1/M2 DONE:**
+1. Gate focalizado sintético PASS en WSL tras actualizar la rama.
+2. Generación real en NUEVA carpeta privada, verificación de manifiesto y 8/29/1624/1615.
+3. Revisión humana de la nueva sección de hallazgos, consistencia de fuentes y unidades.
+
+**NEXT:** recibir resultado del gate, resolver cualquier falla concreta, luego avanzar a M3 e informe principal independiente del anexo. No pedir otra captura ni publicar resultados sensibles.
