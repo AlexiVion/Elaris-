@@ -143,3 +143,38 @@ node --test tests/evidence-pack/g1-exhaustive-local-report.test.mjs
 ~~~
 
 **Criterio PASS:** cuatro tests, cuatro aprobados, cero fallos. Si vuelve a fallar, no generar otro PDF: registrar únicamente el mensaje breve del test, NO todo el HTML (Node imprime un objeto enorme). La V3 privada existente se conserva intacta; las mejoras de visualización se aplicarán al siguiente render cuando la revisión técnica lo justifique.
+
+
+## Cola humana M4a — ejecutar SOLO tras superar el nuevo gate (2026-10-20)
+
+Anteriormente el operador verificó la V3 existente, sin exportar: **5/5 tests PASS; 224 claims y 21 filas de subsistemas**. La extensión que produce review-worklist.json, review-worklist.csv y review-memo.md aún requiere nueva prueba.
+
+**Un solo gate focalizado:**
+
+~~~bash
+cd /mnt/c/Users/alexi/Documents/Elaris-g1-evidence-bridge-v02
+git status --short
+git pull --ff-only
+node --check scripts/evidence-pack/g1-review-worklist.mjs &&
+node --check scripts/evidence-pack/g1-review-audit.mjs &&
+node --test tests/evidence-pack/g1-exhaustive-local-report.test.mjs
+~~~
+
+Si PASS, **NO regenerar** el informe V3 ni sobrescribir la auditoría previa. Ejecutar la misma auditoría de fuente y artefactos, ahora con un destino NUEVO:
+
+~~~bash
+A="$HOME/elaris-private/component-health-v03-validation-20261007T035703Z/run-a/field-evidence-v03.json"
+DRAFT="$HOME/elaris-private/g1-exhaustive-report-20261019-v03"
+REVIEW="$HOME/elaris-private/g1-review-audit-20261020-v02"
+if test -e "$REVIEW"; then
+  echo "REVIEW YA EXISTE: ELEGIR OTRA CARPETA NUEVA"
+else
+  node scripts/evidence-pack/g1-review-audit.mjs --input "$A" --draft "$DRAFT" --out "$REVIEW"
+fi
+test -s "$REVIEW/review-worklist.csv" && test -s "$REVIEW/review-memo.md" &&
+  echo "PRIVATE_G1_REVIEW_WORKLIST_CREATED"
+~~~
+
+Todos los archivos permanecen locales con clasificación SENSITIVE / NOT APPROVED FOR EXPORT. El CSV es la lista de trabajo: **no editar la versión generada**; si hace falta registrar decisiones técnicas, crear una copia dentro del espacio privado con revisor, fecha, motivación y referencia original. No cargar al chat, al repositorio público ni a servicios externos sin autorización expresa de uso de datos y destinatarios.
+
+**Lo que sigue:** revisar primero calidad y semántica de las señales; luego el slot no resuelto, fases y ventanas; finalmente los contrastes de torque estimado, contexto de movimiento, unidades, fuentes y conclusiones del volumen principal. La ordenación es por dependencia de calidad de la evidencia, **no por severidad mecánica**. El programa no firma ni aprueba el trabajo.
