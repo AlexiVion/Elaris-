@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync, statSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 
@@ -45,7 +45,7 @@ function fixture(home){
     phases:names.map((name,i)=>({phaseId:name,label:"Fictional "+name,
       contextEvidenceClass:"HUMAN_CONFIRMED",declaredStart:"2026-10-06T00:00:00Z",declaredEnd:"2026-10-06T00:00:30Z",
       observedTelemetryStart:"2026-10-06T00:00:01Z",observedTelemetryEnd:"2026-10-06T00:00:29Z",
-      frameCount:100+i,jointEventCount:29000,componentSlots:29,observedComponentCount:29,components})),
+      frameCount:100+i,jointEventCount:29000,componentSlots:29,observedComponentCount:29,components:structuredClone(components)})),
     operationalFingerprints:{},quality:{maxCoverage:1,phaseQuality:names.map(phaseId=>({phaseId,
       declaredDurationMs:30000,observedDurationMs:28000,observedStartLagMs:1000,observedEndGapMs:1000,
       missingComponentSlots:0,lowCoverageSignalCount:0,duplicateSignalSampleCount:0,
@@ -98,4 +98,39 @@ test("exhaustive local report refuses overwrites and destinations outside privat
   const external=spawnSync(process.execPath,[SCRIPT,"--input",f.reportPath,"--out",join(home,"public")],{env,encoding:"utf8"});
   assert.notEqual(external.status,0);
   assert.equal(existsSync(join(home,"public")),false);
+});
+
+
+function mutateSyntheticPack(reportPath, mutate) {
+  const original = JSON.parse(readFileSync(reportPath,"utf8"));
+  mutate(original);
+  writeFileSync(reportPath,JSON.stringify(original));
+  const pack=dirname(reportPath);
+  const names=["field-evidence-v03.json","field-evidence-v03.md",
+    "analysis-run.json","quality-v03.json","phase-manifest.json"];
+  writeFileSync(join(pack,"checksums.sha256"),names.map(name=>
+    digest(readFileSync(join(pack,name)))+"  "+name).join("\n")+"\n");
+}
+test("rejects inconsistent joint identity, invalid numerical samples and mismatched QA phases",()=>{
+  const failures=[
+    ["identity",report=>{report.phases[1].components[0].componentName="Different fictional joint";},
+      /Inconsistent component identity/],
+    ["samples",report=>{report.phases[1].components[0].signals["joint.position"].summary.samples=-3;},
+      /Invalid samples/],
+    ["percentiles",report=>{report.phases[1].components[0].signals["joint.position"].summary.max="invalid";},
+      /Invalid summary number/],
+    ["quality",report=>{report.quality.phaseQuality[1].phaseId="IDLE_BASELINE";},
+      /Missing or duplicate QA phase/]
+  ];
+  for(const [label,change,expected] of failures){
+    const home=join(base,"invalid-"+label);mkdirSync(home);
+    const {root,reportPath}=fixture(home);
+    mutateSyntheticPack(reportPath,change);
+    const out=join(root,"should-not-exist");
+    const run=spawnSync(process.execPath,[SCRIPT,"--input",reportPath,"--out",out],
+      {cwd:process.cwd(),env:{...process.env,HOME:home},encoding:"utf8"});
+    assert.notEqual(run.status,0,label+" should fail");
+    assert.match(run.stderr,expected,label);
+    assert.equal(existsSync(out),false,label+" should not create outputs");
+  }
 });
