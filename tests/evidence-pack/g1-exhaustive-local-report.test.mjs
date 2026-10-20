@@ -130,18 +130,22 @@ test("exhaustive local report builds 8 chapters, 29 dossiers, 1624 signal rows w
   assert.match(checklist,/REVIEW_PENDING/);
   assert.match(checklist,/Ningún ítem está aprobado automáticamente/);
   const worklist=JSON.parse(readFileSync(join(auditOut,"review-worklist.json"),"utf8"));
-  assert.equal(worklist.claimCount,224);
+  // A synthetic fixture has 8 phase + 8 unresolved + 203 contrasts + 1 QA
+  // = 220 claims. The independently generated REAL V3 has 224; never
+  // hardcode the real corpus count into a synthetic-fixture assertion.
+  assert.equal(worklist.claimCount,assessment.claimsChecked);
+  assert.equal(worklist.claimCount,ledger.items.length);
   assert.equal(worklist.humanReview,"PENDING");
   assert.equal(worklist.exportApproval,"NOT_APPROVED");
   assert.equal(worklist.safetySemantics,"EVIDENCE_REVIEW_ONLY_NOT_HARDWARE_RISK_OR_FAILURE_SEVERITY");
-  assert.equal(worklist.rows.length,224);
-  assert.equal(new Set(worklist.rows.map(x=>x.claimId)).size,224);
+  assert.equal(worklist.rows.length,assessment.claimsChecked);
+  assert.equal(new Set(worklist.rows.map(x=>x.claimId)).size,assessment.claimsChecked);
   assert.ok(worklist.rows.every(x=>x.reviewDecision==="PENDING_HUMAN_REVIEW" &&
     x.humanReviewer===null && x.physicalRiskRanking==="NOT_ASSESSED" &&
     x.exportApproval==="NOT_APPROVED"));
-  assert.equal(Object.values(worklist.counts).reduce((a,b)=>a+b,0),224);
+  assert.equal(Object.values(worklist.counts).reduce((a,b)=>a+b,0),assessment.claimsChecked);
   assert.equal(readFileSync(join(auditOut,"review-worklist.csv"),"utf8")
-    .trimEnd().split("\\n").length,225);
+    .trimEnd().split("\n").length,assessment.claimsChecked+1);
   const memo=readFileSync(join(auditOut,"review-memo.md"),"utf8");
   assert.match(memo,/Orden de revisión técnica/);
   assert.match(memo,/no contiene una firma ni concede autorización alguna/i);
