@@ -185,3 +185,14 @@ Tras el gate V3 confirmado (`5/5`, auditoría privada **224 claims / 21 subsiste
 - Test focalizado sintético ampliado: exige 224 IDs únicos, conteo total por carril, 225 líneas del CSV (cabecera + filas), sin aprobaciones ni etiquetas de falla física.
 
 **Gate pendiente:** la nueva ampliación necesita `node --check` y la suite focalizada WSL; **NO** marcarlo como PASS antes de recibir ese resultado. Una vez PASS, ejecutar la auditoría existente `g1-review-audit.mjs` con la V3 verificada pero salida de auditoría NUEVA; no modificar `g1-review-audit-20261020-v01`. Luego el equipo debe completar decisiones científicas individualmente o documentar limitaciones agrupadas sin afirmar conclusión física que no se sostiene.
+
+## Gate worklist real + incidencia de fixture sintético — 20/10/2026
+
+**Ejecución comprobada por salida WSL:**
+- Rama actualizada a `4b81b2b`.
+- Nueva suite focalizada: **4 PASS / 1 FAIL**. Falló la expectativa de un test porque codificaba **224** (cantidad del G1 real) para un **fixture sintético con 220** claims: 8 fases + 8 slots no resueltos + 203 comparaciones + 1 categoría QA. No es inconsistencia de los datos reales.
+- Auditoría local de V3: **PASS**, 224 claims y 21 filas de subsistemas; nueva cola `review-worklist` con **224 entradas pendientes y cinco carriles** creada en `$HOME/elaris-private/g1-review-audit-20261020-v02`. El archivo original, PDF y permisos no se alteraron.
+
+**Corrección concreta commiteada:** el test compara count, filas, IDs únicos y cabecera CSV con `assessment.claimsChecked` del fixture sintético, no con el número real 224; además corrige el separador de líneas del test CSV. **Todavía no existe PASS del test corregido en WSL; requiere una sola corrida focalizada.**
+
+**Cierre epistemológico:** la creación de una lista con 224 elementos **no significa revisión científica de 224 hallazgos**, ni aprobación o diagnóstico. El siguiente trabajo será revisión humana por carril (semántica/QA antes de comparaciones), explicitando cuestiones abiertas y referencia de cada conclusión. No regenerar el G1 ni el PDF para corregir el test.
