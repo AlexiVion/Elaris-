@@ -75,7 +75,11 @@ test("exhaustive local report builds 8 chapters, 29 dossiers, 1624 signal rows w
   assert.equal(manifest.ownerAuthorizationAsserted,false);
   assert.equal(manifest.shareStatus,"LOCAL_ONLY");
   assert.equal(readFileSync(join(out,"component-signals.csv"),"utf8").trimEnd().split("\n").length,1625);
-  assert.match(readFileSync(join(out,"g1-exhaustive-report.html"),"utf8"),/NOT APPROVED FOR EXPORT/);
+  const reportHtml=readFileSync(join(out,"g1-exhaustive-report.html"),"utf8");
+  assert.match(reportHtml,/NOT APPROVED FOR EXPORT/);
+  assert.match(reportHtml,/Lectura cuantitativa preliminar/);
+  assert.match(reportHtml,/OBSERVACION NO RESUELTA/);
+  assert.match(reportHtml,/A4 landscape/);
   assert.ok(existsSync(join(out,"quality-findings.csv")));
   assert.equal(statSync(out).mode&0o777,0o700);
   assert.equal(statSync(join(out,"g1-exhaustive-report.html")).mode&0o777,0o600);
