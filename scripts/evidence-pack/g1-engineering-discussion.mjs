@@ -39,7 +39,7 @@ export function buildG1EngineeringDiscussion({source,ledger,subsystems}){
     "",
     "La referencia es IDLE_BASELINE de la MISMA sesión. Se contrastan agregados V0.3, NO series temporales crudas ni estudios repetidos. Cambios de absP95 del canal torque ESTIMADO no son umbrales OEM ni pruebas de fallos físicos. Se informan posición/velocidad como contexto cuando hay muestras comparables, no como prueba independiente de ejecución de órdenes.",
     "",
-    "El Dataset #002 está salvado con integridad de archivos, pero su sesión permanece OPEN. Los conteos 15000 capturados y 14912 asignados a fases están pendientes de conciliación usando el manifiesto original; la diferencia documental 88 NO significa pérdida demostrada. La variante exacta OEM y los códigos de estado requieren confirmación documental.",
+    "El Dataset #002 está salvado con integridad de archivos, pero su sesión permanece OPEN. Los frames preservados en la captura original y los asignados a fases deben reconciliarse con el manifiesto y los timestamps originales; ninguna diferencia de contadores demuestra pérdida por sí sola. La variante exacta OEM y los códigos de estado requieren confirmación documental.",
     "",
     "## Cronología y calidad por fase",""
   ];
@@ -87,7 +87,7 @@ export function buildG1EngineeringDiscussion({source,ledger,subsystems}){
     "1. Confirmar variante G1, configuración y mapeo OEM real.",
     "2. Distinguir slot RightWristYaw sin resolver de un diagnóstico de falla.",
     "3. Investigar timestamps duplicados en adquisición, normalización o almacenamiento.",
-    "4. Reconciliar 15000 vs 14912 frames con límites y timestamps de la captura original.",
+    "4. Reconciliar frames preservados frente a ventanas de fase, sin usar un denominador fijo.",
     "5. Separar comandos, respuestas SDK y movimiento verificado observacionalmente.",
     "6. Contextualizar posición, velocidad, torque estimado, unidades y cobertura por actividad.",
     "",
