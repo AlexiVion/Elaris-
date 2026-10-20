@@ -24,7 +24,7 @@ function fixture(home){
       summary:{signal:name,unit:name==="joint.position"?"rad":null,samples:10,uniqueTimestamps:10,coverage:1,quality:"INFORMATIVE",
         min:-2,p05:-1,mean:-0.5,p50:-0.4,p95:0.8,max:1,absP95:1,first:-2,last:1,delta:3}
     }])),
-    comparisonsToIdle:{"joint.torque_estimate":{absP95Delta:i+0.5}},newStateCodesVsIdle:[]
+    comparisonsToIdle:{"joint.torque_estimate":{baselineAbsP95:1,observedAbsP95:1,absP95Delta:0}},newStateCodesVsIdle:[]
   }));
   const names=["IDLE_BASELINE","WAIST_YAW","LEFT_SHOULDER_ROLL","LEFT_SHOULDER_PITCH",
     "LOCOMOTION_FORWARD_BACK","TURNING","MIXED_OPERATION","RECOVERY_IDLE"];
@@ -71,6 +71,14 @@ test("exhaustive local report builds 8 chapters, 29 dossiers, 1624 signal rows w
   const manifest=JSON.parse(readFileSync(join(out,"manifest.json"),"utf8"));
   assert.equal(manifest.phases,8);assert.equal(manifest.joints,29);assert.equal(manifest.signalRows,1624);
   assert.equal(manifest.findings,1);
+  const subsystem=JSON.parse(readFileSync(join(out,"subsystem-evidence.json"),"utf8"));
+  assert.equal(manifest.subsystemRows,21);
+  assert.equal(subsystem.rows.length,21);
+  assert.equal(subsystem.exportApproval,"NOT_APPROVED");
+  assert.ok(subsystem.rows.every(row=>row.status==="DESCRIPTIVE_COMPARISON"));
+  assert.equal(subsystem.rows.filter(row=>row.groupId==="UPPER"&&row.excludedSlots===1).length,7);
+  assert.ok(subsystem.rows.every(row=>row.largestPositive===null&&row.largestNegative===null));
+  assert.equal(readFileSync(join(out,"subsystem-evidence.csv"),"utf8").trimEnd().split("\n").length,22);
   const ledger=JSON.parse(readFileSync(join(out,"findings-ledger.json"),"utf8"));
   assert.equal(ledger.schemaVersion,"elaris-g1-findings-ledger/v01");
   assert.equal(ledger.exportApproval,"NOT_APPROVED");
@@ -95,7 +103,7 @@ test("exhaustive local report builds 8 chapters, 29 dossiers, 1624 signal rows w
   assert.match(reportHtml,/findings-ledger.json/);
   assert.match(reportHtml,/Slots no resueltos: 8/);
   assert.match(reportHtml,/<figure class="signal-plot">/);
-  assert.match(reportHtml,/Lectura por subsistema/);
+  assert.match(reportHtml,/Comparaciones entre subsistemas/);
   assert.ok(existsSync(join(out,"quality-findings.csv")));
   assert.equal(statSync(out).mode&0o777,0o700);
   assert.equal(statSync(join(out,"g1-exhaustive-report.html")).mode&0o777,0o600);
