@@ -91,6 +91,9 @@ test("exhaustive local report builds 8 chapters, 29 dossiers, 1624 signal rows w
   assert.match(reportHtml,/Lectura cuantitativa preliminar/);
   assert.match(reportHtml,/OBSERVACION NO RESUELTA/);
   assert.match(reportHtml,/A4 landscape/);
+  assert.match(reportHtml,/Hallazgos trazables para revisi.n humana/);
+  assert.match(reportHtml,/findings-ledger.json/);
+  assert.match(reportHtml,/Slots no resueltos: 8/);
   assert.match(reportHtml,/<figure class="signal-plot">/);
   assert.match(reportHtml,/Lectura por subsistema/);
   assert.ok(existsSync(join(out,"quality-findings.csv")));
