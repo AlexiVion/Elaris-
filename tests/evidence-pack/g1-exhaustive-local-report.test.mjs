@@ -156,3 +156,41 @@ test("rejects inconsistent joint identity, invalid numerical samples and mismatc
     assert.equal(existsSync(out),false,label+" should not create outputs");
   }
 });
+
+
+test("subsystem summary preserves signed changes and excludes uncertain semantics",()=>{
+  const home=join(base,"signed-subsystems");mkdirSync(home);
+  const {root,reportPath}=fixture(home);
+  mutateSyntheticPack(reportPath,report=>{
+    const turning=report.phases.find(p=>p.phaseId==="TURNING");
+    const positive=turning.components[3];
+    positive.signals["joint.torque_estimate"].summary.absP95=12;
+    positive.comparisonsToIdle["joint.torque_estimate"]={
+      baselineAbsP95:1,observedAbsP95:12,absP95Delta:11
+    };
+    const negative=turning.components[4];
+    negative.signals["joint.torque_estimate"].summary.absP95=0.5;
+    negative.comparisonsToIdle["joint.torque_estimate"]={
+      baselineAbsP95:1,observedAbsP95:0.5,absP95Delta:-0.5
+    };
+    turning.components[5].signals["joint.torque_estimate"].semanticsStatus="OEM_SEMANTICS_UNCONFIRMED";
+  });
+  const out=join(root,"signed-technical-draft");
+  const run=spawnSync(process.execPath,[SCRIPT,"--input",reportPath,"--out",out],
+    {cwd:process.cwd(),env:{...process.env,HOME:home},encoding:"utf8"});
+  assert.equal(run.status,0,run.stderr);
+  const x=JSON.parse(readFileSync(join(out,"subsystem-evidence.json"),"utf8"));
+  const legs=x.rows.find(r=>r.phaseId==="TURNING"&&r.groupId==="LEGS");
+  assert.equal(legs.expectedSlots,12);
+  assert.equal(legs.comparableSlots,11);
+  assert.equal(legs.excludedSlots,1);
+  assert.equal(legs.largestPositive.oemIndex,3);
+  assert.equal(legs.largestPositive.signedDelta,11);
+  assert.equal(legs.largestNegative.oemIndex,4);
+  assert.equal(legs.largestNegative.signedDelta,-0.5);
+  assert.equal(legs.excluded[0].oemIndex,5);
+  assert.equal(legs.excluded[0].reason,"SEMANTICS_UNCONFIRMED");
+  assert.equal(x.noDiagnostics,true);
+  assert.equal(x.humanReview,"PENDING");
+  assert.equal(x.exportApproval,"NOT_APPROVED");
+});
