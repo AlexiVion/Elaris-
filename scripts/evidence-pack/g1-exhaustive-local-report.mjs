@@ -27,7 +27,22 @@ const tab = (headers,rows) => "<table><thead><tr>"+headers.map(x=>"<th>"+esc(x)+
   rows.map(row=>"<tr>"+row.map(x=>"<td>"+esc(x)+"</td>").join("")+"</tr>").join("")+"</tbody></table>";
 const p = text => "<p>"+esc(text)+"</p>";
 const h = (level,title) => "<h"+level+">"+esc(title)+"</h"+level+">";
-const limited = (text, max=1200) => String(text||"").slice(0,max);
+const svgBars=(title,rows)=>{
+  const valid=rows.filter(r=>typeof r[1]==="number"&&Number.isFinite(r[1])&&r[1]>0).slice(0,8);
+  if(!valid.length)return p("No hay incrementos positivos medidos aptos para graficar.");
+  const max=Math.max(...valid.map(r=>r[1]));
+  const ht=78+valid.length*33;
+  const rects=valid.map((r,i)=>{
+    const y=62+i*33;
+    const w=Math.max(1,Math.round(615*r[1]/max));
+    return '<text x="18" y="'+(y+17)+'" font-size="13">'+esc(r[0])+'</text>'+
+      '<rect x="320" y="'+(y+3)+'" width="'+w+'" height="20" fill="#31618a" />'+
+      '<text x="'+(330+w)+'" y="'+(y+18)+'" font-size="12">'+fmt(r[1],4)+'</text>';
+  }).join("");
+  return '<figure class="signal-plot"><svg viewBox="0 0 1020 '+ht+'" role="img" aria-label="'+esc(title)+'">'+
+    '<text x="18" y="28" font-size="19" font-weight="bold">'+esc(title)+'</text>'+rects+
+    '</svg><figcaption>Cambios absolutos descriptivos de absP95 de torque estimado respecto de IDLE_BASELINE; no son fallas ni umbrales.</figcaption></figure>';
+};
 function fail(msg){throw new Error("G1 comprehensive local draft: "+msg);}
 function analyze(source) {
   if(!Array.isArray(source.phases) || source.phases.length!==8) fail("Expected eight observed phases");
@@ -121,6 +136,25 @@ function analyze(source) {
     p("No hay comparaciones positivas validas para mostrar."));
   section.push(p("Estos resultados son DESCRIPTIVOS y dependen del contexto operacional y la semantica del canal. No comparar como si todas las fases tuvieran la misma exigencia mecanica."));
   section.push(p("Integridad de la revision pendiente: reconciliar contador de captura frente a asignaciones por fase y validar las unidades/escala OEM antes de usar umbrales."));
+  section.push(h(2,"4.2. Lectura por subsistema: respuesta operacional, no salud"));
+  section.push(p("Para cada fase se identifica la MAYOR variacion absoluta positiva del absP95 del torque estimado en piernas (joints 0-11), cintura (12-14) y miembros superiores (15-28). Esta seleccion no cuantifica carga total ni estado del robot."));
+  const groups=[["Piernas",0,11],["Cintura",12,14],["Miembros superiores",15,28]];
+  const byGroup=[];
+  for(const phase of phases){
+    if(phase.phaseId==="IDLE_BASELINE")continue;
+    for(const [name,lo,hi] of groups){
+      const candidates=phase.components.filter(c=>c.oemIndex>=lo&&c.oemIndex<=hi)
+        .map(c=>{const a=c.comparisonsToIdle?.["joint.torque_estimate"];
+          return {c,delta:a?.absP95Delta};})
+        .filter(x=>Number.isFinite(x.delta)&&x.delta>0)
+        .sort((a,b)=>b.delta-a.delta);
+      const top=candidates[0];
+      byGroup.push([phase.phaseId,name,top?.c.componentName??"No hay incremento positivo",
+        top?fmt(top.delta):"—"]);
+    }
+  }
+  section.push(tab(["Fase","Grupo anatomico","Articulacion con mayor incremento positivo","Delta absP95"],byGroup));
+  section.push(p("La fase TURNING representa una actividad mecanicamente distinta de IDLE, por lo que aumentos de magnitud no acreditan anomalía. Los componentes y la geometria deben interpretarse con la tarea y la semantica OEM."));
   section.push(h(2,"5. Analisis detallado por fase"));
   for(const phase of phases) {
     const q=source.quality.phaseQuality.find(x=>x.phaseId===phase.phaseId)||{};
@@ -135,6 +169,13 @@ function analyze(source) {
       ["Señales de baja cobertura",q.lowCoverageSignalCount],
       ["Mediana gap frames (ms)",q.medianInterFrameGapMs],["Maximo gap frames (ms)",q.maxInterFrameGapMs]
     ]));
+    const deltas=phase.components.map(c=>({name:c.componentName,
+      delta:c.comparisonsToIdle?.["joint.torque_estimate"]?.absP95Delta}))
+      .filter(x=>Number.isFinite(x.delta)&&x.delta>0)
+      .sort((a,b)=>b.delta-a.delta);
+    if(phase.phaseId!=="IDLE_BASELINE")
+      section.push(svgBars("Variaciones del torque estimado: "+phase.phaseId,
+        deltas.slice(0,7).map(x=>[x.name,x.delta])));
     section.push(h(4,"Fingerprints de torque estimado vs reposo"));
     section.push(f.length?tab(["Joint","Idle absP95","Fase absP95","Ratio"],f.map(x=>[
       x.componentName,fmt(x.idleAbsP95),fmt(x.observedAbsP95),fmt(x.ratio)
@@ -202,7 +243,7 @@ export async function main(argv) {
   const dest=validatePrivateOutputTarget(out,root);
   const report=analyze(analysis);
   const styled="<html lang='es'><head><meta charset='utf-8'><style>"+
-    "body{font:11px/1.55 Arial,sans-serif;color:#18364f;padding:22px}h1{font-size:26px}h2{font-size:19px;color:#234f79;border-bottom:1px solid #bdd0e0;margin-top:24px}h3{font-size:15px;color:#264f6d;margin-top:22px}table{border-collapse:collapse;width:100%;font-size:9px;table-layout:fixed;margin:12px 0 18px}tr{break-inside:avoid}th,td{border-bottom:1px solid #d5dfe8;padding:4px;overflow-wrap:anywhere;text-align:left}th{background:#e7f0f8}@page{size:A4 landscape;margin:13mm}@media print{body{padding:0;font-size:10px}table{font-size:9px}th,td{padding:3px}h2,h3{break-after:avoid}}"+
+    "body{font:11px/1.55 Arial,sans-serif;color:#18364f;padding:22px}h1{font-size:26px}h2{font-size:19px;color:#234f79;border-bottom:1px solid #bdd0e0;margin-top:24px}h3{font-size:15px;color:#264f6d;margin-top:22px}table{border-collapse:collapse;width:100%;font-size:9px;table-layout:fixed;margin:12px 0 18px}tr{break-inside:avoid}th,td{border-bottom:1px solid #d5dfe8;padding:4px;overflow-wrap:anywhere;text-align:left}th{background:#e7f0f8}figure.signal-plot{max-width:1050px;margin:18px auto 20px;break-inside:avoid}figure.signal-plot svg{width:100%;height:auto;display:block}figcaption{font-size:11px;color:#394c60}@page{size:A4 landscape;margin:13mm}@media print{body{padding:0;font-size:10px}table{font-size:9px}th,td{padding:3px}h2,h3{break-after:avoid}}"+
     "</style></head><body>"+report.html+"</body></html>";
   let pdf=null;
   if(wantPdf) {
