@@ -117,4 +117,6 @@ Todo en `$HOME/elaris-private/<salida-nueva>`. No duplicar archivos G1 reales en
 | QA visual y científica de versión final | PENDIENTE |
 | Autorización de difusión del caso real | NO APROBADA |
 
-**Próxima acción autónoma:** comenzar T1 con código/tests sintéticos en esta rama. Pedir un único pase focalizado WSL cuando el cambio esté listo; sin detenerse a regenerar PDFs de datos reales durante la planificación.
+**Avance T1 (código en rama, aún NO probado en WSL):** se añadió una validación `validateReportEvidence` fail-closed para comprobar las identidades estables por OEM entre fases, las filas QA únicas, las estadísticas numéricas, la relación `uniqueTimestamps <= samples` y el rango de cobertura. Se añadieron cuatro escenarios negativos con paquetes totalmente sintéticos, incluidos fixtures independientes por fase. No se accedió a datos reales ni se abrió CI general.
+
+**Próxima acción:** ejecutar un **único** gate focalizado WSL de las pruebas del nuevo código. Sólo si pasa, regenerar borrador privado en directorio nuevo (sin autorización repetida) y continuar T2; no marcar M1 DONE por un commit no ejecutado.
