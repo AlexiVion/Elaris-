@@ -217,3 +217,14 @@ Tras el gate V3 confirmado (`5/5`, auditoría privada **224 claims / 21 subsiste
 - **Crucial:** este borrador NO es el informe científico final, NO prueba actuación física ni diagnostica el robot. Se debe revisar línea a línea según las fuentes privadas. Tampoco modifica PDF, JSON, manifest ni auditorías existentes.
 
 **Único gate pendiente:** suite focalizada WSL de Node sobre el último commit. Sólo si PASS, ejecutar el auditor sobre el mismo V0.3 y la V3 en una carpeta nueva; NO regenerar PDF ni abrir jobs múltiples. Ver runbook. No marcar M4a DONE sin revisión técnica.
+
+## Gate confirmado y protocolo de cierre científico — 20/10/2026
+
+**Verificado por ejecución WSL del operador al commit `99f365e`:**
+- Suite sintética focalizada: **5 PASS / 0 FAIL**.
+- Auditoría privada del V0.3 y V3: **PASS**, 224 claims y 21 comparaciones por subsistema.
+- Borrador técnico privado producido correctamente en `g1-review-audit-20261020-v03/engineering-discussion-draft.md`: 21 apartados de ingeniería, todos con estado de revisión humana pendiente. **No rehacer esta generación por rutina.**
+
+**Nuevo entregable documental:** [G1_SCIENTIFIC_REVIEW_AND_TECHNICAL_CLOSURE_V1.md](G1_SCIENTIFIC_REVIEW_AND_TECHNICAL_CLOSURE_V1.md). Establece verificación científica por bloques: adquisición/integridad, semántica OEM, comparaciones operativas, interpretación con alternativas y acciones, revisión editorial. Distingue `CLOSED_WITH_EVIDENCE`, `OPEN_WITH_LIMITATION`, `DESCRIPTIVE_ONLY` y `NOT_ASSESSED`. No inventa inferencias, permisos ni revisión humana. Sólo metodología en GitHub.
+
+**Estado de los hitos:** M1, M2 y primera implementación M3 / borrador M4a pasan gates automatizados. M4 final y M5 científico **NO CERRADOS**: hace falta revisión competente del texto, de señales y del contrato de cada afirmación antes de generar un documento definitivo. Mantener V3 y las auditorías anteriores inmutables. No programar sucesivos PDFs por rutina ni reclamar otro PASS sin nuevo código.
