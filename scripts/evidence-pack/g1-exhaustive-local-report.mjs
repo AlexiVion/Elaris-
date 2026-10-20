@@ -6,6 +6,7 @@ import { homedir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { inspectPack, validatePrivateOutputTarget, resolvePlaywrightChromium } from "./g1-private-draft.mjs";
+import { buildG1FindingsLedger } from "./g1-report-findings.mjs";
 
 const PRIVATE_ROOT = join(homedir(), "elaris-private");
 const SIGNALS = [
@@ -323,6 +324,7 @@ export async function main(argv) {
   const {analysis,digest}=inspectPack(input,root);
   const dest=validatePrivateOutputTarget(out,root);
   const report=analyze(analysis);
+  const findingsLedger=buildG1FindingsLedger(analysis,digest);
   const styled="<html lang='es'><head><meta charset='utf-8'><style>"+
     "body{font:11px/1.55 Arial,sans-serif;color:#18364f;padding:22px}h1{font-size:26px}h2{font-size:19px;color:#234f79;border-bottom:1px solid #bdd0e0;margin-top:24px}h3{font-size:15px;color:#264f6d;margin-top:22px}table{border-collapse:collapse;width:100%;font-size:9px;table-layout:fixed;margin:12px 0 18px}tr{break-inside:avoid}th,td{border-bottom:1px solid #d5dfe8;padding:4px;overflow-wrap:anywhere;text-align:left}th{background:#e7f0f8}figure.signal-plot{max-width:1050px;margin:18px auto 20px;break-inside:avoid}figure.signal-plot svg{width:100%;height:auto;display:block}figcaption{font-size:11px;color:#394c60}@page{size:A4 landscape;margin:13mm}@media print{body{padding:0;font-size:10px}table{font-size:9px}th,td{padding:3px}h2,h3{break-after:avoid}}"+
     "</style></head><body>"+report.html+"</body></html>";
@@ -337,6 +339,7 @@ export async function main(argv) {
   mkdirSync(dest,{mode:0o700});
   const files={
     "g1-exhaustive-report.html":styled,
+    "findings-ledger.json":JSON.stringify(findingsLedger,null,2)+"\n",
     "component-signals.csv":csv([["oemIndex","componentId","componentName","phaseId","slotStatus","availability",
       "signal","semanticsStatus","unit","samples","uniqueTimestamps","coverage","quality","min","p05","mean","p50","p95",
       "max","absP95","first","last","delta","stateCodes","transitions","idleMean","observedMean","meanDelta","idleP95",
@@ -351,7 +354,8 @@ export async function main(argv) {
     analysisId:analysis.run.analysisId,classification:"SENSITIVE",
     exportApproval:"NOT_APPROVED",ownerAuthorizationAsserted:false,
     shareStatus:"LOCAL_ONLY",phases:analysis.phases.length,joints:29,signalRows:report.signalRows.length,
-    findings:report.findingRows.length,phaseAllocatedFrames:report.totalFrames,outputs:{}};
+    findings:report.findingRows.length,structuredClaims:findingsLedger.items.length,
+    humanReview:"PENDING",phaseAllocatedFrames:report.totalFrames,outputs:{}};
   if(pdf)files["g1-exhaustive-report.pdf"]=pdf;
   for(const [name,bytes] of Object.entries(files)){
     const buffer=Buffer.isBuffer(bytes)?bytes:Buffer.from(bytes,"utf8");
@@ -361,6 +365,7 @@ export async function main(argv) {
   writeFileSync(join(dest,"manifest.json"),JSON.stringify(manifest,null,2)+"\n",{mode:0o600,flag:"wx"});
   console.log("G1 EXHAUSTIVE LOCAL DRAFT CREATED (SENSITIVE / NO EXPORT)");
   console.log("Phases:",manifest.phases,"Joints:",manifest.joints,"Signal rows:",manifest.signalRows,"QA findings:",manifest.findings);
+  console.log("Findings ledger:",manifest.structuredClaims,"claims pending human review");
   console.log("Private output:",dest);
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)
