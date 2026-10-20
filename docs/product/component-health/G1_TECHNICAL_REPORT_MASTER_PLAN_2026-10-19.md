@@ -150,3 +150,18 @@ El operador actualizó la rama a `b35c97b` y ejecutó el gate focalizado con `no
 Se genera `subsystem-evidence.json` y `subsystem-evidence.csv` **solo bajo la carpeta privada local**, y el PDF reemplaza la vieja tabla que seleccionaba máximos sin descartar correctamente semántica no confirmada. Se amplió el test sintético para comprobar comparaciones 21/21, exclusión del slot OEM no resuelto, cambios positivos y negativos ficticios y salida sin diagnósticos.
 
 **Gate pendiente:** en WSL ejecutar una sola suite focalizada (4 tests esperados), comprobar que el análisis real produce 21 filas además de 8 fases / 29 slots / 1.624 filas y que ningún slot no resuelto se trate como comparable; generar un PDF V3 en directorio nuevo y hacer control de cifras y legibilidad. No marcar M3 DONE hasta revisar resultados reales.
+
+## Incidencia de gate V3 y corrección de código — 20/10/2026
+
+**Evidencia recibida del operador:**
+- Actualización de la rama a `9cc567b`.
+- `node --check` de los tres módulos: sin errores informados.
+- Suite focalizada **3 PASS / 1 FAIL**. La falla estaba en una aserción de prueba que exigía un elemento SVG aun cuando el fixture tenía todas las diferencias de torque estimado en cero. El renderer muestra correctamente «No hay incrementos positivos medidos aptos para graficar» en ese caso.
+- Generación privada real **V3 PASS** en WSL (nuevo PDF y anexos): 8 fases, 29 articulaciones, 1.624 filas de señales, 1.615 registros QA, 224 claims pendientes de revisión humana y 21 comparaciones por subsistema. **NO constituye revisión técnica ni autorización de exportación.**
+
+**Correcciones preparadas posteriormente al gate:**
+1. La prueba sin incrementos exige la nota explícita y que no se fabrique SVG. El fixture con incremento positivo sí exige SVG y verifica que no graficamos una señal con semántica no confirmada.
+2. Los gráficos y la selección de incrementos ahora utilizan únicamente las comparaciones elegibles del análisis de subsistemas (observación, señal normalizada, cobertura y referencia intra-sesión).
+3. Se eliminó el número fijo de 15.000 frames del PDF generado automáticamente: en el fixture sintético provocaba un falso `14172` de diferencia. La reconciliación real 15.000 vs. 14.912 se mantiene como cuestión documental a resolver con las fuentes originales y el manifest, no como una resta universal del motor.
+
+**Estado:** V3 real generado; suite V3 anterior falló 1 aserción; fixes commiteados pero **no ejecutados aún en WSL**. La próxima acción es solamente `git pull --ff-only` + una suite focalizada. No regenerar la V3 para probar un assert. Posteriormente revisar y cerrar el ledger de 224 afirmaciones en privado, y recién entonces regenerar una versión siguiente.
