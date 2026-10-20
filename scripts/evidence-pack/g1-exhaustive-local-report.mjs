@@ -166,8 +166,9 @@ function analyze(source) {
     if(comparable.length&&unresolved===0){
       comparable.sort((a,b)=>b.delta-a.delta);
       const peak=comparable[0];
-      section.push(p("COMPARACION DESCRIPTIVA: mayor incremento de absP95 en torque estimado frente a reposo durante "+
-        peak.phase+" (diferencia "+fmt(peak.delta)+", absP95 de fase "+fmt(peak.level)+
+      const direction=peak.delta>0?"mayor incremento":peak.delta===0?"sin incremento positivo":"diferencia menos negativa";
+      section.push(p("COMPARACION DESCRIPTIVA: "+direction+" de absP95 en torque estimado frente a reposo durante "+
+        peak.phase+" (diferencia con signo "+fmt(peak.delta)+", absP95 de fase "+fmt(peak.level)+
         "). No es indice de desgaste, alarma ni calidad de movimiento."));
     }
     section.push(p("Resultados completos por canal (min/p05/p50/max/first/last/state-code) en component-signals.csv. Datos ausentes no se convierten en cero."));
